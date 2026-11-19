@@ -12,7 +12,7 @@ const cl = (v, a, b) => Math.max(a, Math.min(b, v));
 const TAU = Math.PI * 2;
 const pickOne = a => a[(Math.random() * a.length) | 0];
 const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-const ICO = { STR: 'icons/str.svg', AGI: 'icons/agi.svg', BRN: 'icons/brn.svg', DATA: 'icons/data.svg' };
+const ICO = { STR: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NyIgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjQiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjI4IiBzdHJva2Utd2lkdGg9IjEuNSIvPjxnIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSI0MCIgY3k9IjMwIiByPSI5IiBzdHJva2U9Im5vbmUiLz48cGF0aCBkPSJNNDAgMzhMMzMgNjIiIHN0cm9rZS13aWR0aD0iMTIiLz48cGF0aCBkPSJNMzMgNjRMNjYgNjIiIHN0cm9rZS13aWR0aD0iMTIiLz48ZWxsaXBzZSBjeD0iNTIiIGN5PSI0OCIgcng9IjE1IiByeT0iMTAuNSIgdHJhbnNmb3JtPSJyb3RhdGUoLTI4IDUyIDQ4KSIgc3Ryb2tlPSJub25lIi8+PHBhdGggZD0iTTYwIDYybDctOSIgc3Ryb2tlLXdpZHRoPSIxMCIvPjwvZz48cGF0aCBkPSJNNDMgNDFjNiAxIDExIDUgMTIgMTEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIyLjQiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLW9wYWNpdHk9Ii43NSIvPjxwYXRoIGQ9Ik0zNiAzMGg4IiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utb3BhY2l0eT0iLjciLz48L3N2Zz4=', AGI: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NyIgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjQiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjI4IiBzdHJva2Utd2lkdGg9IjEuNSIvPjxnIHN0cm9rZT0iI2ZmZiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjYiPjxjaXJjbGUgY3g9IjU4IiBjeT0iMjUiIHI9IjYiIGZpbGw9IiNmZmYiIHN0cm9rZT0ibm9uZSIvPjxwYXRoIGQ9Ik01MiAzNmwtOCAxNCAxMiA4LTQgMTYiLz48cGF0aCBkPSJNNTIgMzZsMTIgNiA4LTUiLz48cGF0aCBkPSJNNDggNDJsLTEyIDQtNCAxMCIvPjxwYXRoIGQ9Ik00NCA1MGwtMTQgMTQiLz48L2c+PGcgc3Ryb2tlPSIjZmZmIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9Ii42Ij48cGF0aCBkPSJNMTggNDBoMTJNMTQgNTBoMTBNMjAgNjBoOCIvPjwvZz48L3N2Zz4=', BRN: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NyIgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjQiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjI4IiBzdHJva2Utd2lkdGg9IjEuNSIvPjxnIHN0cm9rZT0iI2ZmZiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjQiPjxwYXRoIGQ9Ik01MCAyNmMtNS01LTE1LTMtMTggMy02IDEtOSA4LTYgMTMtNCA0LTMgMTEgMiAxNCAwIDYgNiAxMCAxMiA4IDMgMyA4IDMgMTAgMCIvPjxwYXRoIGQ9Ik01MCAyNmM1LTUgMTUtMyAxOCAzIDYgMSA5IDggNiAxMyA0IDQgMyAxMS0yIDE0IDAgNi02IDEwLTEyIDgtMyAzLTggMy0xMCAwIi8+PHBhdGggZD0iTTUwIDI2djQyIi8+PC9nPjxnIHN0cm9rZT0iI2ZmZiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1vcGFjaXR5PSIuOCI+PHBhdGggZD0iTTMyIDQyYzUgMCA4IDMgMTAgN002OCA0MmMtNSAwLTggMy0xMCA3TTM2IDU4YzQtMiA4LTEgMTEgMk02NCA1OGMtNC0yLTgtMS0xMSAyIi8+PC9nPjwvc3ZnPg==', DATA: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NyIgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjQiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjI4IiBzdHJva2Utd2lkdGg9IjEuNSIvPjxnIHN0cm9rZT0iI2ZmZiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjMuNSI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMjUiLz48bGluZSB4MT0iODAuMDAiIHkxPSI1MC4wMCIgeDI9Ijg2LjAwIiB5Mj0iNTAuMDAiLz48bGluZSB4MT0iNzUuOTgiIHkxPSI2NS4wMCIgeDI9IjgxLjE4IiB5Mj0iNjguMDAiLz48bGluZSB4MT0iNjUuMDAiIHkxPSI3NS45OCIgeDI9IjY4LjAwIiB5Mj0iODEuMTgiLz48bGluZSB4MT0iNTAuMDAiIHkxPSI4MC4wMCIgeDI9IjUwLjAwIiB5Mj0iODYuMDAiLz48bGluZSB4MT0iMzUuMDAiIHkxPSI3NS45OCIgeDI9IjMyLjAwIiB5Mj0iODEuMTgiLz48bGluZSB4MT0iMjQuMDIiIHkxPSI2NS4wMCIgeDI9IjE4LjgyIiB5Mj0iNjguMDAiLz48bGluZSB4MT0iMjAuMDAiIHkxPSI1MC4wMCIgeDI9IjE0LjAwIiB5Mj0iNTAuMDAiLz48bGluZSB4MT0iMjQuMDIiIHkxPSIzNS4wMCIgeDI9IjE4LjgyIiB5Mj0iMzIuMDAiLz48bGluZSB4MT0iMzUuMDAiIHkxPSIyNC4wMiIgeDI9IjMyLjAwIiB5Mj0iMTguODIiLz48bGluZSB4MT0iNTAuMDAiIHkxPSIyMC4wMCIgeDI9IjUwLjAwIiB5Mj0iMTQuMDAiLz48bGluZSB4MT0iNjUuMDAiIHkxPSIyNC4wMiIgeDI9IjY4LjAwIiB5Mj0iMTguODIiLz48bGluZSB4MT0iNzUuOTgiIHkxPSIzNS4wMCIgeDI9IjgxLjE4IiB5Mj0iMzIuMDAiLz48L2c+PHBhdGggZD0iTTU0IDMwTDM4IDU0aDEwbC00IDE3IDE4LTI2SDUxeiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==' }; /* inlined so the stat icons can never go missing */
 const SHORT = { STR: 'Strength', AGI: 'Agility', BRN: 'Brains', DATA: 'DATA' };
 
 let G = null, loopId = 0;
@@ -418,12 +418,18 @@ function notchHover(w, e, r) {
   const nn = bd < lim ? best : null;
   if (nn !== hovN) { if (hovN) hovN.classList.remove('hov'); if (nn) nn.classList.add('hov'); hovN = nn; }
 }
+function nearestNotch(w, e, lim) {
+  const card = w.querySelector('.card'); if (!card) return null; const r = w.getBoundingClientRect(), cw = card.offsetWidth;
+  const px = (e.clientX - r.left) / r.width * 100, py = (e.clientY - r.top) / r.width * 100; let best = null, bd = 1e9;
+  $$('.notch', w).forEach(n => { const cx = (n.offsetLeft + n.offsetWidth / 2) / cw * 100, cy = (n.offsetTop + n.offsetHeight / 2) / cw * 100 - 3, d = Math.hypot(px - cx, py - cy); if (d < bd) { bd = d; best = n; } });
+  return bd < lim ? best : null;
+}
 function notchHoverOff() { if (hovN) { hovN.classList.remove('hov'); hovN = null; } }
 let tw = null, tcard = null, tgt = { x: 0, y: 0 }, cur = { x: 0, y: 0 }, tRaf = 0, tOut = 0;
 function tiltApply() {
   const c = tcard; if (!c) { tRaf = 0; return; }
   cur.x += (tgt.x - cur.x) * 0.22; cur.y += (tgt.y - cur.y) * 0.22;
-  c.style.setProperty('--ry', (cur.x * 13).toFixed(2) + 'deg'); c.style.setProperty('--rx', (-cur.y * 13).toFixed(2) + 'deg');
+  c.style.setProperty('--ry', (cur.x * 6).toFixed(2) + 'deg'); c.style.setProperty('--rx', (-cur.y * 6).toFixed(2) + 'deg');
   c.style.setProperty('--gx', ((cur.x + 0.5) * 100).toFixed(0) + '%'); c.style.setProperty('--gy', ((cur.y + 0.5) * 100).toFixed(0) + '%');
   const done = !tw && Math.abs(cur.x) < 0.004 && Math.abs(cur.y) < 0.004;
   if (done) { ['--rx', '--ry'].forEach(p => c.style.removeProperty(p)); c.classList.remove('tilting'); tcard = null; tRaf = 0; return; }
@@ -490,7 +496,8 @@ function hideTip() { $('#tip').classList.remove('on'); UI.tipFor = null; }
 /* =========================================================
    Hint / tray helpers
    ========================================================= */
-function hintSet(title, sub) { $('#hint').innerHTML = title ? `<b>${title}</b>${sub || ''}` : ''; }
+function hintSet(title, sub) { $('#hint').innerHTML = title ? `<b>${title}</b>${sub || ''}` : ''; syncBack(); }
+function syncBack() { const b = document.getElementById('btnBack'); if (!b) return; if (UI.sel && ['sel', 'abil', 'const', 'place', 'plot'].indexOf(UI.mode) >= 0) b.classList.add('on'); else b.classList.remove('on'); }
 function setTray(...n) { const k = n.filter(Boolean); if (k.length) showPod(k); else hidePod(); }
 function hidePod() { $$('#podlayer .fpod').forEach(x => x.remove()); $('#dimmer').classList.remove('on'); }
 function showPod(nodes) {
@@ -531,7 +538,7 @@ function goIdle() {
   const prev = UI.sel; UI.sel = null; UI.pv = null; UI.mode = 'idle';
   $$('.notch').forEach(n => { n.classList.remove('lit'); n.tabIndex = -1; });
   if (prev && cards[prev.uid]) paint(cards[prev.uid].wrap, prev);
-  setTray(); hintSet('Your move', 'Tap an agent to pick it. It gets +1 on every stat, then acts once.');
+  setTray(); syncBack(); hintSet('Your move', 'Tap an agent to pick it. It gets +1 on every stat, then acts once.');
 }
 function backToSel() {
   UI.allyFn = null; UI.allySelf = false;
@@ -578,7 +585,8 @@ async function commit(act) {
 }
 
 /* ---------- board input ---------- */
-let suppressClick = false;
+let suppressClick = false, downCard = null;
+document.addEventListener('pointerdown', e => { const w = e.target.closest && e.target.closest('#board .cardwrap:not(.clone)'); downCard = w ? { w, x: e.clientX, y: e.clientY, t: performance.now(), n: e.target.closest('.notch') } : null; }, true);
 function onBoardClick(e) {
   if (suppressClick) return;
   if (e.target.closest('.pod, .statpick')) return;
@@ -586,8 +594,10 @@ function onBoardClick(e) {
     const bx = $('.ablist'); if (bx) { const r = bx.getBoundingClientRect(), m = 10; if (e.clientX >= r.left - m && e.clientX <= r.right + m && e.clientY >= r.top - m && e.clientY <= r.bottom + m) return; }
     if (performance.now() - (UI.abilT || 0) < 650) return;
   }
-  const w = e.target.closest('.cardwrap:not(.clone)');
-  if (w && cards[w.dataset.uid]) { const n = e.target.closest('.notch') || (hovN && w.contains(hovN) ? hovN : null); return onCardTap(cards[w.dataset.uid].unit, n && n.dataset.k, e); }
+  let w = e.target.closest('.cardwrap:not(.clone)'), dn = null;
+  if (downCard && performance.now() - downCard.t < 900 && Math.hypot(e.clientX - downCard.x, e.clientY - downCard.y) < 16 && !e.target.closest('.rs')) { if (downCard.w !== w) w = downCard.w; dn = downCard.n; }
+  if (w && cards[w.dataset.uid]) { let n = (dn && w.contains(dn) ? dn : null) || e.target.closest('.notch') || (hovN && w.contains(hovN) ? hovN : null);
+    if (!n && cards[w.dataset.uid].unit === UI.sel && ['sel', 'abil', 'const'].includes(UI.mode)) n = nearestNotch(w, e, 21); /* a tap near a corner counts as that notch, not as an inspect */ return onCardTap(cards[w.dataset.uid].unit, n && n.dataset.k, e); }
   const rs = e.target.closest('.rs'); if (rs) return onRailTap(+rs.dataset.slot);
   onEmptyTap();
 }
@@ -602,10 +612,10 @@ function onCardTap(u, k, e) {
     case 'target': if (u.side === 1) return targetPicked(u); break;
     case 'ally': if (u.side === 0 && u.alive && (u !== UI.sel || UI.allySelf)) return allyPicked(u); break;
     case 'idle': case 'sel': case 'abil': case 'const': case 'place':
-      if (u.side === 0 && u.alive) { if (u === UI.sel && k) return notchAct(u, k, e); if (u === UI.sel) return showInspect(u); return selectAgent(u); }
+      if (u.side === 0 && u.alive) { if (u === UI.sel && k) return notchAct(u, k, e); if (u === UI.sel) return showInspect(u); if (UI.sel) { sfx('tick'); return toast('Hit BACK first to pick a different agent.'); } return selectAgent(u); }
       return showInspect(u);
     case 'plot': return;
-    default: if (!['busy', 'boot', 'arrange'].includes(UI.mode)) showInspect(u);
+    default: if (!['boot', 'arrange'].includes(UI.mode)) showInspect(u);
   }
 }
 function onRailTap(slot) {
@@ -795,9 +805,10 @@ const svgIcon = id => `<svg viewBox="0 0 24 24" fill="currentColor" stroke="curr
 function closeAbil() { $$('.ablist').forEach(x => x.remove()); $$('.slot.top').forEach(x => x.classList.remove('top')); $('#board').classList.remove('deep'); UI.armed = null; }
 function openAbil(u) {
   closeMenus(); UI.mode = 'abil'; UI.armed = null;
-  const d = DEFS[u.key], slot = cards[u.uid].slot, right = u.slot < 2;
+  const d = DEFS[u.key], slot = cards[u.uid].slot;
   slot.classList.add('top'); $('#board').classList.add('deep'); UI.abilT = performance.now();
-  const box = el('div', 'ablist ' + (right ? 'r' : 'l')); box.setAttribute('role', 'menu');
+  const sr = slot.getBoundingClientRect(), side = (sr.left + sr.width / 2) < window.innerWidth / 2 ? 'r' : 'l';
+  const box = el('div', 'ablist ' + side); box.setAttribute('role', 'menu');
   d.abilities.forEach((ab0, i) => {
     const ab = E.abilityView(u, ab0), st = E.abilityState(u, ab.id), needs = ab.target === 'none' && ab.id !== 'enki';
     const cost = ab.cost === 'X' ? 'X DATA' : (ab.id === 'fp' ? 'ALL DATA' : ab.cost === 0 ? 'FREE' : ab.cost + ' DATA');
@@ -813,10 +824,10 @@ function openAbil(u) {
     });
     box.appendChild(b);
   });
-  box.addEventListener('click', e => e.stopPropagation());
+  box.addEventListener('click', e => e.stopPropagation()); box.addEventListener('pointerdown', e => e.stopPropagation());
   slot.appendChild(box);
-  camEl(slot, { panX: right ? 0.18 : 0.82, sc: 1.5, free: true, rx: 9 });
-  hintSet('DATA', 'Pick an ability. Tap empty space to go back.');
+  camEl(slot, { panX: side === 'r' ? 0.26 : 0.74, sc: 1.3, free: true, rx: 9, cy: 0.42 });
+  hintSet('DATA', 'Pick an ability, or hit Back.');
 }
 function useAbility(u, ab) {
   $$('.abil').forEach(b => b.classList.add('out'));
@@ -1481,6 +1492,7 @@ function showArrange() {
   draw();
 }
 function showOver() {
+  liveSet(false);
   const w = G.winner, ov = $('#over'), win = w === 0;
   ov.innerHTML = `<div class="verdict ${win ? 'win' : 'lose'}"><h1>${w === -1 ? 'Stalemate' : win ? 'Victory' : 'Defeat'}</h1><p>${w === -1 ? 'Nobody could finish it.' : win ? 'Every enemy agent is down.' : 'Your squad was wiped out.'} Round ${Math.ceil(G.turnNo / 2)}.</p>
     <div class="btnrow" style="max-width:380px;margin:16px auto 0"><button class="btn" type="button" id="oOrder">${ONL ? 'Leave' : 'Squad order'}</button><button class="btn primary" type="button" id="oAgain">Rematch</button></div></div>`;
@@ -1494,8 +1506,40 @@ function showOver() {
    Online duels (peer to peer; both phones run the same rules)
    ========================================================= */
 let ONL = null;
+const BANK = 'anomex-ban', LIVEK = 'anomex-live', BAN_MS = 5 * 60 * 1000;
+const banLeft = () => { try { return Math.max(0, (+localStorage.getItem(BANK) || 0) - Date.now()); } catch (e) { return 0; } };
+const setBan = () => { try { localStorage.setItem(BANK, String(Date.now() + BAN_MS)); } catch (e) { /* private mode */ } };
+const liveSet = on => { try { if (on) localStorage.setItem(LIVEK, String(Date.now())); else localStorage.removeItem(LIVEK); } catch (e) { /* private mode */ } };
+const fmtT = ms => { const s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+/* closing or refreshing the page in the middle of an online match counts as a forfeit */
+try { if (localStorage.getItem(LIVEK)) { liveSet(false); setBan(); } } catch (e) { /* ok */ }
+function endScreen(cls, title, text) {
+  const ov = $('#over'); ov.innerHTML = `<div class="verdict ${cls}"><h1>${title}</h1><p>${text}</p><div class="btnrow" style="max-width:380px;margin:16px auto 0"><button class="btn primary" type="button" id="oOrder">Back to squad</button></div></div>`;
+  ov.classList.add('on'); $('#oOrder').onclick = () => { ov.classList.remove('on'); leaveOnline(); showArrange(); };
+}
+function forfeitMatch() {
+  if (!ONL || !ONL.playing || ONL.ended) return;
+  ONL.ended = true; Net.send({ t: 'forfeit' }); setBan(); liveSet(false); loopId++; closeMenus(); stopHint(); $('#panel').classList.remove('on');
+  endScreen('lose', 'Forfeited', "You left the match, so you can't play online for 5 minutes.");
+}
+function quitToSquad() { loopId++; closeMenus(); stopHint(); $('#panel').classList.remove('on'); $('#over').classList.remove('on'); showArrange(); }
+function showOptions() {
+  const live = !!(G && !G.over && !$('#arrange').classList.contains('on') && !(ONL && ONL.ended));
+  const online = !!(ONL && ONL.playing);
+  showPanel(`<h2>Options</h2><div class="btnrow col opts"><button class="btn" type="button" id="opRules">Rules</button><button class="btn" type="button" id="opLog">Log</button><button class="btn" type="button" id="opTune">Tune</button><button class="btn" type="button" id="opSnd"></button></div>
+    ${live ? `<h3 class="opth">Match</h3><div class="btnrow col opts"><button class="btn danger" type="button" id="opLeave">${online ? 'Forfeit match' : 'Quit to squad'}</button></div><p class="note">${online ? "You lose the match and can't play online for 5 minutes." : 'Ends this duel. Nothing is lost.'}</p>` : ''}
+    <div class="btnrow"><button class="btn primary pclose" type="button">Close</button></div><p class="note" style="text-align:center;margin-top:14px">Version ${E.VERSION}</p>`, p => {
+    const snd = $('#opSnd', p), sy = () => { snd.textContent = 'Sound: ' + (prefs.sfx ? 'On' : 'Off'); };
+    sy(); snd.onclick = () => { prefs.sfx = !prefs.sfx; savePrefs(); sy(); if (prefs.sfx) sfx('tick'); };
+    $('#opRules', p).onclick = () => { sfx('tick'); showRules(); }; $('#opLog', p).onclick = () => { sfx('tick'); showLog(); }; $('#opTune', p).onclick = () => { sfx('tick'); showTune(); };
+    const lv = $('#opLeave', p); if (lv) { let arm = 0; lv.onclick = () => {
+      if (!arm) { sfx('tick'); lv.textContent = online ? 'Sure? Tap again to forfeit' : 'Sure? Tap again to quit'; lv.classList.add('arm'); arm = setTimeout(() => { arm = 0; lv.classList.remove('arm'); lv.textContent = online ? 'Forfeit match' : 'Quit to squad'; }, 3000); return; }
+      clearTimeout(arm); if (online) forfeitMatch(); else quitToSquad();
+    }; }
+  });
+}
 const hashStr = t => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
-const defsSig = () => hashStr(JSON.stringify(Object.keys(DEFS).map(k => [k, DEFS[k].stats, DEFS[k].hp, DEFS[k].rest, DEFS[k].cost, DEFS[k].abilities.map(a => a.id + ':' + a.cost)])));
+const defsSig = () => hashStr(E.VERSION + JSON.stringify(Object.keys(DEFS).map(k => [k, DEFS[k].stats, DEFS[k].hp, DEFS[k].rest, DEFS[k].cost, DEFS[k].abilities.map(a => a.id + ':' + a.cost)])));
 const wrapDec = fn => async (...a) => { const r = await fn(...a); if (ONL) { if (DBG) console.log('DEC out', JSON.stringify(Net.encode(r))); Net.send({ t: 'dec', d: Net.encode(r) }); } return r; };
 async function remoteDec() {
   UI.mode = 'busy'; setTray(); hintSet('Friend', 'Deciding how to respond...');
@@ -1513,13 +1557,13 @@ function syncCheck(n) {
   delete ONL.loc[n]; delete ONL.rem[n];
 }
 function onlineLost() {
-  if (!ONL) return; const dead = ONL; loopId++; closeMenus(); stopHint();
+  if (!ONL || ONL.ended) return; liveSet(false); const dead = ONL; loopId++; closeMenus(); stopHint();
   if (G && G.over) return;
   const ov = $('#over'); ov.innerHTML = `<div class="verdict lose"><h1>Disconnected</h1><p>Your friend left or the connection dropped.</p><div class="btnrow" style="max-width:380px;margin:16px auto 0"><button class="btn primary" type="button" id="oOrder">Back to squad</button></div></div>`;
   ov.classList.add('on'); $('#oOrder').onclick = () => { ov.classList.remove('on'); leaveOnline(); showArrange(); };
   void dead;
 }
-function leaveOnline() { try { Net.reset(); } catch (e) { /* closed */ } if (ONL && ONL.cfg0) Object.assign(CFG, ONL.cfg0); ONL = null; Net.onState = () => {}; }
+function leaveOnline() { liveSet(false); try { Net.reset(); } catch (e) { /* closed */ } if (ONL && ONL.cfg0) Object.assign(CFG, ONL.cfg0); ONL = null; Net.onState = () => {}; }
 function rematchAsk() {
   ONL.me = true; Net.send({ t: 'rematch' }); const b = $('#oAgain'); if (b) { b.disabled = true; b.textContent = 'Waiting for friend...'; }
   rematchTry();
@@ -1532,7 +1576,7 @@ function hostStart() {
 }
 function beginOnline(hostFirst) {
   const myFirst = ONL.role === 'host' ? hostFirst : !hostFirst;
-  ONL.n = 0; ONL.loc = {}; ONL.rem = {}; ONL.me = ONL.them = false; ONL.playing = true; $('#onl').classList.remove('on'); $('#over').classList.remove('on');
+  ONL.n = 0; ONL.loc = {}; ONL.rem = {}; ONL.me = ONL.them = false; ONL.playing = true; ONL.ended = false; liveSet(true); $('#onl').classList.remove('on'); $('#over').classList.remove('on');
   startGame(['human', 'remote'], { opp: ONL.opp, first: myFirst ? 0 : 1 });
   toast(myFirst ? 'You go first.' : 'Your friend goes first.');
 }
@@ -1541,12 +1585,12 @@ function showOnline() {
   const body = (h, f) => { ov.innerHTML = `<div class="inner onl">${h}</div>`; f && f(); };
   const menu = () => {
     leaveOnline();
-    body(`<h2>Online duel</h2><p class="blurb">Play a friend on another phone. One of you makes an invite code, the other types it in. You both use the squad you've built.</p>
+    body(`<h2>Online duel</h2><p class="blurb">Play a friend on another phone. One of you makes an invite code, the other types it in. You both pick a squad once you're connected.</p>${banLeft() ? '<p class="warn">Online cooldown: ' + fmtT(banLeft()) + ' left, because you left a match early.</p>' : ''}
       <div class="btnrow col"><button class="btn primary" type="button" id="nHost">Make invite code</button><button class="btn" type="button" id="nJoin">I have a code</button><button class="btn ghost" type="button" id="nBack">Back</button></div>${Net.ok ? '' : '<p class="warn">Online play could not load here.</p>'}`, () => {
       $('#nBack').onclick = () => ov.classList.remove('on'); $('#nHost').onclick = host; $('#nJoin').onclick = join; if (!Net.ok) { $('#nHost').disabled = true; $('#nJoin').disabled = true; }
     });
   };
-  const gate = () => true;
+  const gate = () => { const b = banLeft(); if (b > 0) { toast('Online cooldown: ' + fmtT(b) + ' left.'); return false; } return true; };
   const lobby = () => {
     if (!ONL) return; ONL.playing = false; ONL.lobby = lobby; ov.classList.add('on');
     const vs = E.validSquad(teamOf()), cost = E.squadCost(teamOf()), rd = !!ONL.mine, st = ONL.opp ? 'Your friend is ready.' : 'Your friend is choosing a squad...';
@@ -1572,7 +1616,7 @@ function showOnline() {
     ONL = { role, opp: null, mine: null, playing: false, cfg0: Object.assign({}, CFG) };
     Net.onState = (st, why) => {
       if (st === 'open') Net.send({ t: 'hello', sig: defsSig() });
-      else if (st === 'lost') { if (ONL && ONL.playing) { if (G && !G.over) onlineLost(); } else { ov.classList.add('on'); toast('Connection lost.'); menu(); } }
+      else if (st === 'lost') { if (ONL && ONL.playing) { if (G && !G.over && !ONL.ended) onlineLost(); } else { ov.classList.add('on'); toast('Connection lost.'); menu(); } }
     };
     Net.on('hello', m => {
       if (m.sig !== defsSig()) { Net.send({ t: 'reject', why: 'Different game versions. Both of you reload the page.' }); ov.classList.add('on'); toast('Different game versions. Both of you reload the page.'); menu(); return; }
@@ -1583,6 +1627,7 @@ function showOnline() {
       if (!vs.ok) { Net.send({ t: 'reject', why: 'Their squad is not legal: ' + vs.reason }); ov.classList.add('on'); toast('Their squad is not legal.'); menu(); return; }
       ONL.opp = m.squad.slice(); if (ONL.lobby && !ONL.playing && !ONL.starting) ONL.lobby(); tryStart();
     });
+    Net.on('forfeit', () => { if (!ONL || !ONL.playing || ONL.ended) return; ONL.ended = true; loopId++; closeMenus(); stopHint(); liveSet(false); $('#panel').classList.remove('on'); sfx('win'); endScreen('win', 'Victory', 'Your friend forfeited.'); });
     Net.on('unready', () => { if (!ONL || ONL.starting) return; ONL.opp = null; if (ONL.lobby && !ONL.playing) ONL.lobby(); });
     Net.on('lobby', () => { if (!ONL) return; ONL.mine = null; ONL.opp = null; ONL.starting = false; ONL.me = ONL.them = false; $('#over').classList.remove('on'); closeMenus(); loopId++; lobby(); });
     Net.on('reject', m => { toast(m.why || 'Rejected'); menu(); });
@@ -1674,9 +1719,9 @@ function boot() {
   sizeCanvas(); requestAnimationFrame(frame);
   window.addEventListener('resize', () => { sizeCanvas(); fit(); if (UI.sel && UI.camOn && UI.mode === 'sel') camEl(cards[UI.sel.uid].slot); });
   if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage'));
-  { const bk = $('#btnBack'); bk.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); if (UI.mode === 'plot' && UI.plot) { const c = cards[UI.plot.u.uid]; if (c) c.wrap.classList.remove('away'); backToSel(); } else backToSel(); });
+  { const bk = $('#btnBack'); bk.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); if (UI.mode === 'plot' && UI.plot) { const c = cards[UI.plot.u.uid]; if (c) c.wrap.classList.remove('away'); backToSel(); } else if (UI.mode === 'sel') goIdle(); else backToSel(); });
     bk.addEventListener('pointerdown', e => e.stopPropagation());
-    setInterval(() => { const on = ['plot', 'ally', 'target', 'slot'].includes(UI.mode); if (bk.classList.contains('on') !== on) bk.classList.toggle('on', on); }, 120); }
+    setInterval(() => { const on = ['plot', 'ally', 'target', 'slot'].includes(UI.mode) || (!!UI.sel && ['sel', 'abil', 'const', 'place'].includes(UI.mode)); if (bk.classList.contains('on') !== on) bk.classList.toggle('on', on); }, 120); }
   { const sk = $('#btnSkip'); let armT = 0; sk.addEventListener('pointerdown', e => e.stopPropagation());
     const reset = () => { clearTimeout(armT); armT = 0; sk.textContent = 'SKIP TURN'; sk.classList.remove('arm'); };
     sk.onclick = () => {
@@ -1685,8 +1730,7 @@ function boot() {
       closeMenus(); commit({ type: 'pass', skip: true });
     };
     setInterval(() => { const on = !!(G && !G.over && G.turn === 0 && G.ctrl[0] === 'human' && ['idle', 'sel', 'abil', 'const'].includes(UI.mode)); if (sk.hidden === on) { sk.hidden = !on; if (!on) reset(); } }, 200); }
-  $('#btnRules').onclick = showRules; $('#btnLog').onclick = showLog; $('#btnTune').onclick = showTune;
-  const sb = $('#btnSfx'); sb.setAttribute('aria-pressed', String(prefs.sfx)); sb.onclick = () => { prefs.sfx = !prefs.sfx; savePrefs(); sb.setAttribute('aria-pressed', String(prefs.sfx)); if (prefs.sfx) sfx('tick'); };
+  $('#btnOpt').onclick = () => { sfx('tick'); showOptions(); };
   $('#board').addEventListener('click', onBoardClick);
   $('#stage').addEventListener('click', e => { if (e.target.id === 'stage' || e.target.id === 'cam' || e.target.id === 'layer') onEmptyTap(); });
   $('#board').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('cardwrap')) { e.preventDefault(); e.target.click(); } });

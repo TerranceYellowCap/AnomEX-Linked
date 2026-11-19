@@ -84,9 +84,9 @@ body, button { text-rendering: geometricPrecision; -webkit-font-smoothing: antia
   transform: perspective(250cqw) translateY(var(--lift, 0)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .3s, opacity .3s, filter .3s; box-shadow: 0 2cqw 6cqw rgba(0,0,0,.9); }
 .card::before { content: ""; position: absolute; inset: 2cqw; border: max(1px, .35cqw) solid rgba(255,255,255,.4); border-radius: 2cqw; pointer-events: none; }
-.cardwrap:hover .card { --lift: -4cqw; }
+.cardwrap:hover .card { --lift: -2cqw; }
 .cardwrap { -webkit-tap-highlight-color: transparent; }
-.card.tilting { --lift: -5cqw; transition: transform .12s ease-out, box-shadow .3s; box-shadow: 0 6cqw 10cqw rgba(0,0,0,.9), 0 0 6cqw rgba(255,255,255,.22); }
+.card.tilting { --lift: -2cqw; transition: transform .12s ease-out, box-shadow .3s; box-shadow: 0 4cqw 8cqw rgba(0,0,0,.9), 0 0 4cqw rgba(255,255,255,.18); }
 .glare { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .2s; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 30%), rgba(255,255,255,.34), transparent 52%); mix-blend-mode: overlay; z-index: 6; }
 .card.tilting .glare { opacity: 1; }
 .frame { position: absolute; left: 12.1cqw; top: 11.4cqw; width: 75.8cqw; height: 76.1cqw; border: max(1px, .7cqw) solid #fff; background: radial-gradient(circle at 50% 40%, #151515, #000 70%); }
@@ -318,7 +318,7 @@ body, button { text-rendering: geometricPrecision; -webkit-font-smoothing: antia
 .cardwrap.sel .notch { --rz: 7cqw; scale: .972; }
 .cardwrap.sel .n-str { --rd: 0s; } .cardwrap.sel .n-agi { --rd: .07s; } .cardwrap.sel .n-brn { --rd: .14s; } .cardwrap.sel .n-data { --rd: .21s; }
 
-.card.tilting .notch img { transform: perspective(60cqw) rotateX(calc(var(--rx, 0deg) * 1.7)) rotateY(calc(var(--ry, 0deg) * 1.7)); }
+.card.tilting .notch img { transform: perspective(60cqw) rotateX(calc(var(--rx, 0deg) * 1.2)) rotateY(calc(var(--ry, 0deg) * 1.2)); }
 .notch img { transition: transform .12s ease-out; }
 .cardwrap.sel .notch::after { content: ""; position: absolute; inset: 8%; border-radius: 50%; z-index: -1; background: rgba(0,0,0,.8); box-shadow: 0 3cqw 3cqw rgba(0,0,0,.9); translate: 0 0 -7cqw; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .notch { translate: none; } }
@@ -585,3 +585,33 @@ button, .cardwrap, .rs { touch-action: manipulation; }
 .budgetline.bad { color: var(--data, #ff5a1f); }
 #onl .decks { margin: 6px 0; }
 #onl { background: #000; }
+
+/* DATA abilities: a sheet at the bottom of the stage, never on top of other cards */
+.ablist.sheet { position: absolute; top: auto; left: 10px; right: 10px; bottom: 8px; width: auto; max-width: 560px; margin: 0 auto; transform: none; perspective: none; z-index: 45; display: flex; flex-direction: column; gap: 6px; padding: 6px; background: rgba(0,0,0,.9); border: 1px solid #333; pointer-events: auto; }
+.ablist.sheet::before { inset: -6px; }
+.ablist.sheet .abil { --cw: 110px; width: 100%; min-height: 56px; padding: 8px 10px; grid-template-columns: 40px 1fr; gap: 2px 10px; transform-origin: 50% 100%; animation: abUp .26s cubic-bezier(.2,.9,.25,1) both; animation-delay: calc(var(--i) * 70ms); }
+.ablist.sheet .abil .ai { width: 40px; height: 40px; }
+.ablist.sheet .abil b { font-size: 13px; }
+.ablist.sheet .abil .cost { font-size: 10px; }
+.ablist.sheet .abil small { font-size: 10.5px; -webkit-line-clamp: 3; }
+.ablist.sheet .abil .arm { font-size: 11px; }
+.abback { position: relative; min-height: 44px; background: #000; color: #fff; border: 1px solid #fff; font: 700 12px var(--disp); letter-spacing: .22em; cursor: pointer; touch-action: manipulation; }
+.abback:active { background: #fff; color: #000; }
+@keyframes abUp { from { opacity: 0; transform: translateY(14px); } }
+@media (prefers-reduced-motion: reduce) { .ablist.sheet .abil { animation: none; } }
+
+/* options panel */
+.opts { margin: 6px 0 10px; }
+.opth { font: 700 12px var(--disp); letter-spacing: .2em; text-transform: uppercase; color: #fff; margin: 14px 0 4px; padding-left: 8px; border-left: 2px solid var(--data, #ff5a1f); }
+.btn.danger { border-color: #ff5a1f; color: #ff7a3a; }
+.btn.danger.arm { background: #ff5a1f; color: #000; }
+.btnrow.opts { display: flex; flex-direction: column; gap: 8px; } .btnrow.opts .btn { width: 100%; }
+
+/* 3D ability panels float beside the picked card */
+.ablist:not(.sheet) { transform-style: preserve-3d; }
+.ablist.r .abil { animation-name: abIn3r; } .ablist.l .abil { animation-name: abIn3l; }
+.ablist:not(.sheet) .abil { background: rgba(0,0,0,.95); animation: .45s cubic-bezier(.2,.9,.25,1) both; animation-delay: calc(var(--i) * 80ms); background: rgba(0,0,0,.88); box-shadow: 0 0 calc(var(--cw) * .12) rgba(255,255,255,.18); }
+.ablist.r .abil { animation-name: abIn3r; transform-origin: 0 50%; } .ablist.l .abil { animation-name: abIn3l; transform-origin: 100% 50%; }
+@keyframes abIn3r { from { opacity: 0; transform: translateX(calc(var(--cw) * -.4)) rotateY(-85deg); } to { opacity: 1; transform: rotateY(-16deg); } }
+@keyframes abIn3l { from { opacity: 0; transform: translateX(calc(var(--cw) * .4)) rotateY(85deg); } to { opacity: 1; transform: rotateY(16deg); } }
+#btnBack { z-index: 36; }
