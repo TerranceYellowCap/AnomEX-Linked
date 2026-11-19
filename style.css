@@ -615,3 +615,10 @@ button, .cardwrap, .rs { touch-action: manipulation; }
 @keyframes abIn3r { from { opacity: 0; transform: translateX(calc(var(--cw) * -.4)) rotateY(-85deg); } to { opacity: 1; transform: rotateY(-16deg); } }
 @keyframes abIn3l { from { opacity: 0; transform: translateX(calc(var(--cw) * .4)) rotateY(85deg); } to { opacity: 1; transform: rotateY(16deg); } }
 #btnBack { z-index: 36; }
+
+/* no long-press menus, no image dragging/selecting, and images never steal hits from the card */
+img { -webkit-touch-callout: none; -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+.cardwrap, .cardwrap *, .slot, .rs, .ablist, .ablist * { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.cardwrap img, .tile img, .lag img { pointer-events: none; }
+.card .icon, .card .frame, .card .aura, .card .glare, .card::before { pointer-events: none; }
+.cardwrap { touch-action: none; }

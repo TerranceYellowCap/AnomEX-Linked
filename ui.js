@@ -447,6 +447,8 @@ document.addEventListener('pointermove', e => {
   tgt.x = Math.max(-0.5, Math.min(0.5, (e.clientX - r.left) / r.width - 0.5)); tgt.y = Math.max(-0.5, Math.min(0.5, (e.clientY - r.top) / r.height - 0.5));
   tcard.classList.add('tilting'); if (!tRaf) tRaf = requestAnimationFrame(tiltApply);
 });
+document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('#stage, #arrange, .tile, .cardwrap, #inspect, .ov')) e.preventDefault(); });
+document.addEventListener('dragstart', e => { if (e.target && e.target.tagName === 'IMG') e.preventDefault(); });
 document.addEventListener('pointerleave', tiltEnd); window.addEventListener('blur', tiltEnd);
 
 /* =========================================================
