@@ -278,7 +278,7 @@ function buildCard(u) {
   w.innerHTML = `<div class="card tilt"><div class="aura"><i></i><i></i></div><div class="glare"></div><div class="frame"></div>
     <div class="icon"><img src="icons/${u.key}.png" alt="" draggable="false"></div><div class="tags"></div><div class="rest"></div>
     ${STATS.map(k => `<button type="button" class="notch n-${k.toLowerCase()}" data-k="${k}" tabindex="-1" aria-label="${SNAME[k]}"><img src="${ICO[k]}" alt="" draggable="false"><i class="lg"></i><i class="val"></i><i class="pv"></i></button>`).join('')}
-    <div class="info"><div class="irow"><b class="nm"${(d.short || d.name).length > 6 ? ' data-l="' + (d.short || d.name).length + '"' : ''}>${d.short || d.name}</b><span class="hpn"></span></div><div class="role">${d.role}</div><div class="hp"><b class="tr"></b><i></i></div></div></div>`;
+    <div class="info"><div class="irow"><b class="nm"${(d.short || d.name).length > 6 ? ' data-l="' + (d.short || d.name).length + '"' : ''}>${d.short || d.name}</b><span class="hpn"></span></div><div class="role">${d.role}</div><div class="hp"><b class="tr"></b><i></i></div></div></div>${STATS.map(k => `<i class="na na-${k.toLowerCase()}" data-k="${k}"></i>`).join('')}`;
   paint(w, u);
   return w;
 }
@@ -409,21 +409,17 @@ function camReset() {
    ========================================================= */
 window.addEventListener('pointerup', () => (UI.holds || []).forEach(f => f())); window.addEventListener('pointercancel', () => (UI.holds || []).forEach(f => f()));
 let hovN = null;
-function notchHover(w, e, r) {
-  const card = w.querySelector('.card'); if (!card || w.classList.contains('dead')) return;
-  const px = (e.clientX - r.left) / r.width * 100, py = (e.clientY - r.top) / r.height * 100 * (r.height / r.width) , cw = card.offsetWidth;
+function notchAt(w, e, k) {
   let best = null, bd = 1e9;
-  $$('.notch', w).forEach(n => { const cx = (n.offsetLeft + n.offsetWidth / 2) / cw * 100, cy = (n.offsetTop + n.offsetHeight / 2) / cw * 100 - 3, d = Math.hypot(px - cx, py - cy); if (d < bd) { bd = d; best = n; } });
-  const lim = hovN && hovN === best ? 15 : 11.5;
-  const nn = bd < lim ? best : null;
+  $$('.na', w).forEach(a => { const q = a.getBoundingClientRect(), rad = q.width / 2, d = Math.hypot(e.clientX - (q.left + q.width / 2), e.clientY - (q.top + q.height / 2)) / rad; if (d < bd) { bd = d; best = a; } });
+  return best && bd < k ? $('.n-' + best.dataset.k.toLowerCase(), w) : null;
+}
+function notchHover(w, e) {
+  if (w.classList.contains('dead')) return;
+  let nn = notchAt(w, e, 1.15); if (!nn && hovN && w.contains(hovN)) { const h = notchAt(w, e, 1.5); if (h === hovN) nn = h; }
   if (nn !== hovN) { if (hovN) hovN.classList.remove('hov'); if (nn) nn.classList.add('hov'); hovN = nn; }
 }
-function nearestNotch(w, e, lim) {
-  const card = w.querySelector('.card'); if (!card) return null; const r = w.getBoundingClientRect(), cw = card.offsetWidth;
-  const px = (e.clientX - r.left) / r.width * 100, py = (e.clientY - r.top) / r.width * 100; let best = null, bd = 1e9;
-  $$('.notch', w).forEach(n => { const cx = (n.offsetLeft + n.offsetWidth / 2) / cw * 100, cy = (n.offsetTop + n.offsetHeight / 2) / cw * 100 - 3, d = Math.hypot(px - cx, py - cy); if (d < bd) { bd = d; best = n; } });
-  return bd < lim ? best : null;
-}
+function nearestNotch(w, e, k) { return notchAt(w, e, k); }
 function notchHoverOff() { if (hovN) { hovN.classList.remove('hov'); hovN = null; } }
 let tw = null, tcard = null, tgt = { x: 0, y: 0 }, cur = { x: 0, y: 0 }, tRaf = 0, tOut = 0;
 function tiltApply() {
@@ -443,7 +439,7 @@ document.addEventListener('pointermove', e => {
   if (!w || w.classList.contains('clone') || w.closest('.tile') || !w.querySelector('.tilt') || ($('#board').classList.contains('locked') && !w.classList.contains('sel') && w.closest('.slot.me'))) { if (tw && !tOut) tOut = setTimeout(() => { tOut = 0; tiltEnd(); }, 90); return; }
   clearTimeout(tOut); tOut = 0;
   if (tw !== w) { if (tcard && tcard !== w.querySelector('.tilt')) { tcard.classList.remove('tilting'); ['--rx', '--ry'].forEach(p => tcard.style.removeProperty(p)); cur = { x: 0, y: 0 }; } tw = w; tcard = w.querySelector('.tilt'); }
-  const r = w.getBoundingClientRect(); notchHover(w, e, r);
+  const r = w.getBoundingClientRect(); notchHover(w, e);
   tgt.x = Math.max(-0.5, Math.min(0.5, (e.clientX - r.left) / r.width - 0.5)); tgt.y = Math.max(-0.5, Math.min(0.5, (e.clientY - r.top) / r.height - 0.5));
   tcard.classList.add('tilting'); if (!tRaf) tRaf = requestAnimationFrame(tiltApply);
 });
@@ -588,7 +584,7 @@ async function commit(act) {
 
 /* ---------- board input ---------- */
 let suppressClick = false, downCard = null;
-document.addEventListener('pointerdown', e => { const w = e.target.closest && e.target.closest('#board .cardwrap:not(.clone)'); downCard = w ? { w, x: e.clientX, y: e.clientY, t: performance.now(), n: e.target.closest('.notch') } : null; }, true);
+document.addEventListener('pointerdown', e => { const w = e.target.closest && e.target.closest('#board .cardwrap:not(.clone)'); downCard = w ? { w, x: e.clientX, y: e.clientY, t: performance.now(), n: w.classList.contains('dead') ? null : notchAt(w, e, 1.3) } : null; }, true);
 function onBoardClick(e) {
   if (suppressClick) return;
   if (e.target.closest('.pod, .statpick')) return;
@@ -598,8 +594,8 @@ function onBoardClick(e) {
   }
   let w = e.target.closest('.cardwrap:not(.clone)'), dn = null;
   if (downCard && performance.now() - downCard.t < 900 && Math.hypot(e.clientX - downCard.x, e.clientY - downCard.y) < 16 && !e.target.closest('.rs')) { if (downCard.w !== w) w = downCard.w; dn = downCard.n; }
-  if (w && cards[w.dataset.uid]) { let n = (dn && w.contains(dn) ? dn : null) || e.target.closest('.notch') || (hovN && w.contains(hovN) ? hovN : null);
-    if (!n && cards[w.dataset.uid].unit === UI.sel && ['sel', 'abil', 'const'].includes(UI.mode)) n = nearestNotch(w, e, 21); /* a tap near a corner counts as that notch, not as an inspect */ return onCardTap(cards[w.dataset.uid].unit, n && n.dataset.k, e); }
+  if (w && cards[w.dataset.uid]) { let n = (dn && w.contains(dn) ? dn : null) || (hovN && w.contains(hovN) ? hovN : null) || notchAt(w, e, 1.3);
+    if (!n && cards[w.dataset.uid].unit === UI.sel && ['sel', 'abil', 'const'].includes(UI.mode)) n = notchAt(w, e, 3.2); /* a tap near a corner counts as that notch, not as an inspect */ return onCardTap(cards[w.dataset.uid].unit, n && n.dataset.k, e); }
   const rs = e.target.closest('.rs'); if (rs) return onRailTap(+rs.dataset.slot);
   onEmptyTap();
 }

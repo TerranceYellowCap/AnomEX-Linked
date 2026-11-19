@@ -51,8 +51,8 @@ body, button { text-rendering: geometricPrecision; -webkit-font-smoothing: antia
 /* ---------- stage + board ---------- */
 #stage { flex: 1 1 auto; min-height: 0; position: relative; perspective: 1100px; overflow: hidden;
   background: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 40px, linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 40px 100%; }
-#cam { position: absolute; inset: 0; display: grid; place-items: center; transform-origin: 0 0; transition: transform .58s cubic-bezier(.2,.85,.2,1); transform-style: preserve-3d; touch-action: none; }
-#board { --cw: 90px; --ch: calc(var(--cw) * var(--ratio)); --gap: calc(var(--cw) * .08); --ps: 28px; position: relative; display: grid; gap: var(--gap); transform-style: preserve-3d; touch-action: none; }
+#cam { position: absolute; inset: 0; display: grid; place-items: center; transform-origin: 0 0; transition: transform .58s cubic-bezier(.2,.85,.2,1); transform-style: flat; touch-action: none; }
+#board { --cw: 90px; --ch: calc(var(--cw) * var(--ratio)); --gap: calc(var(--cw) * .08); --ps: 28px; position: relative; display: grid; gap: var(--gap); transform-style: flat; touch-action: none; }
 #board.strip { grid-template-columns: repeat(4, var(--cw)); grid-template-rows: var(--ps) var(--ch) var(--ch) var(--ch) var(--ps); --r-foe: 2; --r-rail: 3; --r-me: 4; }
 #board.side { grid-template-columns: repeat(5, var(--cw)); grid-template-rows: repeat(3, var(--ch)); --r-foe: 1; --r-rail: 2; --r-me: 3; }
 .slot { position: relative; }
@@ -638,3 +638,8 @@ img { -webkit-touch-callout: none; -webkit-user-drag: none; user-select: none; -
 .ablist .abil:hover:not(:disabled) small, .ablist .abil:active:not(:disabled) small, .ablist .abil.armed small { color: #222; }
 .ablist .abil:hover:not(:disabled) .cost, .ablist .abil:active:not(:disabled) .cost { color: #c23a00; }
 .ablist .abil:hover:not(:disabled) .ai, .ablist .abil:active:not(:disabled) .ai { color: #000; border-color: #000; }
+
+/* hit-testing lives on the still wrapper only: lifted, tilted and popped parts of a card never change what is under the pointer (that was the flicker) */
+#board .cardwrap:not(.clone) .card, #board .cardwrap:not(.clone) .card * { pointer-events: none !important; }
+.cardwrap .na { position: absolute; width: 16.3cqw; height: 16.3cqw; pointer-events: none; visibility: hidden; }
+.na-str { left: 3.95cqw; top: 3.25cqw; } .na-agi { right: 3.95cqw; top: 3.25cqw; } .na-brn { left: 3.95cqw; top: 79.35cqw; } .na-data { right: 3.95cqw; top: 79.35cqw; }
