@@ -9,8 +9,32 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style id="ldCss">
+#ld{position:fixed;inset:0;z-index:99999;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease,visibility .5s;font-family:'Chakra Petch',system-ui,sans-serif}
+#ld.done{opacity:0;visibility:hidden;pointer-events:none}
+#ld .lg{font-weight:700;font-size:clamp(28px,9vw,44px);letter-spacing:.32em;padding-left:.32em}
+#ld .lg span{display:block;font-size:.4em;letter-spacing:.6em;padding-left:.6em;text-align:center;color:#8a8a8a;margin-top:4px}
+#ld .bar{width:min(60vw,240px);height:3px;background:#222;overflow:hidden}
+#ld .bar i{display:block;height:100%;width:0;background:#fff;transition:width .2s}
+#ld small{font:400 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.3em;color:#777;text-transform:uppercase}
+#ld .sc{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);pointer-events:none}
+</style>
+
 </head>
 <body>
+<div id="ld" role="status" aria-live="polite"><div class="sc"></div><div class="lg">ANOMEX<span>LINKED</span></div><div class="bar"><i></i></div><small id="ldT">Linking archive</small></div>
+<script>
+(function(){
+  var files=['str','agi','brn','data'].map(function(k){return 'icons/'+k+'.png'}).concat(['agi.png','argithia.png','argo.png','brn.png','cathy.png','cray.png','data.png','delilah.png','echidna.png','edica.png','ellie.png','frey.png','jane.png','julian.png','mason.png','miera.png','neko.png','nessy.png','opal.png','rarity.png','str.png','tyrees.png','wraith.png','wren.png'].map(function(n){return 'icons/'+n}));
+  var total=files.length+2, got=0, t0=Date.now(), fin=false, bar=document.querySelector('#ld .bar i'), tx=document.getElementById('ldT');
+  function step(){ got++; bar.style.width=Math.min(100,Math.round(got/total*100))+'%'; if(got>=total) done(); }
+  function done(){ if(fin) return; fin=true; var wait=Math.max(0,700-(Date.now()-t0)); setTimeout(function(){ var l=document.getElementById('ld'); l.classList.add('done'); setTimeout(function(){ if(l.parentNode) l.parentNode.removeChild(l); },700); },wait); }
+  files.forEach(function(f){ var i=new Image(); i.onload=i.onerror=function(){ if(i.decode){ i.decode().then(step,step); } else step(); }; i.src=f; });
+  (document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,4000)})]):Promise.resolve()).then(step);
+  if(document.readyState==='complete') step(); else window.addEventListener('load',step);
+  setTimeout(done,9000);
+})();
+</script>
 <div id="app">
   <header id="top">
     <div id="brand"><b>ANOMEX</b><span>LINKED</span></div>

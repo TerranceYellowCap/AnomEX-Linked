@@ -440,7 +440,7 @@ document.addEventListener('pointermove', e => {
   if (e.pointerType === 'touch' || RM) return;
   if ((drag && drag.started) || UI.dnd) return tiltEnd();
   const w = e.target.closest && e.target.closest('.cardwrap');
-  if (!w || w.classList.contains('clone') || w.closest('.tile') || !w.querySelector('.tilt')) { if (tw && !tOut) tOut = setTimeout(() => { tOut = 0; tiltEnd(); }, 90); return; }
+  if (!w || w.classList.contains('clone') || w.closest('.tile') || !w.querySelector('.tilt') || ($('#board').classList.contains('locked') && !w.classList.contains('sel') && w.closest('.slot.me'))) { if (tw && !tOut) tOut = setTimeout(() => { tOut = 0; tiltEnd(); }, 90); return; }
   clearTimeout(tOut); tOut = 0;
   if (tw !== w) { if (tcard && tcard !== w.querySelector('.tilt')) { tcard.classList.remove('tilting'); ['--rx', '--ry'].forEach(p => tcard.style.removeProperty(p)); cur = { x: 0, y: 0 }; } tw = w; tcard = w.querySelector('.tilt'); }
   const r = w.getBoundingClientRect(); notchHover(w, e, r);
@@ -1723,7 +1723,7 @@ function boot() {
   if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage'));
   { const bk = $('#btnBack'); bk.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); if (UI.mode === 'plot' && UI.plot) { const c = cards[UI.plot.u.uid]; if (c) c.wrap.classList.remove('away'); backToSel(); } else if (UI.mode === 'sel') goIdle(); else backToSel(); });
     bk.addEventListener('pointerdown', e => e.stopPropagation());
-    setInterval(() => { const on = ['plot', 'ally', 'target', 'slot'].includes(UI.mode) || (!!UI.sel && ['sel', 'abil', 'const', 'place'].includes(UI.mode)); if (bk.classList.contains('on') !== on) bk.classList.toggle('on', on); }, 120); }
+    setInterval(() => { const on = ['plot', 'ally', 'target', 'slot'].includes(UI.mode) || (!!UI.sel && ['sel', 'abil', 'const', 'place'].includes(UI.mode)); if (bk.classList.contains('on') !== on) bk.classList.toggle('on', on); const lk = !!UI.sel && ['sel', 'abil', 'const', 'place'].includes(UI.mode), bd = $('#board'); if (bd.classList.contains('locked') !== lk) bd.classList.toggle('locked', lk); }, 120); }
   { const sk = $('#btnSkip'); let armT = 0; sk.addEventListener('pointerdown', e => e.stopPropagation());
     const reset = () => { clearTimeout(armT); armT = 0; sk.textContent = 'SKIP TURN'; sk.classList.remove('arm'); };
     sk.onclick = () => {
