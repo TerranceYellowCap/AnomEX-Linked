@@ -643,3 +643,56 @@ img { -webkit-touch-callout: none; -webkit-user-drag: none; user-select: none; -
 #board .cardwrap:not(.clone) .card, #board .cardwrap:not(.clone) .card * { pointer-events: none !important; }
 .cardwrap .na { position: absolute; width: 16.3cqw; height: 16.3cqw; pointer-events: none; visibility: hidden; }
 .na-str { left: 3.95cqw; top: 3.25cqw; } .na-agi { right: 3.95cqw; top: 3.25cqw; } .na-brn { left: 3.95cqw; top: 79.35cqw; } .na-data { right: 3.95cqw; top: 79.35cqw; }
+
+/* ---- squad builder: squad row + two-row scrolling roster ---- */
+.arr .tiles.squad { margin: 10px 0 6px; }
+.libbar { width: min(100%, 520px); display: flex; flex-direction: column; gap: 8px; margin: 14px 0 6px; }
+.lsearch { width: 100%; box-sizing: border-box; background: #000; border: 1px solid #555; color: #fff; font: 400 13px var(--mono); letter-spacing: .08em; padding: 10px 12px; border-radius: 0; outline: 0; -webkit-appearance: none; appearance: none; }
+.lsearch:focus { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,.25); }
+.lsearch::placeholder { color: #777; }
+.lsort { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; justify-content: center; flex-wrap: wrap; }
+.lchip { background: #000; border: 1px solid #555; color: #bbb; font: 700 10px var(--disp); letter-spacing: .14em; text-transform: uppercase; padding: 7px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; border-radius: 0; }
+.lchip img { width: 13px; height: 13px; border-radius: 50%; }
+.lchip.on { background: #fff; color: #000; border-color: #fff; }
+.lchip.on img { filter: invert(1); }
+.lchip:hover:not(.on) { border-color: #fff; color: #fff; }
+.libwrap { position: relative; width: min(100%, 520px); }
+.lib { display: grid; grid-auto-flow: column; grid-template-rows: auto auto; grid-auto-columns: clamp(76px, 23%, 112px); gap: 10px 8px; overflow-x: auto; overflow-y: hidden; padding: 12px 6px 8px; scrollbar-width: thin; scrollbar-color: #555 #000; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+.lib::-webkit-scrollbar { height: 6px; } .lib::-webkit-scrollbar-thumb { background: #555; }
+.lib .tile { touch-action: pan-x pan-y; }
+.lib .tile .lab { display: none; }
+.lib .tile.bench { opacity: 1; transform: none; }
+.lib .tile.bench.pick { transform: translateY(-4px) scale(1.04); }
+.lib .tile.bench:not(.pick):not(.over):not(.target) .tslot { opacity: .8; }
+.lempty { grid-row: 1 / 3; grid-column: 1 / -1; color: #777; font: 400 12px var(--mono); letter-spacing: .1em; padding: 24px 0; margin: 0; text-align: center; }
+.larr { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 34px; height: 56px; background: rgba(0,0,0,.82); color: #fff; border: 1px solid #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 0; transition: opacity .2s, background .15s; }
+.larr.l { left: -4px; } .larr.r { right: -4px; }
+.larr:hover { background: #fff; color: #000; }
+.larr.off { opacity: .22; pointer-events: none; }
+.libwrap.noscroll .larr { display: none; }
+@media (max-width: 480px) { .larr { width: 28px; height: 48px; } .lchip { padding: 7px 8px; } }
+
+/* squad stays pinned while you browse the roster below, so swaps never need a long scroll */
+#arrange .tiles.squad { position: sticky; top: 46px; z-index: 19; background: #000; padding: 8px 0 8px; margin: 6px 0 2px; box-shadow: 0 10px 14px -6px #000; align-self: center; }
+#arrange.scrolled::before { content: ""; position: fixed; left: 0; right: 0; top: 0; height: 46px; background: #000; z-index: 18; pointer-events: none; }
+@media (max-width: 480px) { #arrange .tiles.squad { gap: 6px; } }
+@media (max-width: 480px) {
+  #arrange .abrand { margin-bottom: 0; } #arrange .arr h2 { margin: 6px 0; font-size: 18px; }
+  #arrange .dkname { padding: 7px 10px; } #arrange .dkrow .mini { padding: 7px 10px; }
+  #arrange .sub { font-size: 11px; margin: 4px 0 0; }
+  .lchip img { display: none; } .lchip { padding: 7px 7px; font-size: 9px; letter-spacing: .1em; }
+  .lsort { flex-wrap: nowrap; justify-content: space-between; }
+}
+
+/* empty squad slots + random / clear */
+.tile.empty .eslot { position: absolute; inset: 0; border: 2px dashed #555; border-radius: 3.5%; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 6px, transparent 6px 12px); }
+.tile.empty .eslot i { font: 300 34px/1 var(--disp); color: #666; font-style: normal; }
+.tile.empty .cap { color: #666; }
+.tile.empty.pick .eslot { border-color: #fff; box-shadow: 0 0 18px rgba(255,255,255,.35); } .tile.empty.pick .eslot i { color: #fff; }
+.tile.empty.target .eslot, .tile.empty.over .eslot { border-color: #ff7a3a; }
+.tile.empty.over .eslot { box-shadow: 0 0 18px rgba(255,90,30,.6); }
+.srow { display: flex; gap: 6px; align-items: stretch; }
+.srow .lsearch { flex: 1; min-width: 0; }
+.srow .mini { padding: 0 11px; white-space: nowrap; font: 700 10px var(--disp); letter-spacing: .14em; text-transform: uppercase; }
+.srow .mini.rnd { border-color: #ff7a3a; color: #ff9a4a; }
+.srow .mini.rnd:hover { background: #ff7a3a; color: #000; }

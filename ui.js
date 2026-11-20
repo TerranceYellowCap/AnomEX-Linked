@@ -19,11 +19,17 @@ let G = null, loopId = 0;
 const ROSTER_ALL = ['wren', 'argo', 'jane', 'rarity', 'cathy', 'edica', 'ellie', 'miera', 'opal', 'echidna', 'julian', 'delilah', 'wraith', 'cray', 'neko', 'nessy', 'tyrees', 'argithia', 'frey', 'mason'];
 let roster = ROSTER_ALL.slice();
 const DK = 'anomex-decks'; let decks = null, activeDeck = 0;
-const fixOrder = o => { const seen = new Set(), out = []; (Array.isArray(o) ? o : []).forEach(k => { if (ROSTER_ALL.includes(k) && !seen.has(k)) { seen.add(k); out.push(k); } }); ROSTER_ALL.forEach(k => { if (!seen.has(k)) out.push(k); }); return out; };
+const fixOrder = o => {
+  const seen = new Set(), arr = Array.isArray(o) ? o : [], out = [];
+  for (let i = 0; i < 4; i++) { const k = arr[i]; if (k && ROSTER_ALL.includes(k) && !seen.has(k)) { seen.add(k); out.push(k); } else out.push(null); }
+  arr.slice(4).forEach(k => { if (k && ROSTER_ALL.includes(k) && !seen.has(k)) { seen.add(k); out.push(k); } }); ROSTER_ALL.forEach(k => { if (!seen.has(k)) out.push(k); });
+  return out;
+};
+const emptyOrder = () => [null, null, null, null].concat(ROSTER_ALL);
 const saveDecks = () => { try { localStorage.setItem(DK, JSON.stringify({ active: activeDeck, decks })); } catch (e) {} };
 (function loadDecks() {
   try { const d = JSON.parse(localStorage.getItem(DK) || 'null'); if (d && Array.isArray(d.decks) && d.decks.length) { decks = d.decks.slice(0, 5).map((x, i) => ({ name: String(x.name || 'Deck ' + (i + 1)).slice(0, 14), order: fixOrder(x.order) })); activeDeck = Math.min(Math.max(d.active | 0, 0), decks.length - 1); } } catch (e) {}
-  if (!decks) { decks = [{ name: 'Deck 1', order: ROSTER_ALL.slice() }]; activeDeck = 0; }
+  if (!decks) { decks = [{ name: 'Deck 1', order: emptyOrder() }]; activeDeck = 0; }
   roster = decks[activeDeck].order;
 })();
 const teamOf = () => roster.slice(0, 4);
@@ -106,7 +112,7 @@ function sizeCanvas() {
   CW = window.innerWidth; CH = window.innerHeight;
   cv.width = CW * dpr; cv.height = CH * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-const parts = [], rings = [], arcs = [], cracks = [], streaks = [], lenses = [], waves = [], glows = [];
+const parts = [], rings = [], arcs = [], cracks = [], streaks = [], lenses = [], waves = [], glows = [], bars = [], scans = [];
 let QF = 1; /* adaptive quality: drops if frames get slow */
 const COL_CIT = ['#ff9a1f', '#ffd23f', '#ffb347', '#e8ff6b'];
 const COL_FIELD = ['#ff5a1f', '#ff9a4a', '#ffd0a0', '#ffffff'];
@@ -122,14 +128,24 @@ function sparks(x, y, n, spd, cols, o = {}) {
 }
 function smoke(x, y, n, r) { for (let i = 0; i < n; i++) parts.push({ k: 'm', x: x + rnd(-r, r) * 0.4, y: y + rnd(-r, r) * 0.4, vx: rnd(-26, 26), vy: rnd(-50, -8), r: rnd(r * 0.5, r), life: 0, max: rnd(0.45, 0.85) }); }
 function embers(x, y, n, spread) { for (let i = 0; i < n; i++) parts.push({ k: 'e', x: x + rnd(-spread, spread), y: y + rnd(-spread, spread) * 0.5, vx: rnd(-18, 18), vy: rnd(-100, -26), life: 0, max: rnd(0.6, 1.2), w: rnd(1, 2.2) }); }
-function ring(x, y, r, delay = 0, col = '255,255,255', w = 3, dur = 0.42) { rings.push({ x, y, r, life: -delay, max: dur, col, w }); }
+function ring(x, y, r, delay = 0, col = '255,255,255', w = 3, dur = 0.42, sides = 0) { rings.push({ x, y, r, life: -delay, max: dur, col, w, sides, rot: rnd(0, TAU) }); }
 function arc(x1, y1, x2, y2, life = 0.3, jit = 12, seg = 8, pal) { if (arcs.length > 60) return; arcs.push({ x1, y1, x2, y2, life: 0, max: life, jit, seg, pts: null, t: 99, pal }); }
 function twinkles(x, y, n, spread, cols, o = {}) { n = Math.max(1, Math.round(n * QF)); if (parts.length > 900) return; for (let i = 0; i < n; i++) { const a = rnd(0, TAU), d = rnd(0, spread), sp = rnd(10, 60) * (o.speed || 1); parts.push({ k: 'tw', x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp + (o.rise ? -rnd(20, 70) : 0), life: 0, max: rnd(0.4, 0.95) * (o.life || 1), w: rnd(2, 5.5) * (o.size || 1), c: pickOne(cols) }); } }
 function shockLines(x, y, n, d0, len, spd, col) { n = Math.max(4, Math.round(n * QF)); for (let i = 0; i < n; i++) parts.push({ k: 'l', x, y, a: (i / n) * TAU + rnd(-0.1, 0.1), d: d0 * rnd(0.8, 1.2), v: spd * rnd(0.7, 1.3), len: len * rnd(0.6, 1.4), life: 0, max: rnd(0.2, 0.36), c: col || '#ffffff' }); }
-function chevrons(x, y, n, spread, col) { n = Math.max(2, Math.round(n * QF)); for (let i = 0; i < n; i++) parts.push({ k: 'v', x: x + rnd(-spread, spread), y: y - rnd(0, spread * 0.6), vy: rnd(70, 160), life: -rnd(0, 0.25), max: rnd(0.5, 0.8), w: rnd(4, 8), c: col }); }
+function chevrons(x, y, n, spread, col, up) { n = Math.max(2, Math.round(n * QF)); for (let i = 0; i < n; i++) parts.push({ k: 'v', x: x + rnd(-spread, spread), y: y - rnd(0, spread * 0.6), vy: rnd(70, 160) * (up ? -1 : 1), life: -rnd(0, 0.25), max: rnd(0.5, 0.8), w: rnd(4, 8), c: col }); }
 function lens(x, y, r, delay = 0, dur = 0.7, tint = '255,90,40') { if (lenses.length > 8) return; lenses.push({ x, y, r, life: -delay, max: dur, tint, rot: rnd(0, TAU) }); }
 function field(x, y, rx, ry, delay = 0, dur = 0.9, col = '255,110,40') { if (waves.length > 14) return; waves.push({ x, y, rx, ry, life: -delay, max: dur, col }); }
 function glow(x, y, r, dur = 0.35, col = '255,140,50', delay = 0) { glows.push({ x, y, r, life: -delay, max: dur, col }); }
+const GLY = '01ABCDEF7#<>/=+';
+function glyphs(x, y, n, spread, cols, o = {}) {
+  if (RM) return; n = Math.max(1, Math.round(n * QF)); if (parts.length > 900) return;
+  for (let i = 0; i < n; i++) parts.push({ k: 'g', x: x + rnd(-spread, spread), y: y + rnd(-spread * 0.5, spread * 0.7), vx: rnd(-12, 12), vy: o.down ? rnd(50, 130) : -rnd(40, 140), life: -rnd(0, o.delay == null ? 0.3 : o.delay), max: rnd(0.6, 1.1), w: rnd(9, 14) * S() * (o.size || 1), c: pickOne(cols), ch: GLY[(Math.random() * GLY.length) | 0] });
+}
+function glitch(x, y, w, h, n = 6, col = '255,90,31') {
+  if (RM || bars.length > 50) return; n = Math.max(2, Math.round(n * QF));
+  for (let i = 0; i < n; i++) bars.push({ x: x - w / 2 + rnd(-0.08, 0.08) * w, y: y - h / 2 + rnd(0, h), w: w * rnd(0.35, 1.05), h: rnd(2, 7) * Math.max(0.8, S() * 0.8), dx: rnd(-16, 16) * S(), life: -rnd(0, 0.14), max: rnd(0.12, 0.3), col: i % 3 === 0 ? '255,255,255' : col });
+}
+function scan(x, y, w, h, dir = -1, col = '255,255,255', dur = 0.5) { if (RM || scans.length > 6) return; scans.push({ x, y, w, h, dir, col, life: 0, max: dur }); }
 function converge(x, y, n, R, cols, dur = 0.3) { n = Math.max(4, Math.round(n * QF)); for (let i = 0; i < n; i++) { const a = rnd(0, TAU), r = R * rnd(0.7, 1.1), sp = r / dur; parts.push({ k: 's', x: x + Math.cos(a) * r, y: y + Math.sin(a) * r, vx: -Math.cos(a) * sp, vy: -Math.sin(a) * sp, g: 0, life: 0, max: dur, w: rnd(1.2, 2.6), c: pickOne(cols) }); } }
 function crack(x, y, len) {
   const lines = [], n = 5 + ((Math.random() * 4) | 0);
@@ -154,7 +170,7 @@ function warp(amt = 1) { if (RM) return; const st = $('#stage'); st.animate([{ s
 let last = performance.now(), drew = false, fEma = 0.016;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  const busy = parts.length || rings.length || arcs.length || cracks.length || streaks.length || lenses.length || waves.length || glows.length;
+  const busy = parts.length || rings.length || arcs.length || cracks.length || streaks.length || lenses.length || waves.length || glows.length || bars.length || scans.length;
   if (!busy && shk.a === 0) { if (drew) { cx.clearRect(0, 0, CW, CH); drew = false; } requestAnimationFrame(frame); return; }
   fEma = fEma * 0.9 + dt * 0.1; if (fEma > 0.03) QF = Math.max(0.35, QF - 0.02); else if (fEma < 0.021 && QF < 1) QF = Math.min(1, QF + 0.004);
   drew = true; cx.clearRect(0, 0, CW, CH);
@@ -201,8 +217,20 @@ function frame(now) {
   }
   for (let i = rings.length - 1; i >= 0; i--) {
     const r = rings[i]; r.life += dt; if (r.life < 0) continue; if (r.life > r.max) { rings.splice(i, 1); continue; }
-    const t = r.life / r.max; cx.beginPath(); cx.arc(r.x, r.y, r.r * (0.2 + 0.8 * (1 - Math.pow(1 - t, 2))), 0, TAU);
+    const t = r.life / r.max, rr = r.r * (0.2 + 0.8 * (1 - Math.pow(1 - t, 2))); cx.beginPath();
+    if (r.sides) { for (let j = 0; j <= r.sides; j++) { const an = r.rot + (j / r.sides) * TAU; j ? cx.lineTo(r.x + Math.cos(an) * rr, r.y + Math.sin(an) * rr) : cx.moveTo(r.x + Math.cos(an) * rr, r.y + Math.sin(an) * rr); } } else cx.arc(r.x, r.y, rr, 0, TAU);
     cx.strokeStyle = `rgba(${r.col},${1 - t})`; cx.lineWidth = r.w * (1 - t) + 0.5; cx.stroke();
+  }
+  for (let i = scans.length - 1; i >= 0; i--) {
+    const sc = scans[i]; sc.life += dt; if (sc.life > sc.max) { scans.splice(i, 1); continue; }
+    const t = sc.life / sc.max, top = sc.y - sc.h / 2, yy = sc.dir < 0 ? top + sc.h * (1 - t) : top + sc.h * t, tl = sc.h * 0.38, fade = 1 - t * 0.5;
+    const y0 = sc.dir < 0 ? yy : Math.max(top, yy - tl), y1 = sc.dir < 0 ? Math.min(top + sc.h, yy + tl) : yy;
+    if (y1 > y0) { const g = cx.createLinearGradient(0, sc.dir < 0 ? yy : yy, 0, sc.dir < 0 ? yy + tl : yy - tl); g.addColorStop(0, `rgba(${sc.col},${0.42 * fade})`); g.addColorStop(1, `rgba(${sc.col},0)`); cx.fillStyle = g; cx.fillRect(sc.x - sc.w / 2, y0, sc.w, y1 - y0); }
+    cx.fillStyle = `rgba(${sc.col},${0.95 * fade})`; cx.fillRect(sc.x - sc.w / 2 - 4, yy - 1, sc.w + 8, 2);
+  }
+  for (let i = bars.length - 1; i >= 0; i--) {
+    const b = bars[i]; b.life += dt; if (b.life < 0) continue; if (b.life > b.max) { bars.splice(i, 1); continue; }
+    const t = b.life / b.max; cx.fillStyle = `rgba(${b.col},${(1 - t) * (0.55 + Math.random() * 0.4)})`; cx.fillRect(b.x + b.dx * (1 - t), b.y, b.w, b.h);
   }
   for (let i = streaks.length - 1; i >= 0; i--) {
     const s = streaks[i]; s.life += dt; if (s.life > s.max) { streaks.splice(i, 1); continue; }
@@ -230,7 +258,10 @@ function frame(now) {
     } else if (p.k === 'l') {
       p.d += p.v * dt; const c = Math.cos(p.a), sn = Math.sin(p.a); cx.globalAlpha = 1 - t; cx.strokeStyle = p.c; cx.lineWidth = 1.6 * (1 - t) + 0.6; cx.beginPath(); cx.moveTo(p.x + c * p.d, p.y + sn * p.d); cx.lineTo(p.x + c * (p.d + p.len), p.y + sn * (p.d + p.len)); cx.stroke(); cx.globalAlpha = 1;
     } else if (p.k === 'v') {
-      if (p.life < 0) continue; p.y += p.vy * dt; cx.globalAlpha = (1 - t) * 0.9; cx.strokeStyle = p.c; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(p.x - p.w, p.y - p.w * 0.6); cx.lineTo(p.x, p.y); cx.lineTo(p.x + p.w, p.y - p.w * 0.6); cx.stroke(); cx.globalAlpha = 1;
+      if (p.life < 0) continue; p.y += p.vy * dt; const f = p.vy < 0 ? -1 : 1; cx.globalAlpha = (1 - t) * 0.9; cx.strokeStyle = p.c; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(p.x - p.w, p.y - p.w * 0.6 * f); cx.lineTo(p.x, p.y); cx.lineTo(p.x + p.w, p.y - p.w * 0.6 * f); cx.stroke(); cx.globalAlpha = 1;
+    } else if (p.k === 'g') {
+      if (p.life < 0) continue; p.x += p.vx * dt; p.y += p.vy * dt; if (Math.random() < 0.14) p.ch = GLY[(Math.random() * GLY.length) | 0];
+      cx.globalAlpha = Math.min(1, Math.sin(t * Math.PI) * 1.6); cx.fillStyle = p.c; cx.font = '700 ' + p.w.toFixed(0) + 'px ui-monospace,Menlo,Consolas,monospace'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(p.ch, p.x, p.y); cx.globalAlpha = 1;
     } else if (p.k === 's') {
       p.vy += p.g * dt; const nx = p.x + p.vx * dt, ny = p.y + p.vy * dt;
       cx.strokeStyle = p.c; cx.globalAlpha = 1 - t; cx.lineWidth = p.w; cx.beginPath(); cx.moveTo(p.x, p.y); cx.lineTo(nx - p.vx * 0.012, ny - p.vy * 0.012); cx.stroke(); cx.globalAlpha = 1;
@@ -264,7 +295,7 @@ function dataFX(x, y, level) {
   const s = S(), n = 2 + level * 2, R = (30 + level * 18) * s;
   for (let i = 0; i < n; i++) { const a = rnd(0, TAU), r = rnd(R * 0.5, R); arc(x + rnd(-5, 5), y + rnd(-5, 5), x + Math.cos(a) * r, y + Math.sin(a) * r, rnd(0.22, 0.42), 6 + level * 2, 7); }
   embers(x, y, 3 + level * 4, 14 * s); twinkles(x, y, 2 + level * 2, R * 0.9, COL_DATA, { rise: true });
-  if (level >= 2) { ring(x, y, 60 * s, 0, '212,32,43', 3, 0.45); glow(x, y, 70 * s, 0.3, '255,70,30'); }
+  if (level >= 2) { ring(x, y, 60 * s, 0, '212,32,43', 3, 0.45, 6); glow(x, y, 70 * s, 0.3, '255,70,30'); glyphs(x, y, 5, R, COL_DATA); }
   if (level >= 3) { flash(0.25, 320); shake(3, 0.25); }
 }
 function shieldFX(x, y) { sparks(x, y, 14, 240 * S(), COL_HIT, { g: 100 }); ring(x, y, 38 * S(), 0, '255,255,255', 3, 0.32); }
@@ -1104,12 +1135,32 @@ async function shoot(a, t, X, res, by) {
   });
   if (dodge) { ufloat(t, 'DODGED', 'blk'); sparks(ex, ey, 8, 120 * S(), COL_DATA); await sleep(200); return; }
   /* little sparky impact */
+  if (!RM) { ring(T.x, T.y, 40 * S(), 0, '255,90,31', 2, 0.4, 6); glyphs(T.x, T.y, 6, 30 * S(), COL_DATA, { delay: 0.05 }); glitch(T.x, T.y, T.w, T.h, 4); }
   sparks(T.x, T.y, 18, 230 * S(), COL_DATA, { g: 140 }); sparks(T.x, T.y, 8, 160 * S(), ['#ffffff', '#ffd0a0'], { g: 60, life: 0.6 });
   ring(T.x, T.y, 34 * S(), 0, '255,90,31', 3, 0.3); glow(T.x, T.y, 40 * S(), 0.25, '255,90,31'); shake(1.5, 0.1);
   if (['block', 'negate', 'intercept', 'body'].includes(res)) {
     shieldFX(T.x, T.y); sfx('block'); ufloat(cover ? by : t, res === 'body' ? 'BODY-BLOCK' : res === 'negate' ? 'NEGATED' : res === 'intercept' ? 'COVERED' : 'BLOCKED', 'blk'); await sleep(240);
   } else if (res === 'partial' || res === 'intercept-part') { shieldFX(T.x, T.y); sfx('block'); await sleep(110); }
   else await sleep(40);
+}
+/* stat gain / loss: a scan sweeps the card, arrows rise or fall, and the stat's own notch rings out */
+const SLK = { S: 'STR', A: 'AGI', B: 'BRN', D: 'DATA', STR: 'STR', AGI: 'AGI', BRN: 'BRN', DATA: 'DATA' };
+function statOfText(t) { const m = /([+-])\s*\d+\s*(STR|AGI|BRN|DATA|S|A|B|D)\b/.exec(t || ''); return m ? { sign: m[1], k: SLK[m[2]] } : null; }
+function shiftFX(c, text, down) {
+  if (RM) return; const P = center(c.wrap), s = S(), st = statOfText(text), col = down ? '255,90,31' : '255,255,255', hx = down ? '#ff5a1f' : '#ffffff';
+  scan(P.x, P.y, P.w, P.h, down ? 1 : -1, col, 0.55);
+  chevrons(P.x, down ? P.y - P.h * 0.42 : P.y + P.h * 0.32, down ? 9 : 8, P.w * 0.4, hx, !down);
+  ring(P.x, P.y, P.w * 0.85, 0.04, col, 2, 0.6, 6);
+  if (down) { glitch(P.x, P.y, P.w, P.h, 7); glyphs(P.x, P.y - P.h * 0.2, 9, P.w * 0.4, COL_DATA, { down: true }); c.wrap.animate([{ translate: '0 0' }, { translate: '-2.2% 0' }, { translate: '2.4% 0' }, { translate: '-1.4% 0' }, { translate: '1% 0' }, { translate: '0 0' }], { duration: 300, easing: 'steps(6)' }); }
+  else twinkles(P.x, P.y + P.h * 0.1, 6, P.w * 0.4, COL_HIT, { rise: true });
+  if (st) { const n = notchEl({ uid: c.wrap.dataset.uid }, st.k); if (n) { const r = center(n); n.classList.remove('pop'); void n.offsetWidth; n.classList.add('pop'); setTimeout(() => n.classList.remove('pop'), 700); ring(r.x, r.y, r.w * 1.7, 0, col, 3, 0.5); ring(r.x, r.y, r.w * 2.6, 0.09, col, 2, 0.55, 6); sparks(r.x, r.y, 10, 150 * s, down ? COL_DATA : COL_HIT, { g: down ? 120 : -60 }); chevrons(r.x, r.y + (down ? -r.h * 0.9 : r.h * 0.6), 3, r.w * 0.5, hx, !down); } }
+}
+/* a DATA strike landing: hex shockwave, code spray, glitch slices and a red scan */
+function dataHitFX(P, tier) {
+  if (RM) return; const s = S();
+  ring(P.x, P.y, P.w * (0.7 + tier * 0.12), 0, '255,90,31', 3, 0.5, 6); ring(P.x, P.y, P.w * (1.1 + tier * 0.15), 0.08, '212,32,43', 2, 0.55, 6);
+  glyphs(P.x, P.y, 8 + tier * 5, P.w * 0.5, COL_DATA, { delay: 0.12 }); glitch(P.x, P.y, P.w, P.h, 4 + tier * 3); scan(P.x, P.y, P.w, P.h, 1, '255,90,31', 0.45);
+  if (tier >= 3) { chevrons(P.x, P.y - P.h * 0.4, 6, P.w * 0.4, '#ff5a1f'); glyphs(P.x, P.y, 12, P.w * 0.7, ['#ffffff', '#ff9a4a'], { down: true, size: 1.2 }); }
 }
 const FX = {
   async pick(a) {
@@ -1182,7 +1233,7 @@ const FX = {
   },
   async hit(u, dmg, kind) {
     const c = cards[u.uid]; if (!c) return; paint(c.wrap, u);
-    const P = center(c.wrap), tier = impact(P.x, P.y, dmg, kind);
+    const P = center(c.wrap), tier = impact(P.x, P.y, dmg, kind); if (kind === 'data') dataHitFX(P, tier);
     ufloat(u, '-' + dmg, 'dmg' + (kind === 'data' ? ' data' : ''), Math.max(16, P.w * (0.2 + tier * 0.07)));
     c.wrap.classList.add('hurt'); setTimeout(() => c.wrap.classList.remove('hurt'), 340);
     const amp = 1.5 + tier * 2;
@@ -1200,6 +1251,7 @@ const FX = {
   async dataBurst(u, level) {
     const c = cards[u.uid]; if (!c) return; const P = center(c.wrap);
     c.wrap.classList.add('datafx'); dataFX(P.x, P.y, level); notchSpark(u, 'DATA'); sfx('data');
+    if (!RM) { scan(P.x, P.y, P.w, P.h, -1, '255,90,31', 0.5); glyphs(P.x, P.y + P.h * 0.15, 6 + level * 4, P.w * 0.45, COL_DATA); ring(P.x, P.y, P.w * (0.75 + level * 0.15), 0, '255,90,31', 2, 0.55, 6); }
     await sleep(260 + level * 90); c.wrap.classList.remove('datafx'); paint(c.wrap, u);
   },
   async brim(a) {
@@ -1223,6 +1275,7 @@ const FX = {
     else if (/\+\d STR/.test(t)) { ampFX(c, /UNSTABLE/.test(t)); sfx('data'); }
     else if (/HARDEN/.test(t)) hardenFX(c);
     else { sparks(P.x, P.y, 12, 150 * s, COL_HIT, { g: -80 }); twinkles(P.x, P.y, 5, P.w * 0.4, COL_HIT, { rise: true }); }
+    shiftFX(c, t, /^-/.test(t.trim()));
     ufloat(u, t, 'buf'); await sleep(RM ? 40 : (/DEPULSION|STR|HARDEN/.test(t) ? 520 : 230));
   },
   async coat(u, slot) {
@@ -1252,7 +1305,7 @@ const FX = {
     for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.283; streak(P.x + Math.cos(a) * P.w * 0.7, P.y + Math.sin(a) * P.h * 0.5, P.x, P.y, '255,40,40'); }
     sparks(P.x, P.y, 10, 120 * s, ['#ff2a2a', '#d4202b'], { g: 20 }); sfx('hit', 0); await sleep(RM ? 30 : 200);
   },
-  async debuff(u, text) { const c = cards[u.uid]; if (!c) return; paint(c.wrap, u); const P = center(c.wrap); dataFX(P.x, P.y, 1); chevrons(P.x, P.y - P.h * 0.35, 10, P.w * 0.4, '#ff4a2a'); glow(P.x, P.y, P.w * 0.8, 0.3, '212,32,43'); ufloat(u, 'v ' + text, 'dbf'); await sleep(280); },
+  async debuff(u, text) { const c = cards[u.uid]; if (!c) return; paint(c.wrap, u); const P = center(c.wrap); dataFX(P.x, P.y, 1); shiftFX(c, text, true); chevrons(P.x, P.y - P.h * 0.35, 10, P.w * 0.4, '#ff4a2a'); glow(P.x, P.y, P.w * 0.8, 0.3, '212,32,43'); ufloat(u, 'v ' + text, 'dbf'); await sleep(280); },
   async rail(slot, mode) {
     updateAll(); const P = center(railEls[slot]); dataFX(P.x, P.y, mode === 'fire' ? 2 : 1); sfx('data');
     if (mode === 'unstable') { flash(0.2, 300, '255,70,30'); shockLines(P.x, P.y, 20, 16 * S(), 26 * S(), 480 * S(), '#ff5a1f'); for (let i = 0; i < 4; i++) arc(P.x - P.w / 2, P.y + (i - 1.5) * P.h * 0.3, P.x + P.w / 2, P.y + (i - 1.5) * P.h * 0.3, 0.4, 10, 8); lens(P.x, P.y, P.w * 0.8, 0, 0.6, '255,70,30'); }
@@ -1397,9 +1450,10 @@ function showTune() {
 }
 window.addEventListener('touchmove', e => { if (UI.dnd && e.cancelable) e.preventDefault(); }, { passive: false });
 function showArrange() {
-  UI.mode = 'arrange'; let sel = 0, swapping = false, first = true, dragEnd = 0; const ov = $('#arrange'); ov.classList.add('on'); $('#over').classList.remove('on');
+  UI.mode = 'arrange'; let sel = 0, swapping = false, first = true, dragEnd = 0, lq = '', lsort = 'deck', ldir = 1; const ov = $('#arrange'); ov.classList.add('on'); $('#over').classList.remove('on');
   const statBar = (k, v, d) => `<div class="sb"><span class="sl"><img src="${ICO[k]}" alt="">${SHORT[k]}</span><span class="st"><i style="--w:${Math.min(100, v / 10 * 100)}%"></i></span><b>${v}</b></div>`;
   const panel = key => {
+    if (!key) return `<div class="ahead"><b>Empty slot</b><span>${ROLE[sel]} ${sel + 1}</span></div><p class="blurb">Pick an agent from the roster below and tap Add to squad, drag one in, or hit Random.</p>`;
     const d = DEFS[key], st0 = E.statsFor(key, sel), hp = Math.max(1, Math.round(d.hp * prefs.hp)), slotNote = sel < 4 ? (sel === 0 || sel === 3 ? 'Guard slot: can interrupt for the agent beside them' : 'Attack slot: hits harder, nobody guards for it') : 'On the bench';
     const brnNote = (E.statsFor(key, sel).BRN < 1 ? ' Has no Brains, so it cannot interrupt for a teammate.' : '') + (d.pair ? ' Must sit next to ' + DEFS[d.pair].name + ' (both or neither).' : '');
     return `<div class="ahead"><b>${d.name}</b><span>${d.role.toUpperCase()} &middot; rests ${d.rest} after acting &middot; costs ${d.cost} hiring point${d.cost > 1 ? 's' : ''}</span></div>
@@ -1412,13 +1466,16 @@ function showArrange() {
   const draw = () => {
     ov.innerHTML = `<div class="inner arr"><div class="abrand"><b>ANOMEX</b><span>LINKED</span></div><h2>Build your squad</h2>
       <div class="decks"></div><div class="dkrow"></div><div class="budget"></div>
-      <p class="sub">Tap a card to inspect it. Hold and drag one onto another to swap. Your squad is the top four and must fit the hiring budget. Slots 1 and 4 guard, slots 2 and 3 attack.</p>
-      <div class="tiles"></div><div class="swaprow"></div>
+      <p class="sub">Tap a card to inspect it, or drag it onto a squad slot to swap. Slots 1 and 4 guard, 2 and 3 attack.</p>
+      <div class="tiles squad"></div>
+      <div class="libbar"><div class="srow"><input class="lsearch" type="search" placeholder="Search agents" aria-label="Search agents" autocomplete="off" spellcheck="false"><button class="mini rnd" type="button" id="aRand">Random</button><button class="mini" type="button" id="aClear">Clear</button></div><div class="lsort" role="group" aria-label="Sort agents"></div></div>
+      <div class="libwrap"><button class="larr l" type="button" aria-label="Scroll left">&#9664;</button><div class="lib"></div><button class="larr r" type="button" aria-label="Scroll right">&#9654;</button></div>
+      <div class="swaprow"></div>
       <div class="apanel"></div>
       <div class="btnrow" style="width:min(100%,420px)"><button class="btn" type="button" id="aRules">Rules</button><button class="btn" type="button" id="aTune">Tune</button><button class="btn" type="button" id="aOnl">Online</button><button class="btn primary" type="button" id="aGo">Start duel</button></div></div>`;
     const bar = $('.decks', ov), dkrow = $('.dkrow', ov);
     decks.forEach((d, i) => { const b = el('button', 'dk' + (i === activeDeck ? ' on' : '')); b.type = 'button'; b.textContent = d.name; b.onclick = () => { if (i === activeDeck) return; sfx('tick'); activeDeck = i; roster = decks[i].order; saveDecks(); sel = 0; swapping = false; first = true; draw(); }; bar.appendChild(b); });
-    if (decks.length < 5) { const b = el('button', 'dk add', '+'); b.type = 'button'; b.setAttribute('aria-label', 'New deck'); b.onclick = () => { sfx('tick'); decks.push({ name: 'Deck ' + (decks.length + 1), order: roster.slice() }); activeDeck = decks.length - 1; roster = decks[activeDeck].order; saveDecks(); sel = 0; swapping = false; first = true; draw(); }; bar.appendChild(b); }
+    if (decks.length < 5) { const b = el('button', 'dk add', '+'); b.type = 'button'; b.setAttribute('aria-label', 'New deck'); b.onclick = () => { sfx('tick'); decks.push({ name: 'Deck ' + (decks.length + 1), order: emptyOrder() }); activeDeck = decks.length - 1; roster = decks[activeDeck].order; saveDecks(); sel = 0; swapping = false; first = true; draw(); }; bar.appendChild(b); }
     const inp = el('input', 'dkname'); inp.value = decks[activeDeck].name; inp.maxLength = 14; inp.setAttribute('aria-label', 'Deck name'); inp.autocomplete = 'off'; inp.spellcheck = false;
     inp.oninput = () => { decks[activeDeck].name = inp.value.trim().slice(0, 14) || 'Deck ' + (activeDeck + 1); const bs = $$('.dk:not(.add)', bar); if (bs[activeDeck]) bs[activeDeck].textContent = decks[activeDeck].name; saveDecks(); };
     const dup = el('button', 'mini', 'Copy'); dup.type = 'button'; dup.onclick = () => { if (decks.length >= 5) return toast('Five decks max.'); sfx('tick'); decks.push({ name: (decks[activeDeck].name + ' 2').slice(0, 14), order: roster.slice() }); activeDeck = decks.length - 1; roster = decks[activeDeck].order; saveDecks(); sel = 0; first = true; draw(); };
@@ -1426,14 +1483,14 @@ function showArrange() {
     dkrow.append(inp, dup, del);
     { const used = E.squadCost(teamOf()), B = E.CFG.budget, bg = $('.budget', ov); bg.classList.toggle('over', used > B);
       bg.innerHTML = `<span>HIRING POINTS</span><b>${used}<i> / ${B}</i></b><div class="bbar"><u style="width:${Math.min(100, used / B * 100)}%"></u></div>`; }
-    const landed = UI.landed; UI.landed = null;
-    const tiles = $('.tiles', ov);
-    roster.forEach((key, i) => {
-      const t = el('div', 'tile' + (sel === i ? ' pick' : '') + (i >= 4 ? ' bench' : '') + (swapping && sel !== i ? ' target' : '') + (first ? ' enter' : '') + (landed && landed.includes(i) ? ' landed' + (i < 4 ? ' hot' : '') : '')); t.dataset.i = i; t.style.setProperty('--i', i); t.tabIndex = 0; t.setAttribute('role', 'button'); t.setAttribute('aria-label', `${DEFS[key].name}, ${i < 4 ? 'slot ' + (i + 1) : 'bench'}`);
-      const lab = el('div', 'lab', i < 4 ? ROLE[i] + ' ' + (i + 1) : 'BENCH'), slot = el('div', 'tslot'); const w = buildCard(pseudoUnit(key, i)); w.tabIndex = -1; $$('.notch', w).forEach(n => { n.style.pointerEvents = 'none'; }); slot.appendChild(w);
-      t.append(lab, slot, el('div', 'cap', DEFS[key].name), el('div', 'tcost', String(DEFS[key].cost)));
-      if (landed && landed.includes(i)) { const fx = el('div', 'landfx'); for (let k = 0; k < 10; k++) { const sp = el('i'); sp.style.setProperty('--a', (k * 36 + (i * 17) % 20) + 'deg'); sp.style.setProperty('--d', (28 + (k % 3) * 12) + 'px'); fx.appendChild(sp); } slot.appendChild(fx); setTimeout(() => fx.remove(), 800); }
-      t.addEventListener('pointerdown', e => dragStart(e, t, i));
+    let lf = UI.landed; UI.landed = null;
+    const mkTile = (key, i, n) => {
+      const t = el('div', 'tile' + (sel === i ? ' pick' : '') + (i >= 4 ? ' bench' : '') + (swapping && sel !== i ? ' target' : '') + (first ? ' enter' : '') + (lf && lf.includes(i) ? ' landed' + (i < 4 ? ' hot' : '') : '')); t.dataset.i = i; t.style.setProperty('--i', n); t.tabIndex = 0; t.setAttribute('role', 'button'); t.setAttribute('aria-label', `${key ? DEFS[key].name : 'Empty'}, ${i < 4 ? 'slot ' + (i + 1) : 'bench'}`);
+      const lab = el('div', 'lab', i < 4 ? ROLE[i] + ' ' + (i + 1) : 'BENCH'), slot = el('div', 'tslot');
+      if (key) { const w = buildCard(pseudoUnit(key, i)); w.tabIndex = -1; $$('.notch', w).forEach(n => { n.style.pointerEvents = 'none'; }); slot.appendChild(w); t.append(lab, slot, el('div', 'cap', DEFS[key].name), el('div', 'tcost', String(DEFS[key].cost))); }
+      else { t.classList.add('empty'); slot.appendChild(el('div', 'eslot', '<i>+</i>')); t.append(lab, slot, el('div', 'cap', 'Empty')); }
+      if (lf && lf.includes(i)) { const fx = el('div', 'landfx'); for (let k = 0; k < 10; k++) { const sp = el('i'); sp.style.setProperty('--a', (k * 36 + (i * 17) % 20) + 'deg'); sp.style.setProperty('--d', (28 + (k % 3) * 12) + 'px'); fx.appendChild(sp); } slot.appendChild(fx); setTimeout(() => fx.remove(), 800); }
+      if (key) t.addEventListener('pointerdown', e => dragStart(e, t, i));
       const act = () => {
         if (Date.now() - dragEnd < 350) return;
         sfx('tick');
@@ -1442,8 +1499,39 @@ function showArrange() {
         draw();
       };
       t.addEventListener('click', act); t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
-      tiles.appendChild(t);
-    });
+      return t;
+    };
+    const squadEl = $('.squad', ov); for (let i = 0; i < 4; i++) squadEl.appendChild(mkTile(roster[i], i, i));
+    const lib = $('.lib', ov), lsearch = $('.lsearch', ov), lsortEl = $('.lsort', ov), arL = $('.larr.l', ov), arR = $('.larr.r', ov);
+    const SORTS = [['deck', 'Deck'], ['name', 'A-Z'], ['cost', 'Cost'], ['STR', 'STR'], ['AGI', 'AGI'], ['BRN', 'BRN'], ['DATA', 'DATA']];
+    const arrows = () => { const m = lib.scrollWidth - lib.clientWidth; arL.classList.toggle('off', lib.scrollLeft < 4); arR.classList.toggle('off', lib.scrollLeft > m - 4); arL.parentNode.classList.toggle('noscroll', m < 6); };
+    const sval = key => lsort === 'name' ? DEFS[key].name.toLowerCase() : lsort === 'cost' ? DEFS[key].cost : DEFS[key].stats[lsort];
+    const fillLib = keepScroll => {
+      const prev = lib.scrollLeft; lib.innerHTML = '';
+      const ql = lq.trim().toLowerCase();
+      const items = roster.map((key, i) => ({ key, i })).filter(x => x.key && x.i >= 4 && (!ql || (DEFS[x.key].name + ' ' + (DEFS[x.key].short || '') + ' ' + DEFS[x.key].role).toLowerCase().includes(ql)));
+      if (lsort !== 'deck') items.sort((a, b) => { const x = sval(a.key), y = sval(b.key); return ((x < y ? -1 : x > y ? 1 : 0) * ldir) || DEFS[a.key].name.localeCompare(DEFS[b.key].name); });
+      if (!items.length) lib.appendChild(el('p', 'lempty', 'No agents match.'));
+      items.forEach((x, n) => lib.appendChild(mkTile(x.key, x.i, n)));
+      lib.scrollLeft = keepScroll ? prev : 0; arrows();
+    };
+    lsearch.value = lq; lsearch.oninput = () => { lq = lsearch.value; fillLib(false); };
+    lsearch.onkeydown = e => { if (e.key === 'Enter') lsearch.blur(); };
+    const paintSort = () => { lsortEl.innerHTML = ''; SORTS.forEach(([k, nm]) => { const b = el('button', 'lchip' + (lsort === k ? ' on' : ''), (STATS.includes(k) ? `<img src="${ICO[k]}" alt="">` : '') + nm + (lsort === k && k !== 'deck' ? (ldir > 0 ? ' &#9650;' : ' &#9660;') : '')); b.type = 'button';
+      b.onclick = () => { sfx('tick'); if (lsort === k) { if (k !== 'deck') ldir = -ldir; } else { lsort = k; ldir = (k === 'name' || k === 'cost') ? 1 : -1; } paintSort(); fillLib(false); }; lsortEl.appendChild(b); }); };
+    paintSort();
+    $('#aRand', ov).onclick = () => {
+      let pick = null; for (let tr = 0; tr < 800 && !pick; tr++) { const pool = ROSTER_ALL.slice(); for (let i = pool.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [pool[i], pool[j]] = [pool[j], pool[i]]; } const four = pool.slice(0, 4); if (E.validSquad(four).ok) pick = four; }
+      if (!pick) return; const rest = ROSTER_ALL.filter(k => !pick.includes(k)); roster = decks[activeDeck].order = pick.concat(rest, [null, null, null, null]);
+      sfx('whoosh'); sfx('tick'); UI.landed = [0, 1, 2, 3]; sel = 0; swapping = false; saveDecks(); draw();
+    };
+    $('#aClear', ov).onclick = () => { if (!roster.slice(0, 4).some(Boolean)) return; sfx('tick'); const rest = roster.filter((k, i) => k && i >= 4).concat(roster.slice(0, 4).filter(Boolean)); roster = decks[activeDeck].order = [null, null, null, null].concat(rest); sel = 0; swapping = false; UI.landed = null; saveDecks(); draw(); };
+    const prevScroll = UI.libScroll || 0; fillLib(false); lib.scrollLeft = prevScroll; arrows();
+    lib.addEventListener('scroll', () => { UI.libScroll = lib.scrollLeft; arrows(); }, { passive: true });
+    const nudge = d => { sfx('tick'); lib.scrollBy({ left: d * Math.max(120, lib.clientWidth * 0.8), behavior: 'smooth' }); };
+    arL.onclick = () => nudge(-1); arR.onclick = () => nudge(1);
+    lib.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && lib.scrollWidth > lib.clientWidth) { const m = lib.scrollWidth - lib.clientWidth, nx = lib.scrollLeft + e.deltaY; if ((e.deltaY < 0 && lib.scrollLeft > 0) || (e.deltaY > 0 && lib.scrollLeft < m)) { e.preventDefault(); lib.scrollLeft = Math.max(0, Math.min(m, nx)); } } }, { passive: false });
+    lf = null;
     first = false;
     const dragStart = (e, t, i) => {
       if (e.button > 0 || UI.dnd) return;
@@ -1453,11 +1541,13 @@ function showArrange() {
       const onScr = () => { scr = ov.scrollTop + window.scrollY; };
       const track = () => {
         if (!started) return;
-        const moved = px !== lpx || py !== lpy || scr !== lsy; lpx = px; lpy = py; lsy = scr;
+        { const lb = rects.lb, inY = py + scr >= lb.t + rects.s0 - 30 && py + scr <= lb.b + rects.s0 + 30; if (inY) { if (px < lb.l + 46) lib.scrollLeft -= 7; else if (px > lb.r - 46) lib.scrollLeft += 7; } }
+        const lsx = lib.scrollLeft, moved = px !== lpx || py !== lpy || scr !== lsy || lsx !== (track.ll || 0); track.ll = lsx; lpx = px; lpy = py; lsy = scr;
         if (moved) {
           ghost.style.transform = `translate3d(${px}px,${py}px,0) translate(-50%,-55%) scale(1.08) rotate(3deg)`;
           const dy = scr - rects.s0; let ni = -1;
-          for (const q of rects.list) if (px >= q.l && px <= q.r && py + scr >= q.t + rects.s0 && py + scr <= q.b + rects.s0) { ni = q.t0 === t ? -1 : q.i; break; }
+          const lx = lib.scrollLeft - rects.l0, inLb = px >= rects.lb.l && px <= rects.lb.r && py + scr >= rects.lb.t + rects.s0 && py + scr <= rects.lb.b + rects.s0;
+          for (const q of rects.list) { if (q.inLib && !inLb) continue; const ql = q.inLib ? q.l - lx : q.l, qr = q.inLib ? q.r - lx : q.r; if (px >= ql && px <= qr && py + scr >= q.t + rects.s0 && py + scr <= q.b + rects.s0) { ni = q.t0 === t ? -1 : q.i; break; } }
           if (ni !== overI) { $$('.tile.over', ov).forEach(x => x.classList.remove('over')); if (ni >= 0) { const q = rects.list.find(z => z.i === ni); q.t0.classList.add('over'); sfx('tick'); } overI = ni; }
         }
         const m = 80, vh = window.innerHeight; if (py < m) { ov.scrollTop -= (m - py) * 0.25; window.scrollBy(0, -(m - py) * 0.25); } else if (py > vh - m) { ov.scrollTop += (py - (vh - m)) * 0.25; window.scrollBy(0, (py - (vh - m)) * 0.25); }
@@ -1466,7 +1556,7 @@ function showArrange() {
       const begin = () => {
         started = true; UI.dnd = true; try { navigator.vibrate && navigator.vibrate(12); } catch (er) {}
         const r = t.getBoundingClientRect(); ghost = t.cloneNode(true); ghost.classList.add('ghost'); ghost.classList.remove('pick', 'enter', 'landed'); ghost.style.width = r.width + 'px'; document.body.appendChild(ghost); t.classList.add('dragsrc'); sfx('whoosh');
-        onScr(); rects = { s0: scr, list: $$('.tile', ov).filter(x => x.dataset.i != null).map(x => { const b = x.getBoundingClientRect(); return { t0: x, i: +x.dataset.i, l: b.left, r: b.right, t: b.top, b: b.bottom }; }) };
+        onScr(); const lb = lib.getBoundingClientRect(); rects = { s0: scr, l0: lib.scrollLeft, lb: { l: lb.left, r: lb.right, t: lb.top, b: lb.bottom }, list: $$('.tile', ov).filter(x => x.dataset.i != null).map(x => { const b = x.getBoundingClientRect(); return { t0: x, i: +x.dataset.i, l: b.left, r: b.right, t: b.top, b: b.bottom, inLib: lib.contains(x) }; }) };
         ov.addEventListener('scroll', onScr, { passive: true }); window.addEventListener('scroll', onScr, { passive: true }); track();
       };
       const mv = ev => { px = ev.clientX; py = ev.clientY; if (!started) { const dd = Math.hypot(px - sx, py - sy); if (touch) { if (dd > 10) clean(); } else if (dd > 6) begin(); } };
@@ -1480,14 +1570,24 @@ function showArrange() {
       window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', cn);
       if (touch) timer = setTimeout(begin, 240);
     };
-    const vs = E.validSquad(teamOf()); $('#aGo').disabled = !vs.ok; const wn = el('p', 'warn', vs.ok ? '' : vs.reason + (/budget/.test(vs.reason) ? ' Swap in cheaper agents to start.' : ' Swap them into place to start.')); wn.style.display = vs.ok ? 'none' : 'block'; $('.swaprow', ov).before(wn);
+    const vs = E.validSquad(teamOf()); $('#aGo').disabled = !vs.ok; const wn = el('p', 'warn', vs.ok ? '' : vs.reason + (/budget/.test(vs.reason) ? ' Swap in cheaper agents to start.' : /Fill/.test(vs.reason) ? '' : ' Swap them into place to start.')); wn.style.display = vs.ok ? 'none' : 'block'; $('.swaprow', ov).before(wn);
     const key = roster[sel], ap = $('.apanel', ov); ap.innerHTML = panel(key);
     requestAnimationFrame(() => requestAnimationFrame(() => ap.classList.add('on')));
-    const sr = $('.swaprow', ov), sb = el('button', 'btn' + (swapping ? ' primary' : ''), swapping ? 'Tap a card to swap with ' + DEFS[key].name + ' (cancel)' : (sel < 4 ? 'Swap ' + DEFS[key].name + ' with...' : 'Bring ' + DEFS[key].name + ' into the squad...'));
-    sb.type = 'button'; sb.onclick = () => { sfx('tick'); swapping = !swapping; draw(); }; sr.appendChild(sb);
+    const sr = $('.swaprow', ov), firstEmpty = [0, 1, 2, 3].find(i => !roster[i]);
+    const mkB = (txt, cls, fn) => { const b = el('button', 'btn' + (cls ? ' ' + cls : ''), txt); b.type = 'button'; b.onclick = () => { sfx('tick'); fn(); }; sr.appendChild(b); return b; };
+    const moveTo = (from, to) => { const x = roster[from]; roster[from] = roster[to]; roster[to] = x; sel = to; swapping = false; UI.landed = [from, to].filter(q => q < 4); saveDecks(); sfx('whoosh'); draw(); };
+    if (!key) { if (firstEmpty == null) mkB('Squad is full', '', () => {}).disabled = true; }
+    else if (sel >= 4) {
+      if (firstEmpty != null && !swapping) mkB('Add ' + DEFS[key].name + ' to ' + ROLE[firstEmpty] + ' ' + (firstEmpty + 1), 'primary', () => moveTo(sel, firstEmpty));
+      mkB(swapping ? 'Tap a squad slot to swap in ' + DEFS[key].name + ' (cancel)' : (firstEmpty != null ? 'Put in a specific slot...' : 'Swap ' + DEFS[key].name + ' into the squad...'), swapping ? 'primary' : '', () => { swapping = !swapping; draw(); });
+    } else {
+      mkB(swapping ? 'Tap a card to swap with ' + DEFS[key].name + ' (cancel)' : 'Swap ' + DEFS[key].name + ' with...', swapping ? 'primary' : '', () => { swapping = !swapping; draw(); });
+      if (!swapping) mkB('Remove from squad', '', () => { let bn = roster.findIndex((k, q) => q >= 4 && !k); if (bn < 0) { roster.push(null); bn = roster.length - 1; } const from = sel; roster[bn] = roster[from]; roster[from] = null; swapping = false; UI.landed = null; saveDecks(); sfx('whoosh'); draw(); });
+    }
     $('#aRules').onclick = showRules; $('#aTune').onclick = showTune; $('#aOnl').onclick = () => { sfx('tick'); if (ONL && ONL.lobby && !ONL.playing) ONL.lobby(); else showOnline(); }; if (ONL && ONL.lobby && !ONL.playing) { $('#aOnl').textContent = 'Back to lobby'; $('#aGo').style.display = 'none'; } $('#aGo').onclick = () => { sfx('tick'); startGame(); };
   };
-  draw();
+  ov.onscroll = () => ov.classList.toggle('scrolled', ov.scrollTop > 30);
+  ov.classList.remove('scrolled'); draw();
 }
 function showOver() {
   liveSet(false);
@@ -1595,7 +1695,7 @@ function showOnline() {
     const deckBtns = decks.map((d, i) => `<button type="button" class="dk${i === activeDeck ? ' on' : ''}" data-i="${i}"${rd ? ' disabled' : ''}>${String(d.name).replace(/[<>&]/g, '')}</button>`).join('');
     body(`<h2>Choose your squad</h2><p class="blurb">${rd ? 'You are ready. Waiting for your friend...' : st}</p>
       <div class="decks">${deckBtns}</div>
-      <div class="lsq">${teamOf().map((k, i) => `<div class="lag"><img src="icons/${k}.png" alt=""><b>${DEFS[k].short || DEFS[k].name}</b><span>${ROLE[i]} &middot; ${DEFS[k].cost}</span></div>`).join('')}</div>
+      <div class="lsq">${teamOf().map((k, i) => k ? `<div class="lag"><img src="icons/${k}.png" alt=""><b>${DEFS[k].short || DEFS[k].name}</b><span>${ROLE[i]} &middot; ${DEFS[k].cost}</span></div>` : `<div class="lag"><b>Empty</b><span>${ROLE[i]} &middot; pick an agent</span></div>`).join('')}</div>
       <p class="budgetline${vs.ok ? '' : ' bad'}">${vs.ok ? 'Hiring points ' + cost + ' / ' + CFG.budget : vs.reason}</p>
       <div class="btnrow col"><button class="btn primary" type="button" id="nReady"${vs.ok ? '' : ' disabled'}>${rd ? 'Not ready' : 'Ready'}</button><button class="btn" type="button" id="nEdit">Change squad</button><button class="btn ghost" type="button" id="nLeave">Leave</button></div>`, () => {
       $$('.dk', ov).forEach(b => { b.onclick = () => { sfx('tick'); activeDeck = +b.dataset.i; roster = decks[activeDeck].order; saveDecks(); lobby(); }; });

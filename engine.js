@@ -247,6 +247,7 @@ function statsFor(key, slot) {
 }
 function squadCost(keys) { return keys.reduce((n, k) => n + (DEFS[k] ? DEFS[k].cost : 0), 0); }
 function validSquad(keys) {
+  if (keys.length !== 4 || keys.some(k => !k || !DEFS[k])) return { ok: false, reason: 'Fill all four slots to start.' };
   if (squadCost(keys) > CFG.budget) return { ok: false, reason: 'Over budget: ' + squadCost(keys) + ' of ' + CFG.budget + ' hiring points.' };
   const j = keys.indexOf('julian'), d = keys.indexOf('delilah');
   if (j < 0 && d < 0) return { ok: true };
@@ -1234,7 +1235,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   newGame, getG, setHooks, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover,
-  VERSION: 'linked-10', executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-12', executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);
