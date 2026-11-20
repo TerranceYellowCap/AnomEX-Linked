@@ -96,6 +96,11 @@ function sfx(name, p = 1) {
       case 'twinkle': fm(ac, 1760, 2, 0.5, 0.2, 0.045); fm(ac, 2640, 2, 0.4, 0.18, 0.03, 0.06); break;
       case 'die': osc(ac, 'sine', 110, 26, 0.7, 0.4, 0, 0.004); nz(ac, 0.5, 0.14, 0, 0, 1800, 180); fm(ac, 330, 1.5, 2, 0.45, 0.05); break;
       case 'win': [523, 659, 784, 1047].forEach((f, i) => { fm(ac, f, 2, 0.5, 0.45, 0.07, i * 0.11); fm(ac, f * 2, 1, 0.2, 0.35, 0.025, i * 0.11); }); break;
+      case 'victory':
+        osc(ac, 'sine', 110, 1500, 0.85, 0.1, 0, 0.3); osc(ac, 'triangle', 220, 2200, 0.85, 0.04, 0, 0.4); nz(ac, 0.85, 0.13, 0, 0, 300, 7000);
+        osc(ac, 'sine', 95, 30, 1.3, 0.5, 0.85, 0.004); nz(ac, 0.5, 0.2, 0, 0.85, 3000, 200); fm(ac, 1175, 2.76, 1.2, 1.2, 0.07, 0.86);
+        [523, 659, 784, 1047, 1319].forEach((f, i) => { fm(ac, f, 2, 0.45, 1.7, 0.055, 0.87 + i * 0.045); fm(ac, f * 2, 1, 0.15, 1.2, 0.02, 0.87 + i * 0.045); });
+        [1568, 2093, 2637, 3136, 2637, 3136, 4186].forEach((f, i) => fm(ac, f, 2, 0.3, 0.5, 0.03, 1.5 + i * 0.09)); break;
       case 'lose': [330, 262, 196, 147].forEach((f, i) => fm(ac, f, 1.01, 0.8, 0.5, 0.07, i * 0.16)); break;
     }
   } catch (e) {}
@@ -336,7 +341,7 @@ function paint(w, u) {
   R.hp.classList.toggle('low', pct <= 30 && u.alive);
   const real = !u.pseudo && G;
   STATS.forEach(k => {
-    const n = R.n[k], v = viewVal(u, k), vt = v + (v !== u.max[k] ? '/' + u.max[k] : '');
+    const n = R.n[k], v = viewVal(u, k), vt = (v === u.max[k] ? mxs(u, k, v) : v + '/' + mxs(u, k, u.max[k]));
     if (R.v[k]._t !== vt) { R.v[k]._t = vt; R.v[k].textContent = vt; }
     n.classList.toggle('zero', v === 0); n.classList.toggle('up', v > u.max[k]);
     n.classList.toggle('dbf', !!(real && G.debuffs.some(d => d.target === u && d.amt[k])));
@@ -626,7 +631,7 @@ function onBoardClick(e) {
   let w = e.target.closest('.cardwrap:not(.clone)'), dn = null;
   if (downCard && performance.now() - downCard.t < 900 && Math.hypot(e.clientX - downCard.x, e.clientY - downCard.y) < 16 && !e.target.closest('.rs')) { if (downCard.w !== w) w = downCard.w; dn = downCard.n; }
   if (w && cards[w.dataset.uid]) { let n = (dn && w.contains(dn) ? dn : null) || (hovN && w.contains(hovN) ? hovN : null) || notchAt(w, e, 1.3);
-    if (!n && cards[w.dataset.uid].unit === UI.sel && ['sel', 'abil', 'const'].includes(UI.mode)) n = notchAt(w, e, 3.2); /* a tap near a corner counts as that notch, not as an inspect */ return onCardTap(cards[w.dataset.uid].unit, n && n.dataset.k, e); }
+    if (!n && ((cards[w.dataset.uid].unit === UI.sel && ['sel', 'abil', 'const'].includes(UI.mode)) || (UI.mode === 'defend' && UI.def && cards[w.dataset.uid].unit === UI.def.t))) n = notchAt(w, e, 3.2); /* a tap near a corner counts as that notch, not as an inspect */ return onCardTap(cards[w.dataset.uid].unit, n && n.dataset.k, e); }
   const rs = e.target.closest('.rs'); if (rs) return onRailTap(+rs.dataset.slot);
   onEmptyTap();
 }
@@ -644,6 +649,7 @@ function onCardTap(u, k, e) {
       if (u.side === 0 && u.alive) { if (u === UI.sel && k) return notchAct(u, k, e); if (u === UI.sel) return showInspect(u); if (UI.sel) { sfx('tick'); return toast('Hit BACK first to pick a different agent.'); } return selectAgent(u); }
       return showInspect(u);
     case 'plot': return;
+    case 'defend': if (UI.def && u === UI.def.t && k) return UI.def.pick(k); if (UI.def && u === UI.def.t) return; return;
     default: if (!['boot', 'arrange'].includes(UI.mode)) showInspect(u);
   }
 }
@@ -974,30 +980,65 @@ function allyPicked(ally) {
 function incHead(a, t, X, kind, text) { return el('div', 'inc' + (kind === 'data' ? ' data' : ''), `<span class="big">${X}</span><div><b>${a.name} &rarr; ${t.name}</b><small>${text}</small></div>`); }
 function drow(icon, label) { const r = el('div', 'dr', icon ? `<img src="${icon}" alt="">` : ''); const t = el('div', 't', label); r.appendChild(t); return { r, t }; }
 function askDefense(ctx) {
+  const { attacker: a, target: t, X, kind } = ctx;
+  const can = { STR: ctx.canBlock && t.cur.STR > 0, AGI: !ctx.exposed && ctx.canDodge };
+  if (!can.STR && !can.AGI && !ctx.protectors.length) { toast(t.name + ' has no way to stop it.'); return sleep(RM ? 0 : 450).then(() => ({ type: 'take' })); }
   return new Promise(res => {
-    UI.mode = 'defend'; closeMenus(); hintSet('');
-    const { attacker: a, target: t, X, kind } = ctx;
-    const done = d => { setTray(); UI.mode = 'busy'; clearMarks(); res(d); };
-    cards[t.uid].wrap.classList.add('tgt'); ctx.protectors.forEach(p => cards[p.uid].wrap.classList.add('guard'));
-    const head = incHead(a, t, X, kind, (kind === 'data' ? 'DATA attack. Dodge it exactly, or have a neighbour take it.' : 'Strength attack. Match to negate, go over to counter.') + (ctx.exposed ? ` ${t.name} is resting: no block, no dodge.` : ''));
-    const opts = el('div', 'dopts');
-    if (ctx.canBlock) {
-      let s = Math.min(X, t.cur.STR); const { r, t: lab } = drow(ICO.STR, '');
-      const upd = () => { lab.innerHTML = s === 0 ? `Spend 0. Take all <b>${X}</b>.` : s < X ? `Spend <b>${s}</b> STR. Take <b>${X - s}</b>.` : s === X ? `Spend <b>${X}</b> STR. Matched${CFG.clash ? ' (they may raise)' : ''}.` : `Spend <b>${s}</b> STR. <b>Counter ${s - X}</b>.`; };
-      r.append(miniStep(0, t.cur.STR, s, v => { s = v; upd(); }), btn('Block', 'primary', () => done({ type: 'block', s }))); upd(); opts.appendChild(r);
-    }
-    if (!ctx.exposed) { const { r, t: lab } = drow(ICO.AGI, `Dodge: spend exactly <b>${X}</b> AGI (you have ${t.cur.AGI}).`); r.appendChild(btn('Dodge', 'primary', () => done({ type: 'dodge' }), '', !ctx.canDodge)); opts.appendChild(r); }
-    ctx.protectors.forEach(p => {
-      const lab = p.makeup ? `<b>${p.name}</b> steps in with Makeup. Negates everything. Rests 2.` : kind === 'str' ? '' : `<b>${p.name}</b> takes all <b>${X}</b> instead. Rests ${p.restN}.`;
-      const { r, t: lt } = drow('icons/' + p.key + '.png', lab); r.firstChild.style.borderRadius = '4px'; r.firstChild.style.objectFit = 'contain';
-      if (p.makeup || kind !== 'str') r.appendChild(btn('Cover', 'primary', () => done({ type: 'interrupt', by: p, s: 0 }), '1 BRN'));
-      else {
-        let s = Math.min(X, p.cur.STR); const upd = () => { lt.innerHTML = `<b>${p.name}</b> spends ${s} STR. ${t.name} takes <b>${X - s}</b>. ${p.name} rests ${p.restN}.`; };
-        r.append(miniStep(0, Math.min(X, p.cur.STR), s, v => { s = v; upd(); }), btn('Cover', 'primary', () => done({ type: 'interrupt', by: p, s }), '1 BRN')); upd();
-      }
-      opts.appendChild(r);
+    UI.mode = 'defend'; closeMenus(); hintSet(''); hidePod();
+    const wrap = cards[t.uid].wrap, rs = railEls[t.slot];
+    let m = null, s = Math.min(X, t.cur.STR), cs = {};
+    const nn = k => $('.n-' + k.toLowerCase(), wrap);
+    const cleanup = () => { (UI.holds || []).forEach(f => f()); UI.holds = []; pod.remove(); STATS.forEach(k => nn(k).classList.remove('lit', 'hov')); UI.def = null; stopHint(); clearMarks(); camReset(); };
+    const done = d => { cleanup(); UI.mode = 'busy'; res(d); };
+    wrap.classList.add('tgt'); ctx.protectors.forEach(p => cards[p.uid].wrap.classList.add('guard'));
+    ['STR', 'AGI'].forEach(k => nn(k).classList.toggle('lit', !!can[k]));
+    const pod = el('div', 'pod defpod');
+    pod.innerHTML = `<div class="ptop"><div class="pinfo"></div></div>
+      <div class="prow"><button type="button" class="pbtn" data-d="-1" aria-label="Less"><i>-</i></button><span class="pnum"></span><button type="button" class="pbtn" data-d="1" aria-label="More"><i>+</i></button></div>
+      <button type="button" class="pgo"></button><div class="pcov"></div>`;
+    rs.appendChild(pod);
+    const info = $('.pinfo', pod), row = $('.prow', pod), num = $('.pnum', pod), go = $('.pgo', pod), cov = $('.pcov', pod);
+    const upd = () => {
+      row.style.display = go.style.display = 'none';
+      STATS.forEach(k => nn(k).classList.toggle('on', m === k));
+      if (m === 'STR') {
+        row.style.display = go.style.display = ''; num.textContent = s; go.textContent = 'Block';
+        info.textContent = s < X ? `Spend ${s} STR | take ${X - s}` : s === X ? `Spend ${X} STR | matched${CFG.clash ? ' (they may raise)' : ''}` : `Spend ${s} STR | counter ${s - X}`;
+        $$('.pbtn', pod).forEach(b => { b.disabled = (+b.dataset.d < 0 && s <= 1) || (+b.dataset.d > 0 && s >= t.cur.STR); });
+        go.onclick = e => { e.stopPropagation(); sfx('tick'); done({ type: 'block', s }); };
+      } else if (m === 'AGI') {
+        go.style.display = ''; go.textContent = 'Dodge'; info.textContent = `Spend exactly ${X} AGI | you have ${t.cur.AGI}`;
+        go.onclick = e => { e.stopPropagation(); sfx('tick'); done({ type: 'dodge' }); };
+      } else info.textContent = `Incoming ${X}. Tap ${can.STR && can.AGI ? 'STR to block or AGI to dodge' : can.STR ? 'STR to block' : can.AGI ? 'AGI to dodge' : 'a cover'}`;
+    };
+    UI.def = { t, pick: k => {
+      if (k === 'DATA' || k === 'BRN') { sfx('tick'); return toast(k === 'DATA' ? 'DATA does nothing while you defend.' : 'Brains only lets a neighbour cover you.'); }
+      if (!can[k]) { sfx('tick'); return toast(k === 'STR' ? (ctx.exposed ? t.name + ' is resting: no block.' : t.cur.STR < 1 ? 'No Strength to block with.' : 'Cannot block this.') : (ctx.exposed ? t.name + ' is resting: no dodge.' : 'Not enough Agility. Dodging needs exactly ' + X + '.')); }
+      sfx('tick'); m = m === k ? null : k; upd();
+    } };
+    $$('.pbtn', pod).forEach(b => {
+      let t1 = 0, t2 = 0;
+      const step = () => { const nx = cl(s + +b.dataset.d, 1, t.cur.STR); if (nx === s) return false; s = nx; sfx('tick'); upd(); return true; };
+      const stop = () => { clearTimeout(t1); clearInterval(t2); b.classList.remove('down'); };
+      b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (b.disabled) return; b.classList.add('down'); step(); t1 = setTimeout(() => { t2 = setInterval(() => { if (!step()) stop(); }, 110); }, 380); });
+      ['pointerup', 'pointercancel', 'lostpointercapture', 'pointerleave'].forEach(n => b.addEventListener(n, stop)); (UI.holds = UI.holds || []).push(stop);
+      b.addEventListener('click', e => { e.stopPropagation(); if (e.detail === 0) step(); });
     });
-    setTray(head, opts, btn('Take it (' + X + ')', 'ghost', () => done({ type: 'take' })));
+    pod.addEventListener('click', e => e.stopPropagation());
+    ctx.protectors.forEach(p => {
+      const str = kind === 'str' && !p.makeup, key = p.uid; cs[key] = Math.min(X, p.cur.STR);
+      const b = el('button', 'pcb', ''); b.type = 'button';
+      const lab = () => { b.innerHTML = `<b>Cover: ${p.name}</b><small>${p.makeup ? 'negates all, rests 2' : str ? 'spend ' + cs[key] + ' STR, you take ' + (X - cs[key]) : 'takes all ' + X + ', rests ' + p.restN}</small>`; };
+      lab();
+      if (str && p.cur.STR > 0) { const lim = Math.min(X, p.cur.STR); b.addEventListener('contextmenu', e => e.preventDefault()); b.dataset.n = 1; b.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); done({ type: 'interrupt', by: p, s: cs[key] }); });
+        const st = el('span', 'pcs'); [['-', -1], ['+', 1]].forEach(([l, d]) => { const c = el('i', '', l); c.addEventListener('click', e => { e.stopPropagation(); cs[key] = cl(cs[key] + d, 0, lim); sfx('tick'); lab(); }); st.appendChild(c); }); const w = el('div', 'pcw'); w.append(b, st); cov.appendChild(w);
+      } else { b.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); done({ type: 'interrupt', by: p, s: 0 }); }); cov.appendChild(b); }
+    });
+    const take = el('button', 'pcb take', `<b>Take it (${X})</b>`); take.type = 'button'; take.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); done({ type: 'take' }); }); cov.appendChild(take);
+    upd();
+    const sa = cards[a.uid].slot, st2 = cards[t.uid].slot, l = Math.min(sa.offsetLeft, st2.offsetLeft), tp = Math.min(sa.offsetTop, st2.offsetTop);
+    camEl({ offsetLeft: l, offsetTop: tp, offsetWidth: Math.max(sa.offsetLeft + sa.offsetWidth, st2.offsetLeft + st2.offsetWidth) - l, offsetHeight: Math.max(sa.offsetTop + sa.offsetHeight, st2.offsetTop + st2.offsetHeight) - tp }, { sc: 1.5, rx: 10, cx: 1 });
+    hintSet(`${a.name} hits ${t.name} for ${X}`, (kind === 'data' ? 'DATA attack: dodge it exactly, or have a neighbour take it.' : 'Strength attack: match it to negate, go over to counter.') + (ctx.exposed ? ` ${t.name} is resting: no block, no dodge.` : ''));
   });
 }
 function askCounter(c) {
@@ -1300,6 +1341,14 @@ const FX = {
     converge(P.x, P.y, 70, P.w * 2, COL_DATA, 0.4); glow(P.x, P.y, P.w * 1.6, 0.5, '255,60,30'); await sleep(RM ? 40 : 380);
     flash(0.6, 520, '255,90,30'); warp(1.2); shake(9, 0.6); lens(P.x, P.y, Math.min(CW, CH) * 0.55, 0, 0.8, '255,70,40'); shockLines(P.x, P.y, 30, 30 * s, 60 * s, 900 * s, '#ff9a4a'); sfx('data'); await sleep(RM ? 40 : 200);
   },
+  credit(side, pts, txt) {
+    if (!G || G.ctrl[side] !== 'human') return;
+    let box = $('#credits'); if (!box) { box = el('div'); box.id = 'credits'; document.body.appendChild(box); }
+    const d = el('div', 'cp p' + Math.min(pts, 5)); d.innerHTML = `<b>+${pts} Credit Point${pts > 1 ? 's' : ''}</b><span></span>`; d.lastChild.textContent = txt;
+    while (box.children.length > 3) box.firstChild.remove();
+    box.appendChild(d); sfx(pts >= 3 ? 'win' : 'twinkle');
+    setTimeout(() => d.classList.add('out'), RM ? 2200 : 2600 + pts * 200); setTimeout(() => d.remove(), 3400 + pts * 200);
+  },
   async prick(u, src) {
     const c = cards[u.uid]; if (!c) return; const P = center(c.wrap), s = S();
     for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.283; streak(P.x + Math.cos(a) * P.w * 0.7, P.y + Math.sin(a) * P.h * 0.5, P.x, P.y, '255,40,40'); }
@@ -1328,6 +1377,7 @@ const FX = {
 /* =========================================================
    Inspect, panels, arrange, game over
    ========================================================= */
+const mxs = (u, k, n) => (k === 'STR' && (u.key === 'neko' || u.key === 'mason') && n >= 11) ? 'X' : n;
 function pseudoUnit(key, i) { const d = DEFS[key], hp = Math.max(1, Math.round(d.hp * prefs.hp)); return { uid: 'p' + i, pseudo: true, key, name: d.name, side: 0, slot: i, cur: E.statsFor(key, i), max: E.statsFor(key, i), hp, maxhp: hp, rest: 0, alive: true, makeup: false, fp: false }; }
 function showInspect(u) {
   const d = DEFS[u.key], ov = $('#inspect'), v = k => (UI.pv && UI.pv.u === u) ? UI.pv.v[k] : u.cur[k];
@@ -1335,7 +1385,7 @@ function showInspect(u) {
     <div class="hstage"><div class="hbeam"></div><div class="hbase"><i></i><i></i></div><div class="hfloat"><div class="bigslot"><div class="hsheen"></div><div class="hscan"></div></div></div></div>
     <div class="det hp3d">
     <h2 style="font-size:17px">${d.name}</h2><p style="margin:0 0 8px">${d.role.toUpperCase()} &middot; ${ROLE[u.slot]} slot ${u.slot + 1} &middot; rests ${d.rest} after acting${u.rest > 0 ? ' (resting ' + u.rest + ')' : ''}</p>
-    <div class="hr"><div><b>${u.hp}/${u.maxhp}</b>HP</div>${STATS.map(k => `<div><b>${v(k)}${v(k) !== u.max[k] ? '/' + u.max[k] : ''}</b>${k === 'DATA' ? 'DATA' : k}</div>`).join('')}</div>
+    <div class="hr"><div><b>${u.hp}/${u.maxhp}</b>HP</div>${STATS.map(k => `<div><b>${v(k) === u.max[k] ? mxs(u, k, v(k)) : v(k) + '/' + mxs(u, k, u.max[k])}</b>${k === 'DATA' ? 'DATA' : k}</div>`).join('')}</div>
     ${d.abilities.map(a => `<div class="ab"><span>${a.cost === 'X' ? 'X DATA' : (a.id === 'fp' ? 'ALL DATA' : a.cost + ' DATA')}</span><b>${a.name}</b><br>${a.text}</div>`).join('')}
     <p>${d.blurb}</p><div class="btnrow"><button class="btn primary" type="button" id="inspClose">Close</button></div></div></div>`;
   const big = buildCard(u.pseudo ? u : u); const b = $('.bigslot', ov); b.insertBefore(big, b.firstChild); big.classList.add('showvals'); big.classList.remove('sel');
@@ -1589,14 +1639,43 @@ function showArrange() {
   ov.onscroll = () => ov.classList.toggle('scrolled', ov.scrollTop > 30);
   ov.classList.remove('scrolled'); draw();
 }
-function showOver() {
+function creditSummary() {
+  const me = G.ctrl[0] === 'human' ? 0 : 1, L = (G.cr ? G.cr.log : []).filter(x => x[0] === me); if (!L.length) return '';
+  const tot = L.reduce((n, x) => n + x[1], 0), cnt = {}; L.forEach(x => { const k = x[1] + '|' + x[2]; cnt[k] = (cnt[k] || 0) + 1; });
+  const rows = Object.keys(cnt).map(k => { const [p, t] = k.split('|'); return `<li><b>+${p}</b> ${t.replace(/</g, '&lt;')}${cnt[k] > 1 ? ' x' + cnt[k] : ''}</li>`; }).join('');
+  let life = tot; try { life += +(localStorage.getItem('anomex-credits') || 0); localStorage.setItem('anomex-credits', life); } catch (e) {}
+  return `<div class="cpsum"><h3>Credit Points: ${tot}</h3><ul>${rows}</ul><small>Career total ${life}</small></div>`;
+}
+function removeVic() { const v = $('#vic'); if (v) v.remove(); $('#over').classList.remove('vwin'); }
+async function victorySeq() {
+  const v = el('div', 'vic'); v.id = 'vic';
+  v.innerHTML = '<div class="vrays"></div><div class="vrays r2"></div><div class="vbloom"></div><div class="vline"></div><div class="vtxt">' + [...'VANQUISHED'].map((c, i) => `<span style="--i:${i}">${c}</span>`).join('') + '</div><div class="vsub">All opposing agents down</div>';
+  document.body.appendChild(v);
+  let skip = false; v.addEventListener('pointerdown', () => { skip = true; });
+  const wait = async ms => { const t0 = performance.now(); while (!skip && performance.now() - t0 < ms) await sleep(40); };
+  const cx = innerWidth / 2, cy = innerHeight * 0.42, R = Math.min(innerWidth, innerHeight);
+  sfx('victory');
+  if (RM) { v.classList.add('rm'); await wait(900); return; }
+  const build = setInterval(() => { converge(cx, cy, 5, R * 0.55, COL_HIT, 0.5); }, 90);
+  await wait(850); clearInterval(build);
+  if (skip) return;
+  flash(0.95, 700); shake(14, 0.7); warp(1.4);
+  ring(cx, cy, R * 0.25, 0, '255,255,255', 5, 0.7, 6); ring(cx, cy, R * 0.5, 0.06, '255,255,255', 3, 0.9, 6); ring(cx, cy, R * 0.8, 0.12, '255,154,74', 2, 1.1, 6);
+  lens(cx, cy, R * 0.6, 0, 0.9, '255,255,255'); glow(cx, cy, R * 0.9, 0.9, '255,255,255');
+  shockLines(cx, cy, 44, R * 0.05, R * 0.5, R * 1.6, '#ffffff'); sparks(cx, cy, 70, R * 0.9, COL_FIELD); twinkles(cx, cy, 60, R * 0.35, COL_HIT, { speed: 2.2, life: 1.6, size: 1.2 });
+  const rain = setInterval(() => { twinkles(Math.random() * innerWidth, innerHeight * (0.1 + Math.random() * 0.6), 4, 30, COL_HIT, { rise: true, life: 1.4 }); }, 120);
+  await wait(900); if (!skip) { ring(cx, cy, R * 0.35, 0, '255,255,255', 2, 0.8, 6); twinkles(cx, cy, 24, R * 0.4, COL_FIELD, { speed: 1.6 }); }
+  await wait(1500); clearInterval(rain);
+}
+async function showOver() {
   liveSet(false);
-  const w = G.winner, ov = $('#over'), win = w === 0;
-  ov.innerHTML = `<div class="verdict ${win ? 'win' : 'lose'}"><h1>${w === -1 ? 'Stalemate' : win ? 'Victory' : 'Defeat'}</h1><p>${w === -1 ? 'Nobody could finish it.' : win ? 'Every enemy agent is down.' : 'Your squad was wiped out.'} Round ${Math.ceil(G.turnNo / 2)}.</p>
+  const w = G.winner, ov = $('#over'), win = w === 0, g0 = G;
+  if (win) { await victorySeq(); if (G !== g0 || !G.over || $('#arrange').classList.contains('on')) { removeVic(); return; } $('#vic').classList.add('settle'); }
+  ov.innerHTML = `<div class="verdict ${win ? 'win' : 'lose'}">${win ? '' : `<h1>${w === -1 ? 'Stalemate' : 'Defeat'}</h1>`}<p>${w === -1 ? 'Nobody could finish it.' : win ? '' : 'Your squad was wiped out.'} Round ${Math.ceil(G.turnNo / 2)}.</p>${creditSummary()}
     <div class="btnrow" style="max-width:380px;margin:16px auto 0"><button class="btn" type="button" id="oOrder">${ONL ? 'Leave' : 'Squad order'}</button><button class="btn primary" type="button" id="oAgain">Rematch</button></div></div>`;
-  ov.classList.add('on'); sfx(win ? 'win' : 'lose');
-  $('#oAgain').onclick = () => { if (ONL) return rematchAsk(); ov.classList.remove('on'); startGame(); };
-  $('#oOrder').onclick = () => { ov.classList.remove('on'); if (ONL) leaveOnline(); showArrange(); };
+  ov.classList.toggle('vwin', win); ov.classList.add('on'); if (!win) sfx('lose');
+  $('#oAgain').onclick = () => { if (ONL) return rematchAsk(); ov.classList.remove('on'); removeVic(); startGame(); };
+  $('#oOrder').onclick = () => { ov.classList.remove('on'); removeVic(); if (ONL) leaveOnline(); showArrange(); };
 }
 
 
@@ -1792,6 +1871,7 @@ async function gameLoop(id) {
   if (G && G.over && id === loopId) { updateAll(); setTray(); hintSet(''); await sleep(600); showOver(); }
 }
 function startGame(ctrl, o) {
+  removeVic();
   o = o || {};
   if (!o.opp) { CFG.hpScale = prefs.hp; CFG.attackCostFrac = prefs.half ? 0.5 : 1; CFG.clash = prefs.clash; }
   const singAll = ROSTER_ALL.filter(k => k !== 'julian' && k !== 'delilah'); let cpu = null;
@@ -1842,7 +1922,7 @@ function boot() {
   if (h === '#watch') startGame(['cpu', 'cpu']);
   else if (h === '#demo') startGame();
   else showArrange();
-  window.__duel = { showArrange, askClashAtk, askClashDef, askDefense, E, UI, startGame, FX, showInspect, getG: () => G, setRoster: r => { roster = r; decks[activeDeck].order = r; }, cards, railEls };
+  window.__duel = { showOver, showArrange, askClashAtk, askClashDef, askDefense, E, UI, startGame, FX, showInspect, getG: () => G, setRoster: r => { roster = r; decks[activeDeck].order = r; }, cards, railEls };
 }
 boot();
 })();

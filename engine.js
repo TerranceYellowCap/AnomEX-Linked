@@ -216,7 +216,7 @@ const R = () => Math.random();
 
 /* ---------- hooks (UI plugs in here) ---------- */
 const noop = async () => {};
-const FXNAMES = ['pick', 'declare', 'strike', 'hit', 'counter', 'dodge', 'die', 'dataBurst', 'brim', 'buff', 'debuff', 'rail', 'float', 'clash', 'charge', 'coat', 'discharge', 'jumpscare', 'prick'];
+const FXNAMES = ['pick', 'declare', 'strike', 'hit', 'counter', 'dodge', 'die', 'dataBurst', 'brim', 'buff', 'debuff', 'rail', 'float', 'clash', 'charge', 'coat', 'discharge', 'jumpscare', 'prick', 'credit'];
 const H = { fx: {}, askDefense: null, askCounter: null, askBrim: null, askClashAtk: null, askClashDef: null, remoteDec: null, onChange() {}, log() {}, wait: () => Promise.resolve() };
 FXNAMES.forEach(n => { H.fx[n] = noop; });
 function setHooks(h) {
@@ -235,7 +235,7 @@ function makeAgent(key, side, slot) {
 }
 function newGame(order0, order1, ctrl, names) {
   UID = 0;
-  G = { sides: [[], []], rail: [null, null, null, null], atom: [[null, null, null, null], [null, null, null, null]], debuffs: [], turn: 0, turnNo: 1, over: false, winner: null, ctrl: ctrl || ['human', 'cpu'], names: names || ['You', 'CPU'], log: [] };
+  G = { cr: { pts: [0, 0], hurt: [0, 0], log: [] }, sides: [[], []], rail: [null, null, null, null], atom: [[null, null, null, null], [null, null, null, null]], debuffs: [], turn: 0, turnNo: 1, over: false, winner: null, ctrl: ctrl || ['human', 'cpu'], names: names || ['You', 'CPU'], log: [] };
   [order0, order1].forEach((ord, s) => ord.forEach((k, i) => G.sides[s].push(makeAgent(k, s, i))));
   return G;
 }
@@ -405,8 +405,10 @@ function restoreDebuff(d) {
 function expireDebuffsOn(u) { G.debuffs.filter(d => d.target === u).forEach(restoreDebuff); }
 
 /* ---------- damage ---------- */
+function credit(side, pts, txt) { if (!G || !G.cr) return; G.cr.pts[side] += pts; G.cr.log.push([side, pts, txt]); try { H.fx.credit(side, pts, txt); } catch (e) {} }
 async function dealDamage(u, n, src, kind) {
   if (n <= 0 || !u.alive) return;
+  G.cr.hurt[u.side] += n;
   u.hp = Math.max(0, u.hp - n);
   log(u.name + ' takes ' + n);
   H.onChange();
@@ -417,6 +419,7 @@ async function dealDamage(u, n, src, kind) {
     G.debuffs.filter(d => d.target === u || d.src === u).forEach(d => { if (d.target.alive) restoreDebuff(d); else G.debuffs = G.debuffs.filter(x => x !== d); });
     log(u.name + ' is down.');
     H.onChange();
+    if (src && src.side !== undefined && src.side !== u.side) credit(src.side, 1, '-1 Agent (' + u.name + ')');
     await H.fx.die(u);
   }
 }
@@ -569,6 +572,7 @@ async function resolveHit(a, t, X, kind) {
   }
   H.onChange();
   await H.fx.strike(a, t, X, kind, res, by);
+  if ((res === 'block' || res === 'dodge') && X >= 4) credit(t.side, 1, 'Hit denied.');
 
   if (dmg > 0) await dealDamage(t, dmg, a, kind);
   if (dmg > 0 && t.alive && t.chg > 0) { t.chg = 0; log(t.name + "'s charge is broken"); await H.fx.float(t, 'CHARGE BROKEN', 'neg'); }
@@ -622,6 +626,7 @@ async function doAttack(a, t, Xreq, opts) {
   if (blk(t.slot)) throw new Error('slot blocked');
   const pool = opts.pool || null;
   let X, kind, restN = a.restN;
+  const prepAmp = a.ampd, prepXfer = a.xferd; a.ampd = false; a.xferd = false;
   const bash = a.bash, ua = a.ua, succ = a.succ; a.bash = false; a.ua = false; a.succ = false; a.taught = false;
   const sharp = a.sharp, ds = a.ds, stat = a.stat, lost = a.lost; a.sharp = false; a.ds = false; a.stat = false; a.lost = false; a.sharpNow = sharp;
   const baton = a.baton, blend = a.blend, rk = a.rookie; a.baton = false; a.blend = false; a.rookie = false; a.batonNow = baton;
@@ -652,6 +657,11 @@ async function doAttack(a, t, Xreq, opts) {
   const r1 = await resolveHit(a, t, X, kind);
   const bashIt = async (tt, r) => { if (bash && r && r.landed && tt.alive && tt.rest < 1) { tt.rest = 1; log(tt.name + ' is bashed: resting 1 turn'); await H.fx.float(tt, 'BASHED', 'neg'); } };
   await bashIt(t, r1);
+  if (kind === 'str' && r1 && r1.landed && r1.dmg >= X) {
+    if (prepAmp && X >= 4) credit(a.side, 2, 'Devastating attack landed.');
+    else if (prepXfer && X >= 3) credit(a.side, 2, 'Devastating attack landed.');
+    else if (X >= 4) credit(a.side, 1, 'Attack landed at optimal impact.');
+  }
   if (ds && t.alive && a.alive) {
     const X2 = Math.ceil(X / 2);
     log(a.name + ' smacks ' + t.name + ' again for ' + X2); H.onChange(); await H.fx.declare(a, t, X2, kind);
@@ -713,7 +723,7 @@ async function doAbility(a, act) {
   switch (id) {
     case 'amp':
       a.cur.DATA -= 2; a.cur.STR = Math.min(a.max.STR + CFG.buffCap, a.cur.STR + 1);
-      log(a.name + ' amplifies: +1 Strength');
+      a.ampd = true; log(a.name + ' amplifies: +1 Strength');
       await H.fx.dataBurst(a, 1); await H.fx.buff(a, '+1 STR');
       break;
     case 'brim': {
@@ -956,7 +966,8 @@ async function doTransfer(a, to, k) {
   if (!transferStatOk(a, k)) throw new Error('cannot give ' + k);
   if (to.cur[k] >= to.max[k] + CFG.buffCap) throw new Error('ally at cap');
   const n = Math.min(transferAmt(a), to.max[k] + CFG.buffCap - to.cur[k]);
-  a.cur.BRN -= 1; a.cur[k] -= 1; to.cur[k] += n;
+  a.cur.BRN -= 1; a.cur[k] -= 1; to.cur[k] += n; if (k === 'STR') to.xferd = true;
+  if (n > 1) credit(a.side, 1, 'Aiding co-agent.');
   log(a.name + ' transfers +' + n + ' ' + SNAME[k] + ' to ' + to.name);
   H.onChange();
   await H.fx.buff(a, '-1 ' + SLETTER[k]);
@@ -974,6 +985,8 @@ async function executeAction(act) {
   if (G.over) return;
   const side = G.turn;
   if (act.type === 'pass') {
+    if (act.skip) { const me = G.sides[side].filter(u => u.alive), en = G.sides[1 - side].some(u => u.alive && u.rest === 0 && u.cur.STR > 0);
+      if (en && me.length && me.every(u => u.rest === 0 && !u.nap && ['STR', 'AGI', 'BRN', 'DATA'].every(k => u.cur[k] >= u.max[k]))) credit(side, 2, 'Recognition.'); }
     log(act.skip ? G.names[side] + (G.names[side] === 'You' ? ' skip' : ' skips') + ' the turn.' : G.names[side] + ': no agent ready, turn passes.');
     await finishTurn(side, null);
     return;
@@ -1034,7 +1047,12 @@ async function finishTurn(side, actor) {
   G.sides[side].forEach(u => { if (u.alive && u.noDodge > 0) u.noDodge--; });
   G.sides[side].forEach(u => { if (u.alive && u !== actor && u.rest > 0) { u.rest--; if (u.rest === 0) u.frz = false; } });
   const a0 = alive(0).length, a1 = alive(1).length;
-  if (a0 === 0 || a1 === 0) { G.over = true; G.winner = a0 === 0 && a1 === 0 ? -1 : (a0 === 0 ? 1 : 0); }
+  if (a0 === 0 || a1 === 0) { G.over = true; G.winner = a0 === 0 && a1 === 0 ? -1 : (a0 === 0 ? 1 : 0);
+    const w = G.winner; if (w >= 0) {
+      if (G.cr.hurt[w] === 0) credit(w, 5, 'Optimal performance, Agents, all opposing agents vanquished.');
+      else if (alive(w).length === 4) credit(w, 4, 'No casualties, all opposing agents vanquished.');
+      else credit(w, 3, 'All opposing agents vanquished.');
+      if (alive(w).length === 1 && G.sides[w].length > 1) credit(w, 1, 'Clutch. Last agent standing.'); } }
   else { G.turn = 1 - side; G.turnNo++; if (G.turnNo > CFG.maxTurns) { G.over = true; G.winner = -1; } }
   H.onChange();
 }
@@ -1235,7 +1253,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   newGame, getG, setHooks, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover,
-  VERSION: 'linked-12', executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-18', executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);

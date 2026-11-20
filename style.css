@@ -696,3 +696,47 @@ img { -webkit-touch-callout: none; -webkit-user-drag: none; user-select: none; -
 .srow .mini { padding: 0 11px; white-space: nowrap; font: 700 10px var(--disp); letter-spacing: .14em; text-transform: uppercase; }
 .srow .mini.rnd { border-color: #ff7a3a; color: #ff9a4a; }
 .srow .mini.rnd:hover { background: #ff7a3a; color: #000; }
+
+#credits{position:fixed;left:50%;top:15%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,420px)}
+.cp{background:rgba(8,8,8,.92);border:1px solid #fff;padding:7px 14px;text-align:center;font-family:inherit;color:#fff;animation:cpIn .35s cubic-bezier(.2,1.4,.4,1);transition:opacity .6s,transform .6s}
+.cp b{display:block;font-size:12px;letter-spacing:.14em;text-transform:uppercase}.cp span{font-size:13px;opacity:.85}
+.cp.p2{box-shadow:0 0 14px rgba(255,255,255,.35)}.cp.p3,.cp.p4,.cp.p5{box-shadow:0 0 26px rgba(255,255,255,.55);border-width:2px}.cp.p5 b{font-size:15px}
+.cp.out{opacity:0;transform:translateY(-14px)}
+@keyframes cpIn{from{opacity:0;transform:scale(.7) translateY(10px)}to{opacity:1;transform:none}}
+.cpsum{margin:12px auto 0;max-width:380px;text-align:left;border-top:1px solid #444;padding-top:10px}.cpsum h3{margin:0 0 6px;font-size:14px;letter-spacing:.1em;text-transform:uppercase}.cpsum ul{margin:0;padding:0;list-style:none;font-size:13px;opacity:.9}.cpsum li{margin:2px 0}.cpsum small{opacity:.6}
+
+.defpod{width:max-content;max-width:calc(var(--cw)*2.3)}
+.defpod .pcov{display:flex;flex-direction:column;gap:4px;align-items:stretch;width:100%}
+.pcw{display:flex;gap:4px;align-items:stretch}.pcs{display:flex;flex-direction:column;gap:2px}.pcs i{font-style:normal;border:1px solid #fff;padding:0 7px;font:700 calc(var(--cw)*.12) var(--disp);background:#111;color:#fff;text-align:center;flex:1;display:grid;place-items:center;min-width:calc(var(--cw)*.22)}
+.pcb{border:1px solid #888;background:rgba(0,0,0,.9);color:#fff;padding:3px 8px;text-align:center;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.pcb b{display:block;font-size:calc(var(--cw)*.1);letter-spacing:.06em;text-transform:uppercase}.pcb small{display:block;font-size:calc(var(--cw)*.085);opacity:.8}
+.pcb.take{border-color:#555;color:#bbb}
+.notch.on{outline:2px solid #fff;outline-offset:2px}
+.pod.defpod{top:auto;bottom:calc(50% - 4px);transform:translate(-50%,0) perspective(260px) rotateX(14deg)}
+.pcb{transition:background .08s,color .08s,border-color .08s}
+.pcb:hover,.pcb:active,.pcw:hover .pcb{background:#fff;color:#000;border-color:#fff}
+.pcb:hover small,.pcb:active small{opacity:1}
+.pcs i{transition:background .08s,color .08s}.pcs i:hover,.pcs i:active{background:#fff;color:#000}
+.pcb.take:hover,.pcb.take:active{color:#000;border-color:#fff}
+
+/* victory sequence */
+.vic{position:fixed;inset:0;z-index:45;background:radial-gradient(70% 60% at 50% 42%,#1a1a1a,#000);overflow:hidden;animation:vBg .5s ease-out both;touch-action:manipulation}
+@keyframes vBg{from{opacity:0}to{opacity:1}}
+.vrays{position:absolute;left:50%;top:42%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(rgba(255,255,255,.2) 0 2.5deg,transparent 2.5deg 11deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 22%);mask:radial-gradient(circle,#000 0,transparent 22%);opacity:0;animation:vRays 1s .8s ease-out forwards,vSpin 26s linear infinite;pointer-events:none}
+.vrays.r2{background:repeating-conic-gradient(rgba(255,154,74,.22) 0 1.5deg,transparent 1.5deg 17deg);animation:vRays 1s .9s ease-out forwards,vSpin 38s linear infinite reverse}
+@keyframes vRays{from{opacity:0;scale:.2}to{opacity:1;scale:1}}@keyframes vSpin{to{rotate:360deg}}
+.vbloom{position:absolute;left:50%;top:42%;width:90vmin;height:90vmin;margin:-45vmin 0 0 -45vmin;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),rgba(255,154,74,.18) 40%,transparent 68%);opacity:0;animation:vBloom 1.4s .85s ease-out forwards}
+@keyframes vBloom{0%{opacity:0;scale:.2}25%{opacity:1;scale:1.1}100%{opacity:.55;scale:1}}
+.vline{position:absolute;left:0;right:0;top:42%;height:2px;background:#fff;box-shadow:0 0 18px 4px #fff,0 0 60px 12px rgba(255,154,74,.8);transform:scaleX(0);opacity:0;animation:vLine 1.1s .8s ease-out forwards}
+@keyframes vLine{0%{transform:scaleX(0);opacity:1}35%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+.vtxt{position:absolute;left:0;right:0;top:42%;transform:translateY(-50%);text-align:center;font:700 clamp(30px,10.5vw,92px) var(--disp);letter-spacing:.06em;color:#fff;white-space:nowrap;transition:top .9s cubic-bezier(.2,.9,.2,1)}
+.vtxt span{display:inline-block;opacity:0;text-shadow:0 0 22px #fff,0 0 54px rgba(255,154,74,.9),-3px 0 rgba(255,40,40,.5),3px 0 rgba(60,200,255,.4);animation:vSlam .6s cubic-bezier(.2,1.5,.3,1) calc(.85s + var(--i) * .055s) both,vPulse 2.2s calc(1.7s + var(--i) * .05s) ease-in-out infinite}
+@keyframes vSlam{from{opacity:0;transform:scale(3.4) translateY(-24px);filter:blur(16px)}60%{filter:blur(0)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes vPulse{0%,100%{text-shadow:0 0 22px #fff,0 0 54px rgba(255,154,74,.9)}50%{text-shadow:0 0 34px #fff,0 0 90px rgba(255,154,74,1),0 0 4px #fff}}
+.vtxt::after{content:"";position:absolute;top:-10%;bottom:-10%;width:22%;left:-30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);mix-blend-mode:overlay;transform:skewX(-20deg);animation:vShine .9s 1.7s ease-in-out forwards;pointer-events:none}
+@keyframes vShine{to{left:120%}}
+.vsub{position:absolute;left:0;right:0;top:calc(42% + clamp(30px,8vw,72px));text-align:center;font:600 clamp(10px,3vw,14px) var(--mono);letter-spacing:.5em;text-transform:uppercase;color:#ccc;opacity:0;animation:vSub .8s 1.7s ease-out forwards;transition:top .9s cubic-bezier(.2,.9,.2,1)}
+@keyframes vSub{from{opacity:0;letter-spacing:1.2em}to{opacity:.9;letter-spacing:.5em}}
+.vic.settle .vtxt{top:19%}.vic.settle .vsub{top:calc(19% + clamp(30px,8vw,72px))}.vic.settle .vrays{opacity:.5}
+.vic.rm .vtxt span,.vic.rm .vrays,.vic.rm .vbloom,.vic.rm .vsub{animation:none;opacity:1}
+.ov.vwin{background:transparent;z-index:47;padding-top:calc(34vh + env(safe-area-inset-top))}.ov.vwin .verdict{animation:vSub .8s ease-out both}
