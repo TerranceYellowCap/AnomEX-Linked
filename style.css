@@ -1,4 +1,3 @@
-/* AnomEx Duel: black and white, visor HUD. DATA is the only colour. */
 :root {
   --bg: #000; --panel: #070707; --line: #fff; --dim: #8b8b8b; --faint: #262626;
   --data: #ff5a1f; --blood: #d4202b;
@@ -797,3 +796,55 @@ body.tut-nofoe .slot.foe .cardwrap,body.tut-nome .slot.me .cardwrap{visibility:h
 #tutBox .ttxt{min-height:4.4em}
 body.tut #btnSkip{display:none !important}
 body.tut-cover .pcb.take{display:none}
+
+/* chat + profile */
+#chatBtn { position: fixed; right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 120px); z-index: 85; padding: 9px 12px; border: 1px solid #fff; background: #000; color: #fff; font: 700 11px var(--disp); letter-spacing: .2em; cursor: pointer; }
+#chatBtn[hidden] { display: none; }
+#chatDot { display: none; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--data, #fff); box-shadow: 0 0 8px var(--data, #fff); }
+#chatDot.on { display: block; }
+#chat { position: fixed; left: 0; right: 0; bottom: 0; z-index: 86; display: none; flex-direction: column; max-height: 62vh; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(0,0,0,.97); border-top: 1px solid #fff; font: 500 13px/1.4 var(--mono); color: #fff; }
+#chat.on { display: flex; }
+#chat .chh { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+#chat .chh b { flex: 1; font: 700 12px var(--disp); letter-spacing: .2em; text-transform: uppercase; }
+#chat .chh button { padding: 4px 10px; border: 1px solid #666; background: #000; color: #fff; font: 600 11px var(--mono); }
+#chat .chh button.on { border-color: #fff; background: #fff; color: #000; }
+#chLog { flex: 1; min-height: 90px; max-height: 30vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding: 4px 0; }
+#chLog .cl b { color: #999; margin-right: 4px; font-weight: 700; }
+#chLog .cl.me b { color: #fff; } #chLog .cl.sys { color: #888; font-style: italic; }
+#chQuick { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; }
+#chQuick .cq { flex: none; padding: 5px 10px; border: 1px solid #555; background: #000; color: #fff; font: 600 11px var(--mono); border-radius: 12px; }
+#chEmo { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; padding: 4px 0; max-height: 22vh; overflow-y: auto; }
+#chEmo[hidden] { display: none; }
+#chEmo button { font-size: 20px; padding: 4px; border: 0; background: transparent; }
+#chForm { display: flex; gap: 6px; }
+#chForm input { flex: 1; min-width: 0; padding: 9px; border: 1px solid #fff; background: #000; color: #fff; font: 500 16px var(--mono); }
+#chForm button { padding: 0 12px; border: 1px solid #fff; background: #000; color: #fff; font: 700 12px var(--disp); }
+#chSend { background: #fff !important; color: #000 !important; }
+.prof { display: flex; flex-direction: column; gap: 6px; align-items: center; margin: 10px 0; font: 500 12px var(--mono); }
+.prof label { color: #999; letter-spacing: .2em; text-transform: uppercase; font-size: 10px; }
+.prof input { width: min(60vw, 220px); padding: 9px; text-align: center; border: 1px solid #fff; background: #000; color: #fff; font: 600 16px var(--mono); }
+.dev { display: inline-flex; vertical-align: middle; margin-right: 3px; color: #fff; }
+.vsline { text-align: center; font: 500 12px/1.6 var(--mono); color: #ccc; margin: 4px 0 8px; } .vsline i { color: #777; margin: 0 6px; font-style: normal; }
+.eloLine { text-align: center; font: 600 13px var(--mono); letter-spacing: .1em; margin-top: 12px; }
+
+body.tut-insp #tut{z-index:90}
+
+.tutrow{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px 14px;width:100%}
+.tutrow b{font-size:13px;letter-spacing:.08em}
+.tutrow small{font:500 11px/1.4 var(--mono);color:#999;text-transform:none;letter-spacing:0;white-space:normal}
+.tdone{font:700 9px var(--mono);letter-spacing:.2em;border:1px solid #fff;padding:1px 5px;margin-left:6px}
+
+.dlist{list-style:none;margin:8px 0;padding:0;font:500 12px/1.5 var(--mono);text-align:left}
+.dlist li{border-top:1px solid #333;padding:5px 0}
+.dlist b{display:inline-block;min-width:84px;color:#fff;letter-spacing:.06em}
+
+#chalPop{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);z-index:120;background:#000;border:1px solid #fff;padding:10px 18px;text-align:center;font:700 14px var(--mono);letter-spacing:.08em;transition:transform .45s cubic-bezier(.2,.9,.3,1);pointer-events:none;box-shadow:0 0 24px rgba(255,255,255,.25)}
+#chalPop.on{transform:translate(-50%,0)}
+#chalPop small{display:block;font:500 9px var(--mono);letter-spacing:.3em;color:#999;margin-bottom:3px}
+.chlist{list-style:none;margin:8px 0;padding:0;text-align:left}
+.chlist li{display:flex;gap:10px;align-items:flex-start;border-top:1px solid #333;padding:8px 0}
+.chlist i{flex:none;width:18px;height:18px;border:1px solid #666;font:700 12px/16px var(--mono);text-align:center;font-style:normal}
+.chlist li.ok i{background:#fff;color:#000;border-color:#fff}
+.chlist b{display:block;font:700 12px var(--mono);letter-spacing:.06em}
+.chlist small{display:block;font:500 11px/1.4 var(--mono);color:#999;margin-top:2px}
+.chlist li:not(.ok) b{color:#ccc}
