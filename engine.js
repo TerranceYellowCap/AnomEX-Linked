@@ -1,1 +1,1432 @@
-(function(ke){"use strict";const p={attackCostFrac:1,buffCap:3,capTTL:4,unstableTTL:4,debuffIdle:3,fpDamage:6,brimDamage:2,brimTank:2,clash:!0,hpScale:1,budget:15,ookDamage:15,hmTTL:4,atomDamage:5,napMax:11,maxTurns:700},F=["STR","AGI","BRN","DATA"],q={STR:"Strength",AGI:"Agility",BRN:"Brains",DATA:"DATA"},Q={STR:"S",AGI:"A",BRN:"B",DATA:"D"},_=["DEF","ATK","ATK","DEF"],O={jane:{cost:5,key:"jane",name:"Jane",role:"Striker",color:"#ff6a1a",blurb:"Overwhelming output. Burns through her own reserves.",stats:{STR:8,AGI:3,BRN:1,DATA:9},hp:19,rest:2,abilities:[{id:"amp",name:"Amplification",cost:2,target:"none",text:"+1 Strength. Stacks, up to +3 over max."},{id:"brim",name:"Brim",cost:8,target:"none",text:"A pulse hits every enemy agent for 2. Each can tank it by spending 2 DATA."}]},argo:{cost:4,key:"argo",name:"Argo",role:"All-rounder",color:"#2fd0c4",blurb:"No weakness, no spike. Reaches across the rail.",stats:{STR:7,AGI:5,BRN:3,DATA:5},hp:25,rest:2,abilities:[{id:"leer",name:"Leer",cost:2,target:"enemy",text:"Enemy loses 1 Brains and 1 Agility until they are picked, or 3 turns pass with neither of you acting."},{id:"proj",name:"Projection",cost:"X",target:"enemy",text:"Ranged. Spend any amount of DATA as damage. Only dodgeable (exact Agility) or body-blocked."}]},cathy:{cost:3,key:"cathy",name:"Cathy",role:"Support",color:"#ff4f9a",blurb:"Soft hitter, hard to pin down. Covers her team.",stats:{STR:3,AGI:7,BRN:4,DATA:3},hp:25,rest:1,abilities:[{id:"makeup",name:"Makeup",cost:3,target:"none",text:"Next time she protects someone she negates all damage, then rests 2 turns instead of 1."},{id:"fp",name:"Finally Perfect",cost:3,target:"none",text:"Her next attack costs no Strength and deals 6. Dodge only. She rests 2 turns after."}]},wren:{cost:1,key:"wren",name:"Wren",role:"Enabler",color:"#6aa8ff",blurb:"Brains over brawn. Bends the rail and the odds.",stats:{STR:2,AGI:4,BRN:8,DATA:3},hp:23,rest:2,abilities:[{id:"cap",name:"Capacitor",cost:2,target:"slot",text:"Charge a rail slot: the next Strength attack through it has -2 Strength. Fades if unused."},{id:"qm",name:"Quick Maths",cost:2,target:"enemy",text:"Enemy loses 2 Brains until they are picked, or 3 turns pass with neither of you acting."}]},edica:{cost:3,key:"edica",name:"Edica",role:"Counter",color:"#c9c9c9",blurb:"Bait and punish. Turns one bad swing into a long rest for the attacker.",stats:{STR:4,AGI:5,BRN:4,DATA:3},hp:24,rest:2,abilities:[{id:"dep",name:"Depulsion",cost:3,target:"none",text:"The next attack on her is reverted (no damage) and the attacker is knocked back (+1 rest). Edica then rests 2 turns. Fades after 2 enemy turns."},{id:"bd",name:"Beatdown",cost:3,target:"none",text:"Her next action can hit two different agents with the same Strength. If the first deals no damage, the second is negated."}]},ellie:{cost:4,key:"ellie",name:"Ellie",role:"Bruiser",color:"#ff5a1f",blurb:"Huge Strength, zero Brains. Shuts down whoever she hits.",stats:{STR:8,AGI:4,BRN:0,DATA:5},hp:20,rest:2,abilities:[{id:"bash",name:"Bash",cost:4,target:"none",text:"Her next attack, if it lands damage, also puts that agent into a 1 turn Resting Period."},{id:"ua",name:"Unstable Amplification",cost:5,target:"none",text:"+3 Strength until her next attack. That attack leaves its rail slot unstable: nobody in it can attack (her team too). She rests 1 extra turn."}]},miera:{cost:3,key:"miera",name:"Miera",role:"Tank",color:"#b0b0ff",blurb:"Massive HP and DATA, slow and clumsy. Hits like whoever she borrows from.",stats:{STR:6,AGI:2,BRN:1,DATA:7},start:{BRN:0},noRegen:{BRN:!0},hp:33,rest:3,abilities:[{id:"bb",name:"Bloodbrother",cost:6,target:"ally",text:"+1 Brains. Attack this turn using a teammate's Strength instead of her own (their pool is spent)."},{id:"harden",name:"Harden",cost:7,target:"none",text:"The next attack on her always hits. If it does not kill her, the damage is also dealt to the attacker. Fades after 2 enemy turns."}]},opal:{cost:5,key:"opal",name:"Opal",role:"Tactician",color:"#ffd24a",blurb:"Glass cannon with a brain trust. Her neighbour thinks for two.",stats:{STR:9,AGI:2,BRN:1,DATA:3},hp:17,rest:3,abilities:[{id:"tact",name:"Tactician",cost:2,target:"none",text:"+2 Brains to her neighbouring guard (if she attacks) or neighbouring attacker (if she guards)."},{id:"succ",name:"Successor",cost:3,target:"none",text:"Her next attack cannot be interrupted. It can still be overbid or evaded."}]},rarity:{cost:2,key:"rarity",name:"Rarity",role:"Teacher",color:"#7fe0c0",blurb:"Hits like a feather, thinks like a library. Makes teammates hit harder and benches enemies.",stats:{STR:2,AGI:6,BRN:9,DATA:4},hp:19,rest:1,abilities:[{id:"teacher",name:"Teacher",cost:3,target:"ally",text:"Teach a teammate: their next attack has +1 Strength and cannot be interrupted."},{id:"rarium",name:"Rarium",cost:4,target:"enemy",text:"Force an enemy agent into its Resting Period. A charging Echidna loses her charge."}]},echidna:{cost:5,key:"echidna",name:"Echidna",role:"Charger",color:"#ff7a3a",blurb:"Slow, huge, and fragile while she winds up. One clean release ends a fight.",stats:{STR:4,AGI:4,BRN:6,DATA:9},hp:18,rest:3,abilities:[{id:"ook",name:"One-of-a-kind",cost:3,target:"none",text:"A 3 turn ability, 3 DATA a turn. Turn 1 gather, turn 2 swirl, turn 3 release for 15 damage, then she rests. While charging she cannot attack or dodge, and any direct hit breaks the charge."},{id:"enki",name:"Enki",cost:"X",target:"none",text:"Spend X DATA to heal X HP. Usable once every 3 turns she is picked."}]},julian:{cost:1,key:"julian",name:"Julian",role:"Lamb",color:"#d8d8ff",pair:"delilah",blurb:"Fragile and never rests. Only plays alongside Delilah, side by side. Picking either one regens both.",stats:{STR:1,AGI:4,BRN:3,DATA:2},hp:16,rest:0,abilities:[{id:"lamb",name:"Lamb",cost:1,target:"none",text:"Gives +1 Strength to Delilah."},{id:"panic",name:"Panic",cost:2,target:"none",text:"A shockwave of DATA: every enemy loses 1 Agility until they are picked."}]},delilah:{cost:4,key:"delilah",name:"Delilah",role:"Guardian",color:"#e2335a",pair:"julian",roleBuff:{atk:{STR:1},def:{BRN:1}},blurb:"Brutal, and only with Julian beside her. +1 Strength in an attack slot, +1 Brains in a guard slot.",stats:{STR:7,AGI:4,BRN:0,DATA:5},hp:24,rest:3,abilities:[{id:"manip",name:"Manipulator",cost:4,target:"none",text:"The next hit on her is redirected onto Julian. In exchange she gets +3 Strength, lost if she is not picked next turn."},{id:"hm",name:"He's Mine",cost:5,target:"none",text:"Hidden. If anyone attacks Julian, Delilah strikes back for him. Lasts 4 turns if not triggered."}]},wraith:{cost:3,key:"wraith",name:"Wraith",role:"Trapper",color:"#9a9aff",blurb:"Sets hidden rail traps and can freeze the whole enemy team at a heavy price.",stats:{STR:4,AGI:6,BRN:2,DATA:4},hp:19,rest:2,abilities:[{id:"atom",name:"Atomise",cost:4,target:"slot",text:"Hidden. Coat a rail slot in DATA. The first enemy that attacks through it is coated. Once someone is coated this becomes Discharge: 1 DATA, the coated agent takes 5, and Wraith rests."},{id:"jump",name:"Jumpscare",cost:4,target:"none",text:"Sacrifice ALL her stats and rest, to put every enemy agent into its Resting Period."}]},cray:{cost:2,key:"cray",name:"Cray",role:"Blocker",color:"#8fe08f",blurb:"Slow and sturdy. Clogs the rail and pins enemies down with buds.",stats:{STR:3,AGI:1,BRN:5,DATA:3},hp:21,rest:1,abilities:[{id:"lost",name:"Lost",cost:2,target:"none",text:"After his next attack he stays on that rail slot for 1 turn, blocking it. Nobody can attack through it."},{id:"stat",name:"Stationary",cost:3,target:"none",text:"His next attack plants a bud on its target. They cannot attack until Cray is attacked."}]},neko:{cost:4,key:"neko",name:"Neko",role:"Napper",color:"#ffb0d0",blurb:"Starts weak and never regens Strength. Naps to build it up to 11, but a napping cat is exposed.",stats:{STR:11,AGI:5,BRN:2,DATA:2},start:{STR:2},noRegen:{STR:!0},hp:19,rest:0,abilities:[{id:"catnap",name:"Catnap",cost:0,target:"none",text:"Start a nap: +1 Strength every turn of yours she sleeps (max 11). Napping she is exposed and cannot guard. Pick her to wake and act."},{id:"sharp",name:"Sharpen",cost:2,target:"none",text:"Her next attack has +1 Strength and cannot be blocked with Strength."}]},nessy:{cost:4,key:"nessy",name:"Nessy",role:"Skirmisher",color:"#ff9ad0",small:!0,blurb:"Small and hard to hit (-1 Strength on attacks against her). Hits twice, stings everyone.",stats:{STR:5,AGI:3,BRN:3,DATA:3},hp:17,rest:2,abilities:[{id:"ds",name:"Double-Smack",cost:3,target:"none",text:"Her next attack hits the same agent twice. The second hit is half damage, rounded up."},{id:"vesp",name:"Vesp",cost:"X",target:"enemy",text:"Ranged DATA sting for X at one enemy, then 1 damage chains to every other enemy."}]},tyrees:{cost:4,key:"tyrees",name:"Tyrees",role:"Reflector",color:"#ff7a3a",blurb:"Turns attacks around. Sends hits at the agent opposite him, and turns counters into extra damage.",stats:{STR:4,AGI:5,BRN:2,DATA:5},hp:22,rest:2,abilities:[{id:"dcount",name:"Depu-counter",cost:5,target:"none",text:"For 2 turns, the next attack on him is reflected onto the enemy agent opposite his slot."},{id:"baton",name:"Harden",cost:3,target:"none",text:"Hidden. His next attack carries a baton: any counter the target would throw back hits the target instead, on top of the attack."}]},argithia:{cost:4,key:"argithia",name:"Argithia-Green",short:"Argithia",role:"Freezer",color:"#9ae04a",blurb:"Marks attackers, freezes repeat offenders, and leaves red shards that bleed the target (and her DATA).",stats:{STR:6,AGI:5,BRN:1,DATA:2},hp:26,rest:3,abilities:[{id:"impr",name:"Impression",cost:2,target:"none",text:"For 2 turns, anyone who attacks her is imprinted with Atomise. If the same agent attacks her again, it is frozen in Hardened DATA for 3 turns."},{id:"blend",name:"Blender",cost:2,target:"none",text:"+1 Strength. If her next attack lands, red shards circle the target: 1 damage each time it is picked, 6 in total. Each prick costs her 1 DATA, even below zero."}]},frey:{cost:3,key:"frey",name:"Frey",role:"Wingwoman",color:"#ffb84a",blurb:"Hides a glob of DATA on an ally that stops the next attacker, and dives in behind her teammates.",stats:{STR:3,AGI:1,BRN:5,DATA:5},hp:19,rest:1,abilities:[{id:"fglob",name:"Stationary",cost:4,target:"ally",text:"Hidden. Give a glob of DATA to a teammate (or herself). When that agent is attacked, the attack is stopped and the attacker cannot dodge for 2 turns."},{id:"wing",name:"Wingwoman",cost:3,target:"none",text:"The next time a teammate lands an attack, she charges in on the same target with all her remaining Strength (1 if she has none)."}]},mason:{cost:3,key:"mason",name:"Mason",role:"Rookie",color:"#7ad0ff",blurb:"Has no Strength of his own and cannot regain DATA: he has to be fed it by teammates. Copies a neighbour and takes hits for the team.",stats:{STR:11,AGI:5,BRN:8,DATA:1},start:{STR:0},noRegen:{STR:!0,DATA:!0},hp:24,rest:1,abilities:[{id:"rookie",name:"Rookie numbers",cost:1,target:"none",text:"Raise his Strength to match the agent next to him. His next attack makes him rest 1 turn longer."},{id:"coll",name:"Collateral",cost:1,target:"none",text:"For 2 turns, when a teammate is attacked he takes ALL of it and rests. The attacker rests 1 extra turn."}]}},oe={dcount:"Next attack on him goes to the enemy opposite him.",baton:"Hidden. His next attack turns the target's counter back on them.",impr:"Attackers get marked. Hit her twice and they freeze.",blend:"+1 Strength. A landed hit leaves 6 shards. Costs her DATA.",fglob:"Hidden. Stops the next attacker of one teammate.",wing:"A teammate lands a hit: she charges in on it.",rookie:"Match a neighbour's Strength. Next attack: rest +1.",coll:"Takes the next attack on a teammate. Attacker rests +1.",amp:"+1 Strength. Stacks to +3 over max.",brim:"Hits every enemy for 2. They can tank it with 2 DATA.",leer:"Enemy: -1 Brains, -1 Agility until picked.",proj:"Ranged. Spend X DATA as damage. Dodge only.",makeup:"Next cover negates all damage. Rests 2.",fp:"Next attack: 6 damage, no Strength.",cap:"Charge a slot: next Strength hit there gets -2.",qm:"Enemy: -2 Brains until picked.",dep:"Next attack on her is reverted. She then rests 2.",bd:"Next attack hits 2 agents, same Strength.",bash:"Next hit that lands makes the target rest 1.",ua:"+3 Strength. Next attack locks its slot.",bb:"+1 Brains. Attack using an ally's Strength.",harden:"Next hit lands, then reflects onto the attacker.",tact:"+2 Brains to her neighbouring agent.",succ:"Next attack cannot be interrupted.",teacher:"Ally: next attack +1 Strength, uninterruptible.",rarium:"Force an enemy into its Resting Period.",ook:"3 turn charge, 15 damage release.",enki:"Spend X DATA to heal X HP. Once per 3 picks.",lamb:"+1 Strength to Delilah.",panic:"Every enemy: -1 Agility until picked.",manip:"Next hit on her goes to Julian. She gets +3 Strength.",hm:"Hidden. She strikes back at anyone who hits Julian.",atom:"Hidden rail trap. Coats the first enemy through it.",disch:"Coated agent takes 5. Wraith rests.",jump:"Lose all stats, rest. Every enemy rests.",lost:"Next attack: he blocks that slot for 1 turn.",stat:"Next attack plants a bud: target cannot attack.",catnap:"Nap: +1 Strength a turn. Exposed while asleep.",sharp:"Next attack +1 Strength, cannot be blocked.",ds:"Next attack hits twice. 2nd hit is half.",vesp:"Ranged X DATA sting. 1 damage to the rest."};Object.values(O).forEach(e=>e.abilities.forEach(t=>{t.short=oe[t.id]}));let f=null,le=0;const G=(e,t,r)=>Math.max(t,Math.min(r,e)),D=()=>Math.random(),ye=async()=>{},Ae=["pick","declare","strike","hit","counter","dodge","die","dataBurst","brim","buff","debuff","rail","float","clash","charge","coat","discharge","jumpscare","prick","credit"],n={fx:{},askDefense:null,askCounter:null,askBrim:null,askClashAtk:null,askClashDef:null,remoteDec:null,onChange(){},log(){},wait:()=>Promise.resolve()};Ae.forEach(e=>{n.fx[e]=ye});function Te(e){e.fx&&Object.assign(n.fx,e.fx),["askDefense","askCounter","askBrim","askClashAtk","askClashDef","remoteDec","onChange","log","wait"].forEach(t=>{e[t]&&(n[t]=e[t])})}function we(e,t,r){const l=O[e],a=Object.assign({},l.stats),o=Math.max(1,Math.round(l.hp*p.hpScale)),c=l.roleBuff&&l.roleBuff[_[r]==="ATK"?"atk":"def"];c&&Object.keys(c).forEach(s=>{a[s]+=c[s]});const g=Object.assign({},a,l.start||{});return{uid:++le,key:e,name:l.name,side:t,slot:r,max:a,cur:g,noRegen:l.noRegen||{},hp:o,maxhp:o,restN:l.rest,rest:0,alive:!0,makeup:!1,fp:!1,dep:0,bd:!1,bash:!1,ua:!1,harden:0,succ:!1,taught:!1,noInt:!1,chg:0,enki:0,manip:!1,boost:0,hm:0,coat:null,bud:null,lost:!1,stat:!1,nap:!1,sharp:!1,sharpNow:!1,ds:!1,small:!!l.small,dc:0,baton:!1,batonNow:!1,imp:0,blend:!1,shard:null,glob:null,wing:!1,rookie:!1,coll:0,noDodge:0,frz:!1,frzN:0}}function Re(e,t,r,l){return le=0,f={cr:{pts:[0,0],hurt:[0,0],log:[]},sides:[[],[]],rail:[null,null,null,null],atom:[[null,null,null,null],[null,null,null,null]],debuffs:[],turn:0,turnNo:1,over:!1,winner:null,ctrl:r||["human","cpu"],names:l||["You","CPU"],log:[]},[e,t].forEach((a,o)=>a.forEach((c,g)=>f.sides[o].push(we(c,o,g)))),f}const xe=()=>f;function Se(e,t){if(t>3)return Object.assign({},O[e].stats);const r=O[e],l=Object.assign({},r.stats),a=r.roleBuff&&r.roleBuff[_[t]==="ATK"?"atk":"def"];return a&&Object.keys(a).forEach(o=>{l[o]+=a[o]}),l}function $(e){return e.reduce((t,r)=>t+(O[r]?O[r].cost:0),0)}function De(e){if(e.length!==4||e.some(l=>!l||!O[l]))return{ok:!1,reason:"Fill all four slots to start."};if($(e)>p.budget)return{ok:!1,reason:"Over budget: "+$(e)+" of "+p.budget+" hiring points."};const t=e.indexOf("julian"),r=e.indexOf("delilah");return t<0&&r<0?{ok:!0}:t<0?{ok:!1,reason:"Delilah only plays with Julian beside her."}:r<0?{ok:!1,reason:"Julian only plays with Delilah beside him."}:Math.abs(t-r)!==1?{ok:!1,reason:"Julian and Delilah must sit side by side."}:{ok:!0}}const E=e=>!!(f.rail[e]&&f.rail[e].type==="lost");async function V(e,t){const r=f.atom[1-e.side][t];!r||!r.alive||(f.atom[1-e.side][t]=null,e.coat||(e.coat=r,d(e.name+" is coated in "+r.name+"'s DATA"),n.onChange(),await n.fx.coat(e,t)))}const U=e=>{const t=O[e.key].pair;return t&&f.sides[e.side].find(r=>r.key===t)||null},S=e=>f.sides[e].filter(t=>t.alive),N=e=>S(1-e),d=e=>{f.log.push(e),n.log(e)},W=(e,t)=>{const r=Math.max(t+(e.knock?1:0),e.frzN||0);return e.knock=!1,e.frzN&&(e.frz=!0,e.frzN=0),r},X=e=>[e.slot-1,e.slot+1].map(t=>f.sides[e.side][t]).filter(t=>t&&t.alive);function B(e,t){let r=e.cur[t];return f.debuffs.forEach(l=>{l.target===e&&l.amt[t]&&(r+=l.amt[t])}),r=Math.min(r,e.max[t]+p.buffCap),r<e.max[t]&&!(e.noRegen&&e.noRegen[t])&&!(t==="BRN"&&!p.brnRegen)?Math.min(e.max[t],r+1):r}function ce(e){F.forEach(t=>{e.cur[t]<e.max[t]&&!(e.noRegen&&e.noRegen[t])&&!(t==="BRN"&&!p.brnRegen)&&(e.cur[t]=Math.min(e.max[t],e.cur[t]+1))})}const J=e=>!!(f.rail[e]&&f.rail[e].type==="cap");function z(e){return f.sides[e.side].filter(t=>t.alive&&t!==e&&t.rest===0&&t.cur.BRN>=1&&!t.nap&&(t.slot===0||t.slot===3)&&Math.abs(t.slot-e.slot)===1)}const H=e=>!!(f.rail[e.slot]&&f.rail[e.slot].type==="unstable");function ee(e){const t={0:1,1:0,2:3,3:2}[e.slot],r=f.sides[e.side][t];return r&&r.alive?r:null}function Y(e,t,r){if(H(e)||e.chg>0||e.bud||t&&E(t.slot))return 0;if(e.fp)return p.fpDamage;if(r){const a=r.cur.STR;return J(t.slot)?Math.max(0,a-2):a}const l=B(e,"STR");return J(t.slot)?Math.max(0,l-2):l}function Be(e){const t=N(e.side);return t.length?H(e)?{ok:!1,reason:"unstable slot"}:e.chg>0?{ok:!1,reason:"charging"}:e.bud?{ok:!1,reason:"stationary bud"}:e.fp?t.some(r=>!E(r.slot))?{ok:!0}:{ok:!1,reason:"slot blocked"}:t.some(r=>Y(e,r)>=1)?{ok:!0}:{ok:!1,reason:"no Strength"}:{ok:!1,reason:"no targets"}}function te(e,t){const r=B(e,"DATA"),l=B(e,"STR"),a=N(e.side).length>0,o=c=>r>=c?{ok:!0}:{ok:!1,reason:"needs "+c+" DATA"};switch(t){case"amp":return l>=e.max.STR+p.buffCap?{ok:!1,reason:"at buff cap"}:o(2);case"brim":return a?o(8):{ok:!1,reason:"no targets"};case"leer":return a?o(2):{ok:!1,reason:"no targets"};case"qm":return a?o(2):{ok:!1,reason:"no targets"};case"cap":return o(2);case"makeup":return e.makeup?{ok:!1,reason:"already ready"}:o(3);case"fp":return e.fp?{ok:!1,reason:"already ready"}:o(3);case"vesp":case"proj":return H(e)?{ok:!1,reason:"unstable slot"}:e.bud?{ok:!1,reason:"stationary bud"}:a&&N(e.side).every(c=>E(c.slot))?{ok:!1,reason:"slot blocked"}:a?r>=1?{ok:!0}:{ok:!1,reason:"no DATA"}:{ok:!1,reason:"no targets"};case"dep":return e.dep>0?{ok:!1,reason:"already active"}:o(3);case"bd":return e.bd?{ok:!1,reason:"already ready"}:a?o(3):{ok:!1,reason:"no targets"};case"bash":return e.bash?{ok:!1,reason:"already ready"}:o(4);case"ua":return e.ua?{ok:!1,reason:"already ready"}:l>=e.max.STR+p.buffCap?{ok:!1,reason:"at buff cap"}:o(5);case"bb":return H(e)||e.bud?{ok:!1,reason:e.bud?"stationary bud":"unstable slot"}:a?f.sides[e.side].some(c=>c.alive&&c!==e&&c.cur.STR>=1)?o(6):{ok:!1,reason:"no one to borrow from"}:{ok:!1,reason:"no targets"};case"harden":return e.harden>0?{ok:!1,reason:"already active"}:o(7);case"tact":return ee(e)?o(2):{ok:!1,reason:"no neighbour"};case"succ":return e.succ?{ok:!1,reason:"already ready"}:o(3);case"atom":return f.atom[e.side].every(Boolean)?{ok:!1,reason:"every slot is coated"}:o(4);case"disch":return L(e,"disch").length?o(1):{ok:!1,reason:"nobody coated"};case"jump":return N(e.side).some(c=>c.restN>0)?o(4):{ok:!1,reason:"nothing to freeze"};case"lost":return e.lost?{ok:!1,reason:"already ready"}:o(2);case"stat":return e.stat?{ok:!1,reason:"already ready"}:o(3);case"catnap":return e.nap?{ok:!0}:e.cur.STR>=e.max.STR?{ok:!1,reason:"Strength is maxed"}:{ok:!0};case"sharp":return e.sharp?{ok:!1,reason:"already ready"}:o(2);case"ds":return e.ds?{ok:!1,reason:"already ready"}:a?o(3):{ok:!1,reason:"no targets"};case"teacher":return f.sides[e.side].some(c=>c.alive&&c!==e)?o(3):{ok:!1,reason:"no teammate"};case"rarium":return L(e,"rarium").length?o(4):{ok:!1,reason:"no one to bench"};case"ook":return a?o(3):{ok:!1,reason:"no targets"};case"enki":return e.chg>0?{ok:!1,reason:"charging"}:e.enki>0?{ok:!1,reason:"ready in "+e.enki+(e.enki>1?" picks":" pick")}:e.hp>=e.maxhp?{ok:!1,reason:"already full HP"}:r>=1?{ok:!0}:{ok:!1,reason:"no DATA"};case"lamb":{const c=U(e);return!c||!c.alive?{ok:!1,reason:"Delilah is down"}:c.cur.STR>=c.max.STR+p.buffCap?{ok:!1,reason:"at buff cap"}:o(1)}case"panic":return N(e.side).some(c=>c.cur.AGI>=1)?o(2):{ok:!1,reason:"no Agility to drain"};case"manip":{const c=U(e);return e.manip?{ok:!1,reason:"already ready"}:!c||!c.alive?{ok:!1,reason:"Julian is down"}:o(4)}case"dcount":return e.dc>0?{ok:!1,reason:"already active"}:o(5);case"baton":return e.baton?{ok:!1,reason:"already ready"}:o(3);case"impr":return e.imp>0?{ok:!1,reason:"already active"}:o(2);case"blend":return e.blend?{ok:!1,reason:"already ready"}:a?l>=e.max.STR+p.buffCap?{ok:!1,reason:"at buff cap"}:o(2):{ok:!1,reason:"no targets"};case"fglob":return L(e,"fglob").length?o(4):{ok:!1,reason:"everyone has one"};case"wing":return e.wing?{ok:!1,reason:"already ready"}:f.sides[e.side].some(c=>c.alive&&c!==e)?o(3):{ok:!1,reason:"no teammate"};case"rookie":return X(e).some(c=>c.cur.STR>e.cur.STR)?e.rookie?{ok:!1,reason:"already ready"}:o(1):{ok:!1,reason:"no stronger neighbour"};case"coll":return e.coll>0?{ok:!1,reason:"already active"}:f.sides[e.side].some(c=>c.alive&&c!==e)?o(1):{ok:!1,reason:"no teammate"};case"hm":{const c=U(e);return e.hm>0?{ok:!1,reason:"already set"}:!c||!c.alive?{ok:!1,reason:"Julian is down"}:o(5)}}return{ok:!1,reason:"?"}}function L(e,t){return t==="disch"?N(e.side).filter(r=>r.coat&&r.coat.side===e.side):t==="vesp"?N(e.side).filter(r=>!E(r.slot)):t==="teacher"?f.sides[e.side].filter(r=>r.alive&&r!==e):t==="fglob"?f.sides[e.side].filter(r=>r.alive&&!r.glob):t==="rarium"?N(e.side).filter(r=>r.rest===0&&r.restN>0):N(e.side)}function Ne(e,t){if(t.id==="catnap"&&e.nap)return Object.assign({},t,{name:"Wake up",short:"End the nap. This uses her pick, no other action.",text:"End the nap. This uses her pick."});if(t.id==="atom"&&L(e,"disch").length)return Object.assign({},t,{id:"disch",name:"Discharge",cost:1,target:"enemy",short:oe.disch,text:"The coated agent explodes for 5 damage. Wraith rests."});if(t.id!=="ook")return t;const r=e.chg|0;return Object.assign({},t,{name:["One-of-a-kind 1/3","One-of-a-kind 2/3","RELEASE 3/3"][r],short:["Gather DATA. No attacking or dodging until released.","Swirl DATA. Any direct hit breaks the charge.","Release: 15 damage to one enemy, then she rests."][r],target:r===2?"enemy":"none"})}function K(e,t){return B(e,"BRN")<1?!1:B(e,t)-(t==="BRN"?1:0)>=1}function ae(e){return B(e,"BRN")<1?{ok:!1,reason:"needs 1 Brains"}:S(e.side).filter(t=>t!==e).length===0?{ok:!1,reason:"no teammate"}:F.some(t=>K(e,t))?{ok:!0}:{ok:!1,reason:"nothing to give"}}function fe(e){return F.some(t=>B(e,t)<e.max[t]&&!(e.noRegen&&e.noRegen[t]))?{ok:!0}:{ok:!1,reason:"all stats full"}}function re(e,t,r){const l={};Object.keys(r).forEach(a=>{const o=Math.min(t.cur[a],r[a]);o>0&&(t.cur[a]-=o,l[a]=o)}),f.debuffs.push({src:e,target:t,amt:l,idle:0})}function ne(e){Object.keys(e.amt).forEach(t=>{e.target.cur[t]=Math.min(e.target.max[t]+p.buffCap,e.target.cur[t]+e.amt[t])}),f.debuffs=f.debuffs.filter(t=>t!==e)}function ve(e){f.debuffs.filter(t=>t.target===e).forEach(ne)}function M(e,t,r){if(!(!f||!f.cr)){f.cr.pts[e]+=t,f.cr.log.push([e,t,r]);try{n.fx.credit(e,t,r)}catch{}}}async function C(e,t,r,l){t<=0||!e.alive||(f.cr.hurt[e.side]+=t,e.hp=Math.max(0,e.hp-t),d(e.name+" takes "+t),n.onChange(),await n.fx.hit(e,t,l||"str",r),e.hp<=0&&(e.alive=!1,f.atom[e.side]=[null,null,null,null],f.sides.forEach(a=>a.forEach(o=>{o.coat===e&&(o.coat=null),o.bud===e&&(o.bud=null)})),f.debuffs.filter(a=>a.target===e||a.src===e).forEach(a=>{a.target.alive?ne(a):f.debuffs=f.debuffs.filter(o=>o!==a)}),d(e.name+" is down."),n.onChange(),r&&r.side!==void 0&&r.side!==e.side&&M(r.side,1,"-1 Agent ("+e.name+")"),await n.fx.die(e)))}function Ee(e,t){const r=e.target,l=e.X;if(!t)return{type:"take"};if(t.type==="block"&&e.canBlock)return{type:"block",s:G(t.s|0,0,r.cur.STR)};if(t.type==="dodge"&&e.canDodge)return{type:"dodge"};if(t.type==="interrupt"&&e.protectors.includes(t.by)){const a=t.by;return{type:"interrupt",by:a,s:e.kind==="str"?G(t.s|0,0,Math.min(l,a.cur.STR)):0}}return{type:"take"}}async function Ce(e){const t=e.target;let r;return f.ctrl[t.side]==="human"&&n.askDefense?r=await n.askDefense(e):f.ctrl[t.side]==="remote"&&n.remoteDec?r=await n.remoteDec("def",e):r=me(e),Ee(e,r)}async function j(e,t,r,l){if(t.key==="cray"&&f.sides[1-t.side].forEach(u=>{u.bud===t&&(u.bud=null,d(u.name+"'s bud withers: it can attack again"))}),t.glob)return t.glob=null,e.noDodge=3,d(e.name+"'s attack on "+t.name+" is stopped by a glob of DATA: no dodging for 2 turns"),n.onChange(),await n.fx.strike(e,t,r,l,"negate",null),await n.fx.float(t,"STATIONARY","blk"),await n.fx.float(e,"STOPPED","neg"),{landed:!1,dmg:0};if(t.key!=="mason"){const u=f.sides[t.side].find(i=>i.key==="mason"&&i.alive&&i.coll>0&&i.rest===0&&i!==t);if(u)return u.coll=0,u.rest=u.restN,e.knock=!0,d(u.name+" steps in with Collateral: takes all "+r+" for "+t.name+", "+e.name+" rests 1 extra turn"),n.onChange(),await n.fx.float(u,"COLLATERAL","blk"),await n.fx.strike(e,u,r,l,"body",null),await C(u,r,e,l),{landed:!0,dmg:r}}if(t.dc>0){t.dc=0;const u=f.sides[e.side][t.slot];return d(t.name+" Depu-counter: the hit is reflected at "+(u&&u.alive?u.name:e.name)),n.onChange(),await n.fx.float(t,"DEPU-COUNTER","blk"),u&&u.alive&&u!==e?(await n.fx.strike(e,t,r,l,"negate",null),await j(e,u,r,l)):(await n.fx.strike(e,t,r,l,"negate",null),await C(e,r,t,"counter"),{landed:!1,dmg:0})}if(t.dep>0)return t.dep=0,e.knock=!0,t.rest=Math.max(t.rest,t.restN),d(t.name+" Depulsion: "+e.name+"'s attack is reverted and "+e.name+" is sent back"),n.onChange(),await n.fx.strike(e,t,r,l,"negate",null),await n.fx.float(t,"DEPULSION","blk"),await n.fx.float(e,"SENT BACK","neg"),{landed:!1,dmg:0};if(t.manip&&t.key==="delilah"){const u=U(t);if(u&&u.alive)return t.manip=!1,t.boost=Math.max(0,Math.min(3,t.max.STR+p.buffCap-t.cur.STR)),t.cur.STR+=t.boost,d(t.name+" manipulates: the hit goes to "+u.name+" instead"),n.onChange(),await n.fx.float(t,"MANIPULATOR","blk"),await n.fx.buff(t,"+3 STR"),await j(e,u,r,l)}if(t.small&&(r=Math.max(0,r-1),d(t.name+" is small: the attack loses 1 Strength"),r<1))return n.onChange(),await n.fx.strike(e,t,0,l,"negate",null),await n.fx.float(t,"TOO SMALL","blk"),{landed:!1,dmg:0};t.imp>0&&t.alive&&(e.coat===t?(e.coat=null,e.frzN=3,d(e.name+" attacks "+t.name+" a second time and is frozen in Hardened DATA for 3 turns"),await n.fx.float(e,"FROZEN","neg")):e.coat||(e.coat=t,d(e.name+" is imprinted with "+t.name+"'s Atomise"),await n.fx.coat(e,t.slot)));const a=t.harden>0&&t.alive;a&&(t.harden=0,d(t.name+" is hardened: the hit cannot be stopped"));const o=t.rest>0||t.nap,c={attacker:e,target:t,X:r,kind:l,exposed:o,protectors:e.noInt||a?[]:z(t),canBlock:!o&&!a&&l==="str"&&!e.sharpNow,canDodge:!o&&!a&&t.chg<1&&!(t.noDodge>0)&&t.cur.AGI>=r},g=a?{type:"take"}:await Ce(c);let s=0,A=0,b=0,w=null,R="hit";if(g.type==="block"){let u=g.s,i=!1;for(t.cur.STR-=u,d(t.name+(u>0?" blocks with "+u+" Strength":" takes it"));p.clash&&l==="str"&&u===r&&r>0&&e.alive;){const h=Math.ceil((r+1)*p.attackCostFrac)-Math.ceil(r*p.attackCostFrac);if(e.cur.STR<h)break;const m={attacker:e,target:t,X:r,extra:h,spent:u};let k;if(f.ctrl[e.side]==="human"&&n.askClashAtk?k=await n.askClashAtk(m):f.ctrl[e.side]==="remote"&&n.remoteDec?k=await n.remoteDec("clashA",m):k=Le(m),!k)break;e.cur.STR-=h,r+=1,d(e.name+" raises to "+r),n.onChange(),await n.fx.clash(e,t,r,"raise");const T={attacker:e,target:t,X:r,spent:u,canDodge:t.chg<1&&!(t.noDodge>0)&&t.cur.AGI>=r,maxAdd:t.cur.STR};let v;if(f.ctrl[t.side]==="human"&&n.askClashDef?v=await n.askClashDef(T):f.ctrl[t.side]==="remote"&&n.remoteDec?v=await n.remoteDec("clashD",T):v=je(T),v&&v.type==="dodge"&&T.canDodge){t.cur.AGI-=r,i=!0,d(t.name+" dodges ("+r+" Agility)");break}const x=G((v&&v.s)|0,0,t.cur.STR);t.cur.STR-=x,u+=x,d(t.name+(x>0?" matches with +"+x:" holds back")),n.onChange(),await n.fx.clash(t,e,r,"answer")}i?R="dodge":(s=Math.max(0,r-u),b=Math.max(0,u-r),R=s===0?"block":u>0?"partial":"hit")}else g.type==="dodge"?(t.cur.AGI-=r,R="dodge",d(t.name+" dodges ("+r+" Agility)")):g.type==="interrupt"?(w=g.by,w.cur.BRN-=1,w.makeup?(w.makeup=!1,w.rest=2,R="negate",d(w.name+" steps in. Makeup negates everything.")):l==="str"?(w.cur.STR-=g.s,s=r-g.s,w.rest=w.restN,R=s===0?"intercept":"intercept-part",d(w.name+" interrupts with "+g.s+" Strength")):(A=r,w.rest=w.restN,R="body",d(w.name+" body-blocks the hit"))):(s=r,R="hit");if(n.onChange(),await n.fx.strike(e,t,r,l,R,w),(R==="block"||R==="dodge")&&r>=4&&M(t.side,1,"Hit denied."),s>0&&await C(t,s,e,l),s>0&&t.alive&&t.chg>0&&(t.chg=0,d(t.name+"'s charge is broken"),await n.fx.float(t,"CHARGE BROKEN","neg")),A>0&&await C(w,A,e,l),a&&s>0&&t.alive&&e.alive&&(d(t.name+" reflects "+s+" back"),await n.fx.float(t,"HARDEN","blk"),await C(e,s,t,"counter")),b>0&&e.alive&&e.batonNow&&t.alive)d(e.name+"'s baton turns the counter back: "+t.name+" takes "+b+" more"),await n.fx.counter(e,t,b),await n.fx.float(e,"BATON","blk"),await C(t,b,e,"counter");else if(b>0&&e.alive){await n.fx.counter(t,e,b);let u=!1;e.cur.AGI>=b&&!(e.noDodge>0)&&(f.ctrl[e.side]==="human"&&n.askCounter?u=await n.askCounter({attacker:e,target:t,counter:b}):f.ctrl[e.side]==="remote"&&n.remoteDec?u=await n.remoteDec("counter",{attacker:e,target:t,counter:b}):u=Pe(e,b)),u&&e.cur.AGI>=b&&!(e.noDodge>0)?(e.cur.AGI-=b,d(e.name+" dodges the counter"),n.onChange(),await n.fx.dodge(e)):(d(t.name+" counters for "+b),await C(e,b,t,"counter"))}if(t.key==="julian"&&e.alive){const u=f.sides[t.side].find(i=>i.key==="delilah"&&i.alive&&i.hm>0&&i.rest===0);if(u){u.hm=0;const i=Math.min(u.cur.STR,r);d(u.name+" cries: He's Mine!"),await n.fx.float(u,"HE'S MINE","blk"),i>=1?(u.cur.STR-=Math.ceil(i*p.attackCostFrac),n.onChange(),await n.fx.declare(u,e,i,"str"),await j(u,e,i,"str")):d(u.name+" has no Strength to strike with.")}}return{landed:s>0,dmg:s}}async function ue(e,t,r,l){if(l=l||{},!t||!t.alive||t.side===e.side)throw new Error("bad target");if(H(e)||e.bud)throw new Error("cannot attack");if(E(t.slot))throw new Error("slot blocked");const a=l.pool||null;let o,c,g=e.restN;const s=e.ampd,A=e.xferd;e.ampd=!1,e.xferd=!1;const b=e.bash,w=e.ua,R=e.succ;e.bash=!1,e.ua=!1,e.succ=!1,e.taught=!1;const u=e.sharp,i=e.ds,h=e.stat,m=e.lost;e.sharp=!1,e.ds=!1,e.stat=!1,e.lost=!1,e.sharpNow=u;const k=e.baton,T=e.blend,v=e.rookie;if(e.baton=!1,e.blend=!1,e.rookie=!1,e.batonNow=k,e.fp&&!a)o=p.fpDamage,c="data",e.fp=!1,g=2;else{const y=Y(e,t,a);if(y<1)throw new Error("cannot attack");o=G(r|0,1,y),c="str";const I=Math.ceil(o*p.attackCostFrac),be=a||e;if(I>be.cur.STR)throw new Error("not enough Strength");be.cur.STR-=I,J(t.slot)&&(f.rail[t.slot]=null,d("Capacitor on slot "+(t.slot+1)+" discharges."),await n.fx.rail(t.slot,"fire"))}(w||v)&&(g+=1),e.adr&&c==="str"&&(o+=1,d(e.name+" is running on adrenaline: +1 Strength on the hit")),e.noInt=R,await V(e,t.slot),l.t2&&l.t2!==t&&l.t2.alive&&await V(e,l.t2.slot),d(e.name+" attacks "+t.name+" for "+o+(c==="data"?" (DATA)":"")+(a?" (with "+a.name+"'s Strength)":"")),n.onChange(),await n.fx.declare(e,t,o,c);const x=await j(e,t,o,c),ie=async(y,I)=>{b&&I&&I.landed&&y.alive&&y.rest<1&&(y.rest=1,d(y.name+" is bashed: resting 1 turn"),await n.fx.float(y,"BASHED","neg"))};if(await ie(t,x),c==="str"&&x&&x.landed&&x.dmg>=o&&(s&&o>=4||A&&o>=3?M(e.side,2,"Devastating attack landed."):o>=4&&M(e.side,1,"Attack landed at optimal impact.")),i&&t.alive&&e.alive){const y=Math.ceil(o/2);d(e.name+" smacks "+t.name+" again for "+y),n.onChange(),await n.fx.declare(e,t,y,c);const I=await j(e,t,y,c);await ie(t,I)}const P=l.t2;if(P&&P!==t&&P.alive&&P.side!==e.side&&e.alive)if(x&&x.landed){d(e.name+" follows up on "+P.name+" with the same "+o),n.onChange(),await n.fx.declare(e,P,o,c);const y=await j(e,P,o,c);await ie(P,y)}else d("Beatdown fizzles: the first hit did not land"),await n.fx.float(e,"FIZZLED","neg");if(T&&x&&x.landed&&t.alive&&(t.shard={n:6,src:e},d(e.name+" leaves red shards circling "+t.name),await n.fx.debuff(t,"RED SHARDS")),x&&x.landed&&t.alive&&e.alive)for(const y of f.sides[e.side]){if(!(y.alive&&y!==e&&y.wing&&y.rest===0&&!y.nap&&!H(y)&&!y.bud&&!(y.chg>0))||!t.alive||E(t.slot))continue;y.wing=!1;const I=Math.max(1,y.cur.STR);y.cur.STR=0,d(y.name+" charges in behind "+e.name+" for "+I),n.onChange(),await n.fx.float(y,"WINGWOMAN","blk"),await V(y,t.slot),await n.fx.declare(y,t,I,"str"),await j(y,t,I,"str"),y.rest=W(y,y.restN)+1,n.onChange()}e.noInt=!1,e.sharpNow=!1,e.batonNow=!1,h&&t.alive&&(t.bud=e,d(e.name+" plants a bud on "+t.name+": it cannot attack until "+e.name+" is attacked"),await n.fx.debuff(t,"STATIONARY BUD")),w&&(f.rail[t.slot]={type:"unstable",owner:e.side,ttl:p.unstableTTL},d("Rail slot "+(t.slot+1)+" is unstable: nobody in it can attack."),await n.fx.rail(t.slot,"unstable")),m&&e.alive&&!f.rail[t.slot]&&(f.rail[t.slot]={type:"lost",owner:e.side,ttl:2,who:e},d(e.name+" stays on slot "+(t.slot+1)+": it is blocked for a turn"),await n.fx.rail(t.slot,"lost")),e.rest=W(e,g),n.onChange()}async function de(e,t,r,l){if(!t||!t.alive||t.side===e.side)throw new Error("bad target");if(H(e)||e.bud)throw new Error("cannot attack");if(E(t.slot))throw new Error("slot blocked");if(r=G(r|0,1,e.cur.DATA),r<1)throw new Error("no DATA");if(e.cur.DATA-=r,await V(e,t.slot),await n.fx.dataBurst(e,1),d(e.name+(l?" stings ":" fires Projection at ")+t.name+" for "+r),n.onChange(),await n.fx.declare(e,t,r,"data",!0),await j(e,t,r,"data"),l)for(const a of N(e.side))a!==t&&(d("The sting chains to "+a.name),await C(a,1,e,"data"));e.rest=W(e,e.restN),n.onChange()}async function Me(e,t){const r=t.id,l=te(e,r);if(!l.ok)throw new Error("ability not usable: "+r+" "+l.reason);switch(r){case"amp":e.cur.DATA-=2,e.cur.STR=Math.min(e.max.STR+p.buffCap,e.cur.STR+1),e.ampd=!0,d(e.name+" amplifies: +1 Strength"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"+1 STR");break;case"brim":{e.cur.DATA-=8,d(e.name+" releases Brim"),n.onChange(),await n.fx.dataBurst(e,3),await n.fx.brim(e);const a=N(e.side),o=a.map(g=>({unit:g,canTank:g.rest===0&&g.cur.DATA>=p.brimTank}));let c;f.ctrl[1-e.side]==="human"&&n.askBrim&&o.some(g=>g.canTank)?c=await n.askBrim(o,e):f.ctrl[1-e.side]==="remote"&&n.remoteDec&&o.some(g=>g.canTank)?c=await n.remoteDec("brim",{opts:o,a:e}):c=o.filter(g=>g.canTank&&Fe(g.unit)).map(g=>g.unit);for(const g of a)c.includes(g)&&g.rest===0&&g.cur.DATA>=p.brimTank?(g.cur.DATA-=p.brimTank,d(g.name+" tanks Brim with DATA"),n.onChange(),await n.fx.dataBurst(g,0),await n.fx.float(g,"TANKED","blk")):await C(g,p.brimDamage,e,"data");e.rest=e.restN;break}case"leer":{const a=t.target;if(!a||!a.alive||a.side===e.side)throw new Error("bad target");e.cur.DATA-=2,re(e,a,{BRN:1,AGI:1}),d(e.name+" leers at "+a.name+": -1 Brains, -1 Agility"),await n.fx.dataBurst(e,1),await n.fx.debuff(a,"LEER");break}case"qm":{const a=t.target;if(!a||!a.alive||a.side===e.side)throw new Error("bad target");e.cur.DATA-=2,re(e,a,{BRN:2}),d(e.name+" runs Quick Maths on "+a.name+": -2 Brains"),await n.fx.dataBurst(e,1),await n.fx.debuff(a,"QUICK MATHS");break}case"cap":{const a=t.slot|0;if(a<0||a>3)throw new Error("bad slot");e.cur.DATA-=2,f.rail[a]={type:"cap",owner:e.side,ttl:p.capTTL},d(e.name+" charges the rail at slot "+(a+1)),await n.fx.dataBurst(e,1),await n.fx.rail(a,"set");break}case"makeup":e.cur.DATA-=3,e.makeup=!0,d(e.name+" puts on Makeup"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"MAKEUP READY");break;case"fp":e.cur.DATA-=3,e.fp=!0,d(e.name+" lines up Finally Perfect"),await n.fx.dataBurst(e,2),await n.fx.buff(e,"PERFECT READY");break;case"proj":await de(e,t.target,t.X);break;case"vesp":await de(e,t.target,t.X,!0);break;case"atom":{const a=t.slot|0;if(a<0||a>3||f.atom[e.side][a])throw new Error("bad slot");e.cur.DATA-=4,f.atom[e.side][a]=e,n.onChange(),f.ctrl[1-e.side]!=="human"&&(d(e.name+" coats rail slot "+(a+1)+" with Atomise"),await n.fx.dataBurst(e,1),await n.fx.rail(a,"set"));break}case"disch":{const a=t.target;if(!a||!a.alive||!a.coat||a.coat.side!==e.side)throw new Error("bad target");e.cur.DATA-=1,a.coat=null,d(e.name+" discharges: "+a.name+" explodes"),n.onChange(),await n.fx.dataBurst(e,2),await n.fx.discharge(a),await C(a,p.atomDamage,e,"data"),e.rest=W(e,e.restN);break}case"jump":{e.cur.DATA-=4,d(e.name+" goes for the Jumpscare"),e.cur.STR=0,e.cur.AGI=0,e.cur.BRN=0,e.cur.DATA=0,e.rest=e.restN;const a=N(e.side);a.forEach(o=>{o.rest=Math.max(o.rest,o.restN),o.chg&&(o.chg=0)}),n.onChange(),await n.fx.dataBurst(e,3),await n.fx.jumpscare(e,a),d("Every enemy agent must rest.");break}case"lost":e.cur.DATA-=2,e.lost=!0,d(e.name+" readies Lost"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"LOST READY");break;case"stat":e.cur.DATA-=3,e.stat=!0,d(e.name+" readies Stationary"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"STATIONARY READY");break;case"catnap":e.wasNap?(d(e.name+" stays awake"),await n.fx.buff(e,"AWAKE")):(e.nap=!0,d(e.name+" curls up for a Catnap"),await n.fx.buff(e,"CATNAP zzZ"));break;case"sharp":e.cur.DATA-=2,e.cur.STR=Math.min(e.max.STR+p.buffCap,e.cur.STR+1),e.sharp=!0,d(e.name+" sharpens her claws: +1 Strength"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"CLAWS +1 STR");break;case"ds":e.cur.DATA-=3,e.ds=!0,d(e.name+" readies Double-Smack"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"DOUBLE-SMACK READY");break;case"dep":e.cur.DATA-=3,e.dep=2,d(e.name+" braces: Depulsion"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"DEPULSION");break;case"bd":e.cur.DATA-=3,e.bd=!0,d(e.name+" readies Beatdown"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"BEATDOWN READY");break;case"bash":e.cur.DATA-=4,e.bash=!0,d(e.name+" readies Bash"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"BASH READY");break;case"ua":e.cur.DATA-=5,e.cur.STR=Math.min(e.max.STR+p.buffCap,e.cur.STR+3),e.ua=!0,d(e.name+" goes Unstable: +3 Strength"),await n.fx.dataBurst(e,2),await n.fx.buff(e,"+3 STR UNSTABLE");break;case"harden":e.cur.DATA-=7,e.harden=2,d(e.name+" hardens"),await n.fx.dataBurst(e,2),await n.fx.buff(e,"HARDEN");break;case"tact":{const a=ee(e);e.cur.DATA-=2,a.cur.BRN=Math.min(a.max.BRN+p.buffCap,a.cur.BRN+2),d(e.name+" directs "+a.name+": +2 Brains"),await n.fx.dataBurst(e,1),await n.fx.buff(a,"+2 BRN");break}case"succ":e.cur.DATA-=3,e.succ=!0,d(e.name+" readies Successor"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"UNINTERRUPTIBLE");break;case"teacher":{const a=t.target;if(!a||!a.alive||a.side!==e.side||a===e)throw new Error("bad ally");e.cur.DATA-=3,a.cur.STR=Math.min(a.max.STR+p.buffCap,a.cur.STR+1),a.succ=!0,a.taught=!0,d(e.name+" teaches "+a.name+": +1 Strength, next attack cannot be interrupted"),await n.fx.dataBurst(e,1),await n.fx.buff(a,"TAUGHT +1 STR");break}case"rarium":{const a=t.target;if(!a||!a.alive||a.side===e.side||a.rest>0||a.restN<1)throw new Error("bad target");e.cur.DATA-=4,a.rest=Math.max(a.rest,a.restN),a.chg>0&&(a.chg=0,d(a.name+"'s charge is broken")),d(e.name+" uses Rarium: "+a.name+" must rest "+a.restN),await n.fx.dataBurst(e,2),await n.fx.debuff(a,"RARIUM");break}case"ook":{if(e.cur.DATA-=3,e.chg<2)e.chg++,d(e.name+(e.chg===1?" gathers DATA (1/3)":" swirls DATA (2/3)")),await n.fx.dataBurst(e,e.chg),await n.fx.charge(e,e.chg),await n.fx.buff(e,e.chg===1?"GATHERING 1/3":"SWIRLING 2/3");else{const a=t.target;if(!a||!a.alive||a.side===e.side)throw e.cur.DATA+=3,new Error("bad target");e.chg=0,d(e.name+" releases One-of-a-kind on "+a.name),n.onChange(),await n.fx.dataBurst(e,3),await n.fx.charge(e,3),await n.fx.declare(e,a,p.ookDamage,"data"),await j(e,a,p.ookDamage,"data"),e.rest=W(e,e.restN)}break}case"enki":{const a=G(t.X|0,1,Math.min(e.cur.DATA,e.maxhp-e.hp));if(a<1)throw new Error("nothing to heal");e.cur.DATA-=a,e.hp+=a,e.enki=2,d(e.name+" uses Enki: heals "+a),n.onChange(),await n.fx.dataBurst(e,1),await n.fx.buff(e,"+"+a+" HP");break}case"lamb":{const a=U(e);e.cur.DATA-=1,a.cur.STR=Math.min(a.max.STR+p.buffCap,a.cur.STR+1),d(e.name+" gives "+a.name+" +1 Strength"),await n.fx.dataBurst(e,1),await n.fx.buff(a,"+1 STR");break}case"panic":{e.cur.DATA-=2;const a=N(e.side);a.forEach(o=>re(e,o,{AGI:1})),d(e.name+" panics the field: enemies lose 1 Agility"),await n.fx.dataBurst(e,2);for(const o of a)await n.fx.debuff(o,"PANIC");break}case"manip":e.cur.DATA-=4,e.manip=!0,d(e.name+" readies Manipulator"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"MANIPULATOR READY");break;case"hm":e.cur.DATA-=5,e.hm=p.hmTTL,f.ctrl[1-e.side]==="human"?n.onChange():(d(e.name+" sets a trap: He's Mine"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"HE'S MINE SET"));break;case"dcount":e.cur.DATA-=5,e.dc=2,d(e.name+" braces: Depu-counter"),await n.fx.dataBurst(e,2),await n.fx.buff(e,"DEPU-COUNTER");break;case"baton":e.cur.DATA-=3,e.baton=!0,f.ctrl[1-e.side]==="human"?n.onChange():(d(e.name+" readies a baton"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"BATON READY"));break;case"impr":e.cur.DATA-=2,e.imp=2,d(e.name+" sets Impression"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"IMPRESSION");break;case"blend":e.cur.DATA-=2,e.cur.STR=Math.min(e.max.STR+p.buffCap,e.cur.STR+1),e.blend=!0,d(e.name+" readies Blender: +1 Strength"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"BLENDER +1 STR");break;case"fglob":{const a=t.target;if(!a||!a.alive||a.side!==e.side||a.glob)throw new Error("bad ally");e.cur.DATA-=4,a.glob={by:e},f.ctrl[1-e.side]==="human"?n.onChange():(d(e.name+" hides a glob of DATA on "+a.name),await n.fx.dataBurst(e,1),await n.fx.buff(a,"GLOB"));break}case"wing":e.cur.DATA-=3,e.wing=!0,d(e.name+" readies Wingwoman"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"WINGWOMAN");break;case"rookie":{const a=X(e).sort((o,c)=>c.cur.STR-o.cur.STR)[0];e.cur.DATA-=1,e.cur.STR=Math.max(e.cur.STR,Math.min(a.cur.STR,e.max.STR+p.buffCap)),e.rookie=!0,d(e.name+" copies "+a.name+"'s Strength: "+e.cur.STR),await n.fx.dataBurst(e,1),await n.fx.buff(e,"ROOKIE "+e.cur.STR+" STR");break}case"coll":e.cur.DATA-=1,e.coll=4,d(e.name+" readies Collateral"),await n.fx.dataBurst(e,1),await n.fx.buff(e,"COLLATERAL");break;case"bb":{const a=t.ally,o=t.target;if(!a||!a.alive||a===e||a.side!==e.side||a.cur.STR<1)throw new Error("bad ally");if(!o||!o.alive||o.side===e.side)throw new Error("bad target");e.cur.DATA-=6,e.cur.BRN=Math.min(e.max.BRN+p.buffCap,e.cur.BRN+1),d(e.name+" borrows "+a.name+"'s Strength"),await n.fx.dataBurst(e,2),await n.fx.buff(e,"+1 BRN"),await n.fx.buff(a,"LENT "+a.cur.STR+" STR"),await ue(e,o,t.X,{pool:a});break}}n.onChange()}const he=e=>1+Math.floor(Math.max(0,e.cur.BRN)/4);async function Ie(e,t,r){if(!t||!t.alive||t.side!==e.side||t===e)throw new Error("bad ally");if(!K(e,r))throw new Error("cannot give "+r);if(t.cur[r]>=t.max[r]+p.buffCap)throw new Error("ally at cap");const l=Math.min(he(e),t.max[r]+p.buffCap-t.cur[r]);e.cur.BRN-=1,e.cur[r]-=1,t.cur[r]+=l,r==="STR"&&(t.xferd=!0),l>1&&M(e.side,1,"Aiding co-agent."),d(e.name+" transfers +"+l+" "+q[r]+" to "+t.name),n.onChange(),await n.fx.buff(e,"-1 "+Q[r]),await n.fx.buff(t,"+"+l+" "+Q[r])}async function Oe(e,t){if(e.cur[t]>=e.max[t]||e.noRegen&&e.noRegen[t])throw new Error("cannot recover "+t);e.cur[t]+=1,d(e.name+" focuses: +1 "+q[t]),n.onChange(),await n.fx.buff(e,"+1 "+Q[t])}async function Ge(e){if(f.over)return;const t=f.turn;if(e.type==="pass"){if(e.skip)for(const l of f.sides[t])l.alive&&l.cur.BRN<l.max.BRN&&(l.cur.BRN+=1,d(l.name+" refocuses: +1 Brains"),n.onChange(),await n.fx.buff(l,"+1 B"));if(e.skip){const l=f.sides[t].filter(o=>o.alive);f.sides[1-t].some(o=>o.alive&&o.rest===0&&o.cur.STR>0)&&l.length&&l.every(o=>o.rest===0&&!o.nap&&["STR","AGI","BRN","DATA"].every(c=>o.cur[c]>=o.max[c]))&&M(t,2,"Recognition.")}d(e.skip?f.names[t]+(f.names[t]==="You"?" skip":" skips")+" the turn.":f.names[t]+": no agent ready, turn passes."),await se(t,null);return}const r=e.agent;if(!r||!r.alive||r.side!==t||r.rest>0)throw new Error("illegal pick");ve(r),!r.adr&&f.sides[t].length>1&&S(t).length===1&&(r.adr=!0,d(r.name+" is the last one standing: adrenaline, every attack hits +1"),n.onChange(),await n.fx.float(r,"ADRENALINE","blk")),ce(r);{const l=U(r);l&&l.alive&&ce(l)}if(r.boost=0,r.shard&&r.shard.n>0){const l=r.shard;if(l.n--,l.n<=0&&(r.shard=null),d("A red shard pricks "+r.name+" ("+l.n+" left)"),await n.fx.prick(r,l.src),await C(r,1,l.src,"shard"),l.src&&l.src.alive&&(l.src.cur.DATA-=1,n.onChange(),await n.fx.float(l.src,"-1 DATA","neg")),!r.alive){await se(t,r);return}}switch(r.wasNap=r.nap,r.nap&&(r.nap=!1,d(r.name+" wakes up")),n.onChange(),await n.fx.pick(r),r.bd&&e.type!=="attack"&&(r.bd=!1,d("Beatdown wasted.")),r.ds&&e.type!=="attack"&&(r.ds=!1,d("Double-Smack wasted.")),e.type){case"attack":{const l=r.bd;r.bd=!1,await ue(r,e.target,e.X,{t2:l?e.target2:null});break}case"ability":await Me(r,e);break;case"transfer":await Ie(r,e.to,e.stat),r.rest=Math.max(r.rest,1),n.onChange();break;case"recover":await Oe(r,e.stat);break;default:throw new Error("unknown action "+e.type)}r.enki>0&&!(e.type==="ability"&&e.id==="enki")&&r.enki--,await se(t,r)}async function se(e,t){for(const a of[...f.debuffs]){if(!a.target.alive){f.debuffs=f.debuffs.filter(o=>o!==a);continue}a.src===t?a.idle=0:a.idle++,a.idle>=p.debuffIdle&&(d("Debuff on "+a.target.name+" wears off."),ne(a))}for(let a=0;a<4;a++){const o=f.rail[a];o&&(o.ttl--,o.ttl<=0&&(f.rail[a]=null,d((o.type==="unstable"?"Unstable slot ":o.type==="lost"?"Blocked slot ":"Capacitor on slot ")+(a+1)+(o.type==="lost"?" clears.":" fades."))))}f.sides[1-e].forEach(a=>{a.alive&&(a.dep>0&&(a.dep--,a.dep||d(a.name+"'s Depulsion fades.")),a.dc>0&&(a.dc--,a.dc||d(a.name+"'s Depu-counter fades.")),a.imp>0&&(a.imp--,a.imp||d(a.name+"'s Impression fades.")),a.harden>0&&(a.harden--,a.harden||d(a.name+"'s Harden fades.")))}),f.sides[e].forEach(a=>{a.alive&&a.boost>0&&a!==t&&(a.cur.STR=Math.max(0,a.cur.STR-a.boost),a.boost=0,d(a.name+"'s Manipulator strength fades."))}),f.sides.forEach(a=>a.forEach(o=>{o.alive&&o.coll>0&&o.coll--,o.alive&&o.hm>0&&(o.hm--,!o.hm&&f.ctrl[1-o.side]!=="human"&&d(o.name+" He's Mine fades."))})),f.sides[e].forEach(a=>{a.alive&&a.nap&&a!==t&&(a.cur.STR=Math.min(p.napMax,a.cur.STR+1))}),f.sides[e].forEach(a=>{a.alive&&a.noDodge>0&&a.noDodge--}),f.sides[e].forEach(a=>{a.alive&&a!==t&&a.rest>0&&(a.rest--,a.rest===0&&(a.frz=!1))});const r=S(0).length,l=S(1).length;if(r===0||l===0){f.over=!0,f.winner=r===0&&l===0?-1:r===0?1:0;const a=f.winner;a>=0&&(f.cr.hurt[a]===0?M(a,5,"Optimal performance, Agents, all opposing agents vanquished."):S(a).length===4?M(a,4,"No casualties, all opposing agents vanquished."):M(a,3,"All opposing agents vanquished."),S(a).length===1&&f.sides[a].length>1&&M(a,1,"Clutch. Last agent standing."))}else f.turn=1-e,f.turnNo++,f.turnNo>p.maxTurns&&(f.over=!0,f.winner=-1);n.onChange()}const Z=[3,3],He=(e,t)=>{e=G(e|0,1,5),t===0||t===1?Z[t]=e:(Z[0]=e,Z[1]=e)};function Le(e){const{attacker:t,target:r,X:l,extra:a}=e;if(t.cur.STR<a)return!1;if(r.cur.STR<1||r.cur.STR<1)return!0;const o=t.cur.STR-a;return r.hp<=l+2?!0:o>=1&&D()<(r.cur.STR<=t.cur.STR?.5:.25)}function je(e){const{target:t,X:r,spent:l}=e;return e.canDodge&&t.cur.AGI>=r+2&&D()<.5?{type:"dodge"}:t.cur.STR>=1&&(t.hp<=6||D()<.55)?{type:"add",s:Math.min(t.cur.STR,r-l)}:e.canDodge&&D()<.4?{type:"dodge"}:{type:"add",s:0}}function Pe(e,t){return!(e.noDodge>0)&&e.cur.AGI>=t&&(t>=2||D()<.5)}function Fe(e){return e.cur.DATA>=5||e.hp<=4}function me(e){const t=Z[e.target.side];if(t<=2)return(t===1?D()<.8:D()<.45)?{type:"take"}:ge(e);if(t>=4&&!e.exposed){const{target:r,attacker:l,X:a,kind:o}=e,c=e.protectors.slice().sort((s,A)=>A.cur.STR-s.cur.STR),g=c.find(s=>s.makeup);if(g&&(a>=3||r.hp<=a+2))return{type:"interrupt",by:g,s:0};if(o==="str"){if(t>=5&&e.canBlock&&r.cur.STR>a&&l.hp<=r.cur.STR-a&&!l.noInt)return{type:"block",s:Math.min(r.cur.STR,a+l.hp)};if(r.hp<=a+1||a>=3){if(e.canDodge&&(r.hp<=a+1||r.cur.AGI>=a+2))return{type:"dodge"};if(e.canBlock&&r.cur.STR>=a)return{type:"block",s:a};if(c.length&&c[0].cur.STR>=1)return{type:"interrupt",by:c[0],s:Math.min(a,c[0].cur.STR)};if(e.canBlock)return{type:"block",s:r.cur.STR}}}else if(e.canDodge)return{type:"dodge"}}return ge(e)}function ge(e){const{target:t,X:r,kind:l}=e,a=e.protectors.slice().sort((s,A)=>A.cur.STR-s.cur.STR),o=a.find(s=>s.makeup);if(o&&(r>=3||t.hp<=r+2))return{type:"interrupt",by:o,s:0};if(e.exposed)return a.length&&(r>=3||t.hp<=r*2)&&D()<.8?{type:"interrupt",by:a[0],s:Math.min(r,a[0].cur.STR)}:{type:"take"};if(l==="data"){if(e.canDodge&&(r>=3||D()<.5))return{type:"dodge"};const s=a.find(A=>A.hp>r+6);return s&&r<=4&&D()<.4?{type:"interrupt",by:s,s:0}:{type:"take"}}if(t.hp<=r+1)return e.canDodge?{type:"dodge"}:t.cur.STR>=r?{type:"block",s:r}:a.length?{type:"interrupt",by:a[0],s:Math.min(r,a[0].cur.STR)}:{type:"block",s:t.cur.STR};const g=D();return r<=1?g<.55?{type:"take"}:{type:"block",s:Math.min(r,t.cur.STR)}:e.canDodge&&g<.4?{type:"dodge"}:t.cur.STR>=r+1&&r>=2&&g<.75?{type:"block",s:r+1}:t.cur.STR>=r?{type:"block",s:r}:a.length&&g<.6?{type:"interrupt",by:a[0],s:Math.min(r,a[0].cur.STR)}:{type:"block",s:t.cur.STR}}const Ue=e=>(e.dep>0?3.5:0)+(e.dc>0?3:0)+(e.harden>0?1.5:0)+(e.imp>0&&e.coat!==null,0);function ze(e){const t=Z[e],r=S(e),l=N(e),a=r.filter(s=>s.rest===0);if(!a.length)return{type:"pass"};const o=[],c=(s,A)=>o.push({s,n:D()*.6,act:A});for(const s of a){const A=B(s,"STR"),b=B(s,"DATA"),w=B(s,"BRN"),R=s.slot===0||s.slot===3?.5:0;for(const i of l){if(s.chg>0)break;const h=i.rest>0||i.nap,m=(i.dep>0?3.5:0)+(i.dc>0?3:0)+(i.imp>0&&s.coat&&s.coat===i?4:0)+(i.harden>0?s.hp<=8?4:1.5:0);if(s.fp){!H(s)&&!s.bud&&!E(i.slot)&&c(6.5+(h?1:0)+(i.hp<=6?3:0)-R-m,{type:"attack",agent:s,target:i,X:6});continue}const k=Y(s,i);if(k>=1){let T=h||i.hp<=k?Math.min(k,Math.max(1,i.hp+1)):Math.max(1,Math.round(k*.6));D()<.3&&T++,T=G(T,1,k);const v=(h?T:T*.45)*.9+(i.hp<=T?3:0)-T*.18-R-m+(s.stat?i.cur.STR*.3:0)+(s.sharp&&!h?.9:0)+(s.blend?1.2:0)+(s.baton?.6:0)+(s.ds?T*.35:0)-(i.small?.9:0)-(E(i.slot)?99:0);c(v,{type:"attack",agent:s,target:i,X:T}),s.bd&&l.filter(x=>x!==i).forEach(x=>c(v*1.8+.8,{type:"attack",agent:s,target:i,target2:x,X:Math.min(k,Math.max(T,Math.round(k*.7)))})),s.bash&&!h&&c(v+1.4,{type:"attack",agent:s,target:i,X:T})}if(s.key==="argo"&&b>=2&&!H(s)&&!s.bud&&!E(i.slot)){const T=Math.min(b,h?b:Math.max(2,Math.min(b,4)));c(T*.55+(i.hp<=T?3:0)-T*.12-R,{type:"ability",agent:s,id:"proj",target:i,X:T})}}const u=i=>te(s,i).ok;if(s.key==="jane"&&(u("amp")&&A>=3&&b>=4&&c(1.3,{type:"ability",agent:s,id:"amp"}),u("brim")&&l.length>=2&&c(l.length*1.5+(l.some(i=>i.rest>0)?1:0),{type:"ability",agent:s,id:"brim"})),s.key==="argo"&&u("leer")){const i=l.slice().sort((h,m)=>m.cur.BRN+m.cur.AGI-(h.cur.BRN+h.cur.AGI))[0];i&&!f.debuffs.some(h=>h.target===i)&&c(1.6,{type:"ability",agent:s,id:"leer",target:i})}if(s.key==="wren"){if(u("qm")){const i=l.slice().sort((h,m)=>m.cur.BRN-h.cur.BRN)[0];i&&i.cur.BRN>=2&&!f.debuffs.some(h=>h.target===i)&&c(1.5,{type:"ability",agent:s,id:"qm",target:i})}if(u("cap")){const i=S(e).slice().sort((h,m)=>h.hp-m.hp)[0];i&&!J(i.slot)&&c(1.3,{type:"ability",agent:s,id:"cap",slot:i.slot})}}if(s.key==="cathy"&&(u("makeup")&&R>0&&c(2,{type:"ability",agent:s,id:"makeup"}),u("fp")&&c(2.4,{type:"ability",agent:s,id:"fp"})),s.key==="edica"&&(u("dep")&&l.some(i=>i.rest===0&&i.cur.STR>=3)&&c(1.7+(s.hp<12?.8:0),{type:"ability",agent:s,id:"dep"}),u("bd")&&l.length>=2&&A>=3&&c(2,{type:"ability",agent:s,id:"bd"})),s.key==="ellie"&&(u("bash")&&A>=3&&c(1.8,{type:"ability",agent:s,id:"bash"}),u("ua")&&b>=5&&l.some(i=>i.rest===0)&&c(1.7,{type:"ability",agent:s,id:"ua"})),s.key==="miera"&&(u("harden")&&(s.slot===0||s.slot===3||s.hp>20)&&c(1.6,{type:"ability",agent:s,id:"harden"}),u("bb"))){const h=S(e).filter(k=>k!==s&&k.cur.STR>=4).sort((k,T)=>T.cur.STR-k.cur.STR)[0],m=l.slice().sort((k,T)=>(T.rest>0)-(k.rest>0)||k.hp-T.hp)[0];if(h&&m&&!E(m.slot)){const k=G(m.hp<=h.cur.STR?m.hp+1:Math.round(h.cur.STR*.7),1,Y(s,m,h));c(k*.7+(m.hp<=k?3:0)+(m.rest>0?1:0)-Ue(m),{type:"ability",agent:s,id:"bb",ally:h,target:m,X:k})}}if(s.key==="opal"){const i=ee(s);u("tact")&&i&&i.cur.BRN<i.max.BRN+2&&c(1.5+(i.cur.BRN===0?.8:0),{type:"ability",agent:s,id:"tact"}),u("succ")&&l.some(h=>z(h).length)&&c(1.5,{type:"ability",agent:s,id:"succ"})}if(s.key==="rarity"){if(u("teacher")){const i=S(e).filter(h=>h!==s&&h.rest===0&&!h.succ&&h.cur.STR>=3).sort((h,m)=>m.cur.STR-h.cur.STR)[0];i&&l.some(h=>z(h).length||h.rest>0)?c(1.9,{type:"ability",agent:s,id:"teacher",target:i}):i&&c(1.2,{type:"ability",agent:s,id:"teacher",target:i})}if(u("rarium")){const i=L(s,"rarium").sort((h,m)=>m.cur.STR+m.cur.DATA*.3-h.cur.STR-m.cur.DATA*.3)[0];i&&i.cur.STR>=3&&c(1.7+(i.cur.STR>=6?.8:0),{type:"ability",agent:s,id:"rarium",target:i})}}if(s.key==="echidna"){if(s.chg===2&&u("ook")){const i=l.slice().sort((h,m)=>z(h).length-z(m).length||h.hp-m.hp)[0];c(9,{type:"ability",agent:s,id:"ook",target:i})}else s.chg===1&&u("ook")?c(8,{type:"ability",agent:s,id:"ook"}):s.chg===0&&u("ook")&&s.hp>=6&&c(1.8+(l.some(i=>i.cur.STR>=6&&i.rest===0)?-.6:.4),{type:"ability",agent:s,id:"ook"});if(u("enki")&&s.maxhp-s.hp>=3){const i=Math.min(b,s.maxhp-s.hp);c(.9+i*.2,{type:"ability",agent:s,id:"enki",X:i})}}if(s.key==="julian"&&(u("lamb")&&c(1.4,{type:"ability",agent:s,id:"lamb"}),u("panic")&&l.length>=2&&c(1.5+(l.some(i=>i.cur.AGI>=4)?.4:0),{type:"ability",agent:s,id:"panic"})),s.key==="delilah"&&(u("manip")&&l.some(i=>i.rest===0&&i.cur.STR>=2)&&c(1.4,{type:"ability",agent:s,id:"manip"}),u("hm")&&c(1.5,{type:"ability",agent:s,id:"hm"})),s.key==="wraith"){if(u("disch")){const i=L(s,"disch").sort((h,m)=>h.hp-m.hp)[0];c(2.2+(i.hp<=5?3:0)+(i.hp<=8?.8:0),{type:"ability",agent:s,id:"disch",target:i})}else if(u("atom")){const h=[0,1,2,3].filter(m=>!f.atom[e][m]&&f.sides[e][m]&&f.sides[e][m].alive).sort((m,k)=>f.sides[e][m].hp-f.sides[e][k].hp)[0];h!=null&&c(1.7,{type:"ability",agent:s,id:"atom",slot:h})}u("jump")&&l.length>=2&&S(e).filter(i=>i!==s&&i.rest===0&&i.cur.STR>=3).length>=2&&c(2.4+l.length*.3,{type:"ability",agent:s,id:"jump"})}if(s.key==="cray"&&(u("stat")&&l.some(i=>i.rest===0&&i.cur.STR>=5)&&c(1.9,{type:"ability",agent:s,id:"stat"}),u("lost")&&A>=2&&c(1.2,{type:"ability",agent:s,id:"lost"})),s.key==="neko"&&(u("catnap")&&s.cur.STR<=6&&s.hp>=9&&!l.some(i=>i.rest===0&&i.cur.STR>=7)&&c(2.1-s.cur.STR*.2,{type:"ability",agent:s,id:"catnap"}),u("sharp")&&A>=3&&c(1.5,{type:"ability",agent:s,id:"sharp"})),s.key==="tyrees"&&(u("dcount")&&l.some(i=>i.rest===0&&i.cur.STR>=3)&&c(1.7+(s.hp<10?.6:0),{type:"ability",agent:s,id:"dcount"}),u("baton")&&A>=2&&c(1.5,{type:"ability",agent:s,id:"baton"})),s.key==="argithia"&&(u("impr")&&l.some(i=>i.rest===0&&i.cur.STR>=3)&&c(1.5,{type:"ability",agent:s,id:"impr"}),u("blend")&&A>=4&&l.some(i=>!i.shard)&&c(2,{type:"ability",agent:s,id:"blend"})),s.key==="frey"){if(u("fglob")){const i=L(s,"fglob").sort((h,m)=>m.cur.STR+m.cur.DATA*.3+(m.slot===1||m.slot===2?2:0)-(h.cur.STR+h.cur.DATA*.3+(h.slot===1||h.slot===2?2:0)))[0];i&&c(1.5,{type:"ability",agent:s,id:"fglob",target:i})}u("wing")&&S(e).some(i=>i!==s&&i.rest===0&&i.cur.STR>=3)&&c(1.6,{type:"ability",agent:s,id:"wing"})}if(s.key==="mason"){if(u("rookie")){const i=X(s).sort((h,m)=>m.cur.STR-h.cur.STR)[0];i&&i.cur.STR>=4&&l.some(h=>!E(h.slot))&&c(1.4+i.cur.STR*.25,{type:"ability",agent:s,id:"rookie"})}u("coll")&&s.hp>=9&&c(1.5,{type:"ability",agent:s,id:"coll"})}if(s.key==="nessy"&&(u("ds")&&A>=3&&c(1.9,{type:"ability",agent:s,id:"ds"}),u("vesp")&&b>=2)){const i=L(s,"vesp").sort((h,m)=>h.hp-m.hp)[0];if(i){const h=Math.min(b,3);c(h*.5+l.length*.7+(i.hp<=h?3:0),{type:"ability",agent:s,id:"vesp",target:i,X:h})}}{const i=S(e).find(h=>h.key==="mason"&&h!==s&&h.cur.DATA<1);i&&i.cur.DATA<i.max.DATA+p.buffCap&&ae(s).ok&&K(s,"DATA")&&B(s,"DATA")>=3&&c(1.45,{type:"transfer",agent:s,to:i,stat:"DATA"})}if(ae(s).ok&&w>=1){const i=F.filter(h=>h!=="BRN"&&K(s,h)).sort((h,m)=>B(s,m)-B(s,h))[0];if(i&&B(s,i)>=3){const h=S(e).filter(m=>m!==s&&m.max[i]>=5&&m.cur[i]<m.max[i]+p.buffCap).sort((m,k)=>m.cur[i]-k.cur[i])[0];h&&c(.9,{type:"transfer",agent:s,to:h,stat:i})}}if(fe(s).ok){const i=F.map(m=>({k:m,d:s.max[m]-B(s,m)})).filter(m=>m.d>0&&!(s.noRegen&&s.noRegen[m.k])).sort((m,k)=>k.d-m.d),h=i.reduce((m,k)=>m+k.d,0);c(Math.min(2.2,.5+.15*h),{type:"recover",agent:s,stat:i[0].k})}}{const s=S(e).reduce((A,b)=>A+Math.max(0,b.max.BRN-b.cur.BRN),0);s>=2&&t>=2&&o.push({s:Math.min(1.7,.3*s),n:D()*.6,act:{type:"pass",skip:!0}})}if(!o.length)return{type:"pass"};if(t===1||t===2&&D()<.2)return o[D()*o.length|0].act;if(t>=4){const s=(t>=5?1:.5)*(f.turnNo>p.maxTurns*.6?0:1),A=l.filter(b=>b.rest===0).length;o.forEach(b=>{const w=b.act,R=w.agent,u=w.target;if(w.type==="recover"&&(b.s+=s*1.2),w.type==="attack"&&u){const i=u.rest>0||u.nap;if(i&&u.hp<=w.X&&(b.s+=2.5),b.s+=(1-u.hp/Math.max(1,u.maxhp))*1.2,b.s-=s,t>=5){const h=u.hp<=w.X&&i;!h&&a.length===1&&A>0&&(b.s-=1.8),!h&&(R.slot===0||R.slot===3)&&S(e).some(m=>m!==R&&m.rest>0)&&(b.s-=.6),i&&(b.s+=.8)}}})}const g=t===2?4:t===3?1:t===4?.4:0;return o.sort((s,A)=>A.s+A.n*g-(s.s+s.n*g)),o[0].act}const pe={CFG:p,DEFS:O,STATS:F,SNAME:q,SLETTER:Q,ROLE:_,newGame:Re,getG:xe,setHooks:Te,setAI:He,proj:B,protectorsOf:z,attackMax:Y,canAttack:Be,abilityState:te,transferStatOk:K,canTransfer:ae,transferAmt:he,canRecover:fe,VERSION:"linked-21",executeAction:Ge,aiChoose:ze,aiDefend:me,alive:S,enemies:N,capAt:J,dealDamage:C,abilityTargets:L,abilityView:Ne,statsFor:Se,validSquad:De,squadCost:$};typeof module!="undefined"&&module.exports?module.exports=pe:ke.Duel=pe})(typeof window!="undefined"?window:globalThis);
+/* AnomEx Duel: rules engine (no DOM). Works in the browser (window.Duel) and in Node (module.exports). */
+(function (root) {
+'use strict';
+
+const CFG = {
+  attackCostFrac: 1,   // Strength spent per attack = ceil(X * frac)
+  buffCap: 3,          // stats can sit at most this far above max
+  capTTL: 4,           // Capacitor fades after this many turns (2 per player)
+  unstableTTL: 4,      // unstable rail slot fades after this many turns (2 per player)
+  hideStats: true,     // enemy current stats show as ? until you Analyse them (resets when your turn ends)
+  thinkMax: 2,         // Brains can cover up to this much of a fixed DATA ability cost
+  debuffIdle: 3,       // Leer / Quick Maths fade after this many turns with neither side acting
+  fpDamage: 6,         // Finally Perfect
+  brimDamage: 2,
+  brimTank: 2,
+  clash: true, hpScale: 1,          // tuning knob: multiplies every agent's HP
+  budget: 15,          // hiring points per squad
+  ookDamage: 15,       // One-of-a-kind release
+  hmTTL: 4,            // He's Mine lasts this many turns (2 per player)
+  atomDamage: 5, napMax: 11,
+  maxTurns: 700
+};
+const STATS = ['STR', 'AGI', 'BRN', 'DATA'];
+const SNAME = { STR: 'Strength', AGI: 'Agility', BRN: 'Brains', DATA: 'DATA' };
+const SLETTER = { STR: 'S', AGI: 'A', BRN: 'B', DATA: 'D' };
+const ROLE = ['DEF', 'ATK', 'ATK', 'DEF'];
+
+const DEFS = {
+  jane: {
+    cost: 5, key: 'jane', name: 'Jane', role: 'Striker', color: '#ff6a1a',
+    blurb: 'Overwhelming output. Burns through her own reserves.',
+    stats: { STR: 8, AGI: 3, BRN: 1, DATA: 9 }, hp: 19, rest: 2,
+    abilities: [
+      { id: 'amp', name: 'Amplification', cost: 2, target: 'none', text: '+1 Strength. Stacks, up to +3 over max.' },
+      { id: 'brim', name: 'Brim', cost: 8, target: 'none', text: 'A pulse hits every enemy agent for 2. Each can tank it by spending 2 DATA.' }
+    ]
+  },
+  argo: {
+    cost: 4, key: 'argo', name: 'Argo', role: 'All-rounder', color: '#2fd0c4',
+    blurb: 'No weakness, no spike. Reaches across the rail.',
+    stats: { STR: 7, AGI: 5, BRN: 3, DATA: 5 }, hp: 25, rest: 2,
+    abilities: [
+      { id: 'leer', name: 'Leer', cost: 2, target: 'enemy', text: 'Enemy loses 1 Brains and 1 Agility until they are picked, or 3 turns pass with neither of you acting.' },
+      { id: 'proj', name: 'Projection', cost: 'X', target: 'enemy', text: 'Ranged. Spend any amount of DATA as damage. Only dodgeable (exact Agility) or body-blocked.' }
+    ]
+  },
+  cathy: {
+    cost: 3, key: 'cathy', name: 'Cathy', role: 'Support', color: '#ff4f9a',
+    blurb: 'Soft hitter, hard to pin down. Covers her team.',
+    stats: { STR: 3, AGI: 7, BRN: 4, DATA: 3 }, hp: 25, rest: 1,
+    abilities: [
+      { id: 'makeup', name: 'Makeup', cost: 3, target: 'none', text: 'Next time she protects someone she negates all damage, then rests 2 turns instead of 1.' },
+      { id: 'fp', name: 'Finally Perfect', cost: 3, target: 'none', text: 'Her next attack costs no Strength and deals 6. Dodge only. She rests 2 turns after.' }
+    ]
+  },
+  wren: {
+    cost: 1, key: 'wren', name: 'Wren', role: 'Enabler', color: '#6aa8ff',
+    blurb: 'Brains over brawn. Bends the rail and the odds.',
+    stats: { STR: 2, AGI: 4, BRN: 8, DATA: 3 }, hp: 23, rest: 2,
+    abilities: [
+      { id: 'cap', name: 'Capacitor', cost: 2, target: 'slot', text: 'Charge a rail slot: the next Strength attack through it has -2 Strength. Fades if unused.' },
+      { id: 'qm', name: 'Quick Maths', cost: 2, target: 'enemy', text: 'Enemy loses 2 Brains until they are picked, or 3 turns pass with neither of you acting.' }
+    ]  },
+  edica: {
+    cost: 3, key: 'edica', name: 'Edica', role: 'Counter', color: '#c9c9c9',
+    blurb: 'Bait and punish. Turns one bad swing into a long rest for the attacker.',
+    stats: { STR: 4, AGI: 5, BRN: 4, DATA: 3 }, hp: 24, rest: 2,
+    abilities: [
+      { id: 'dep', name: 'Depulsion', cost: 3, target: 'none', text: 'The next attack on her is reverted (no damage) and the attacker is knocked back (+1 rest). Edica then rests 2 turns. Fades after 2 enemy turns.' },
+      { id: 'bd', name: 'Beatdown', cost: 3, target: 'none', text: 'Her next action can hit two different agents with the same Strength. If the first deals no damage, the second is negated.' }
+    ]
+  },
+  ellie: {
+    cost: 4, key: 'ellie', name: 'Ellie', role: 'Bruiser', color: '#ff5a1f',
+    blurb: 'Huge Strength, zero Brains. Shuts down whoever she hits.',
+    stats: { STR: 8, AGI: 4, BRN: 0, DATA: 5 }, hp: 20, rest: 2,
+    abilities: [
+      { id: 'bash', name: 'Bash', cost: 4, target: 'none', text: 'Her next attack, if it lands damage, also puts that agent into a 1 turn Resting Period.' },
+      { id: 'ua', name: 'Unstable Amplification', cost: 5, target: 'none', text: '+3 Strength until her next attack. That attack leaves its rail slot unstable: nobody in it can attack (her team too). She rests 1 extra turn.' }
+    ]
+  },
+  miera: {
+    cost: 3, key: 'miera', name: 'Miera', role: 'Tank', color: '#b0b0ff',
+    blurb: 'Massive HP and DATA, slow and clumsy. Hits like whoever she borrows from.',
+    stats: { STR: 6, AGI: 2, BRN: 1, DATA: 7 }, start: { BRN: 0 }, noRegen: { BRN: true }, hp: 33, rest: 3,
+    abilities: [
+      { id: 'bb', name: 'Bloodbrother', cost: 6, target: 'ally', text: '+1 Brains. Attack this turn using a teammate\'s Strength instead of her own (their pool is spent).' },
+      { id: 'harden', name: 'Harden', cost: 7, target: 'none', text: 'The next attack on her always hits. If it does not kill her, the damage is also dealt to the attacker. Fades after 2 enemy turns.' }
+    ]
+  },
+  opal: {
+    cost: 5, key: 'opal', name: 'Opal', role: 'Tactician', color: '#ffd24a',
+    blurb: 'Glass cannon with a brain trust. Her neighbour thinks for two.',
+    stats: { STR: 9, AGI: 2, BRN: 1, DATA: 3 }, hp: 17, rest: 3,
+    abilities: [
+      { id: 'tact', name: 'Tactician', cost: 2, target: 'none', text: '+2 Brains to her neighbouring guard (if she attacks) or neighbouring attacker (if she guards).' },
+      { id: 'succ', name: 'Successor', cost: 3, target: 'none', text: 'Her next attack cannot be interrupted. It can still be overbid or evaded.' }
+    ]
+  },
+  rarity: {
+    cost: 2, key: 'rarity', name: 'Rarity', role: 'Teacher', color: '#7fe0c0',
+    blurb: 'Hits like a feather, thinks like a library. Makes teammates hit harder and benches enemies.',
+    stats: { STR: 2, AGI: 6, BRN: 9, DATA: 4 }, hp: 19, rest: 1,
+    abilities: [
+      { id: 'teacher', name: 'Teacher', cost: 3, target: 'ally', text: 'Teach a teammate: their next attack has +1 Strength and cannot be interrupted.' },
+      { id: 'rarium', name: 'Rarium', cost: 4, target: 'enemy', text: 'Force an enemy agent into its Resting Period. A charging Echidna loses her charge.' }
+    ]
+  },
+  echidna: {
+    cost: 5, key: 'echidna', name: 'Echidna', role: 'Charger', color: '#ff7a3a',
+    blurb: 'Slow, huge, and fragile while she winds up. One clean release ends a fight.',
+    stats: { STR: 4, AGI: 4, BRN: 6, DATA: 9 }, hp: 18, rest: 3,
+    abilities: [
+      { id: 'ook', name: 'One-of-a-kind', cost: 3, target: 'none', text: 'A 3 turn ability, 3 DATA a turn. Turn 1 gather, turn 2 swirl, turn 3 release for 15 damage, then she rests. While charging she cannot attack or dodge, and any direct hit breaks the charge.' },
+      { id: 'enki', name: 'Enki', cost: 'X', target: 'none', text: 'Spend X DATA to heal X HP. Usable once every 3 turns she is picked.' }
+    ]
+  },
+  julian: {
+    cost: 1, key: 'julian', name: 'Julian', role: 'Lamb', color: '#d8d8ff', pair: 'delilah',
+    blurb: 'Fragile and never rests. Only plays alongside Delilah, side by side. Picking either one regens both.',
+    stats: { STR: 1, AGI: 4, BRN: 3, DATA: 2 }, hp: 16, rest: 0,
+    abilities: [
+      { id: 'lamb', name: 'Lamb', cost: 1, target: 'none', text: 'Gives +1 Strength to Delilah.' },
+      { id: 'panic', name: 'Panic', cost: 2, target: 'none', text: 'A shockwave of DATA: every enemy loses 1 Agility until they are picked.' }
+    ]
+  },
+  delilah: {
+    cost: 4, key: 'delilah', name: 'Delilah', role: 'Guardian', color: '#e2335a', pair: 'julian',
+    roleBuff: { atk: { STR: 1 }, def: { BRN: 1 } },
+    blurb: 'Brutal, and only with Julian beside her. +1 Strength in an attack slot, +1 Brains in a guard slot.',
+    stats: { STR: 7, AGI: 4, BRN: 0, DATA: 5 }, hp: 24, rest: 3,
+    abilities: [
+      { id: 'manip', name: 'Manipulator', cost: 4, target: 'none', text: 'The next hit on her is redirected onto Julian. In exchange she gets +3 Strength, lost if she is not picked next turn.' },
+      { id: 'hm', name: "He's Mine", cost: 5, target: 'none', text: 'Hidden. If anyone attacks Julian, Delilah strikes back for him. Lasts 4 turns if not triggered.' }
+    ]
+  },
+  wraith: {
+    cost: 3, key: 'wraith', name: 'Wraith', role: 'Trapper', color: '#9a9aff',
+    blurb: 'Sets hidden rail traps and can freeze the whole enemy team at a heavy price.',
+    stats: { STR: 4, AGI: 6, BRN: 2, DATA: 4 }, hp: 19, rest: 2,
+    abilities: [
+      { id: 'atom', name: 'Atomise', cost: 4, target: 'slot', text: 'Hidden. Coat a rail slot in DATA. The first enemy that attacks through it is coated. Once someone is coated this becomes Discharge: 1 DATA, the coated agent takes 5, and Wraith rests.' },
+      { id: 'jump', name: 'Jumpscare', cost: 4, target: 'none', text: 'Sacrifice ALL her stats and rest, to put every enemy agent into its Resting Period.' }
+    ]
+  },
+  cray: {
+    cost: 2, key: 'cray', name: 'Cray', role: 'Blocker', color: '#8fe08f',
+    blurb: 'Slow and sturdy. Clogs the rail and pins enemies down with buds.',
+    stats: { STR: 3, AGI: 1, BRN: 5, DATA: 3 }, hp: 21, rest: 1,
+    abilities: [
+      { id: 'lost', name: 'Lost', cost: 2, target: 'none', text: 'After his next attack he stays on that rail slot for 1 turn, blocking it. Nobody can attack through it.' },
+      { id: 'stat', name: 'Stationary', cost: 3, target: 'none', text: 'His next attack plants a bud on its target. They cannot attack until Cray is attacked.' }
+    ]
+  },
+  neko: {
+    cost: 4, key: 'neko', name: 'Neko', role: 'Napper', color: '#ffb0d0',
+    blurb: 'Starts weak and never regens Strength. Naps to build it up to 11, but a napping cat is exposed.',
+    stats: { STR: 11, AGI: 5, BRN: 2, DATA: 2 }, start: { STR: 2 }, noRegen: { STR: true }, hp: 19, rest: 0,
+    abilities: [
+      { id: 'catnap', name: 'Catnap', cost: 0, target: 'none', text: 'Start a nap: +1 Strength every turn of yours she sleeps (max 11). Napping she is exposed and cannot guard. Pick her to wake and act.' },
+      { id: 'sharp', name: 'Sharpen', cost: 2, target: 'none', text: 'Her next attack has +1 Strength and cannot be blocked with Strength.' }
+    ]
+  },
+  nessy: {
+    cost: 4, key: 'nessy', name: 'Nessy', role: 'Skirmisher', color: '#ff9ad0', small: true,
+    blurb: 'Small and hard to hit (-1 Strength on attacks against her). Hits twice, stings everyone.',
+    stats: { STR: 5, AGI: 3, BRN: 3, DATA: 3 }, hp: 17, rest: 2,
+    abilities: [
+      { id: 'ds', name: 'Double-Smack', cost: 3, target: 'none', text: 'Her next attack hits the same agent twice. The second hit is half damage, rounded up.' },
+      { id: 'vesp', name: 'Vesp', cost: 'X', target: 'enemy', text: 'Ranged DATA sting for X at one enemy, then 1 damage chains to every other enemy.' }
+    ]
+  },
+  tyrees: {
+    cost: 4, key: 'tyrees', name: 'Tyrees', role: 'Reflector', color: '#ff7a3a',
+    blurb: 'Turns attacks around. Sends hits at the agent opposite him, and turns counters into extra damage.',
+    stats: { STR: 4, AGI: 5, BRN: 2, DATA: 5 }, hp: 22, rest: 2,
+    abilities: [
+      { id: 'dcount', name: 'Depu-counter', cost: 5, target: 'none', text: 'For 2 turns, the next attack on him is reflected onto the enemy agent opposite his slot.' },
+      { id: 'baton', name: 'Harden', cost: 3, target: 'none', text: 'Hidden. His next attack carries a baton: any counter the target would throw back hits the target instead, on top of the attack.' }
+    ]
+  },
+  argithia: {
+    cost: 4, key: 'argithia', name: 'Argithia-Green', short: 'Argithia', role: 'Freezer', color: '#9ae04a',
+    blurb: 'Marks attackers, freezes repeat offenders, and leaves red shards that bleed the target (and her DATA).',
+    stats: { STR: 6, AGI: 5, BRN: 1, DATA: 2 }, hp: 26, rest: 3,
+    abilities: [
+      { id: 'impr', name: 'Impression', cost: 2, target: 'none', text: 'For 2 turns, anyone who attacks her is imprinted with Atomise. If the same agent attacks her again, it is frozen in Hardened DATA for 3 turns.' },
+      { id: 'blend', name: 'Blender', cost: 2, target: 'none', text: '+1 Strength. If her next attack lands, red shards circle the target: 1 damage each time it is picked, 6 in total. Each prick costs her 1 DATA, even below zero.' }
+    ]
+  },
+  frey: {
+    cost: 3, key: 'frey', name: 'Frey', role: 'Wingwoman', color: '#ffb84a',
+    blurb: 'Hides a glob of DATA on an ally that stops the next attacker, and dives in behind her teammates.',
+    stats: { STR: 3, AGI: 1, BRN: 5, DATA: 5 }, hp: 19, rest: 1,
+    abilities: [
+      { id: 'fglob', name: 'Stationary', cost: 4, target: 'ally', text: 'Hidden. Give a glob of DATA to a teammate (or herself). When that agent is attacked, the attack is stopped and the attacker cannot dodge for 2 turns.' },
+      { id: 'wing', name: 'Wingwoman', cost: 3, target: 'none', text: 'The next time a teammate lands an attack, she charges in on the same target with all her remaining Strength (1 if she has none).' }
+    ]
+  },
+  mason: {
+    cost: 3, key: 'mason', name: 'Mason', role: 'Rookie', color: '#7ad0ff',
+    blurb: 'Has no Strength of his own and cannot regain DATA: he has to be fed it by teammates. Copies a neighbour and takes hits for the team.',
+    stats: { STR: 11, AGI: 5, BRN: 8, DATA: 1 }, start: { STR: 0 }, noRegen: { STR: true, DATA: true }, hp: 24, rest: 1,
+    abilities: [
+      { id: 'rookie', name: 'Rookie numbers', cost: 1, target: 'none', text: 'Raise his Strength to match the agent next to him. His next attack makes him rest 1 turn longer.' },
+      { id: 'coll', name: 'Collateral', cost: 1, target: 'none', text: 'For 2 turns, when a teammate is attacked he takes ALL of it and rests. The attacker rests 1 extra turn.' }
+    ]
+  }
+};
+
+const SHORT_TXT = { dcount: 'Next attack on him goes to the enemy opposite him.', baton: 'Hidden. His next attack turns the target\'s counter back on them.', impr: 'Attackers get marked. Hit her twice and they freeze.', blend: '+1 Strength. A landed hit leaves 6 shards. Costs her DATA.', fglob: 'Hidden. Stops the next attacker of one teammate.', wing: 'A teammate lands a hit: she charges in on it.', rookie: 'Match a neighbour\'s Strength. Next attack: rest +1.', coll: 'Takes the next attack on a teammate. Attacker rests +1.', amp: '+1 Strength. Stacks to +3 over max.', brim: 'Hits every enemy for 2. They can tank it with 2 DATA.', leer: 'Enemy: -1 Brains, -1 Agility until picked.', proj: 'Ranged. Spend X DATA as damage. Dodge only.', makeup: 'Next cover negates all damage. Rests 2.', fp: 'Next attack: 6 damage, no Strength.', cap: 'Charge a slot: next Strength hit there gets -2.', qm: 'Enemy: -2 Brains until picked.', dep: 'Next attack on her is reverted. She then rests 2.', bd: 'Next attack hits 2 agents, same Strength.', bash: 'Next hit that lands makes the target rest 1.', ua: '+3 Strength. Next attack locks its slot.', bb: '+1 Brains. Attack using an ally\'s Strength.', harden: 'Next hit lands, then reflects onto the attacker.', tact: '+2 Brains to her neighbouring agent.', succ: 'Next attack cannot be interrupted.', teacher: 'Ally: next attack +1 Strength, uninterruptible.', rarium: 'Force an enemy into its Resting Period.', ook: '3 turn charge, 15 damage release.', enki: 'Spend X DATA to heal X HP. Once per 3 picks.', lamb: '+1 Strength to Delilah.', panic: 'Every enemy: -1 Agility until picked.', manip: 'Next hit on her goes to Julian. She gets +3 Strength.', hm: 'Hidden. She strikes back at anyone who hits Julian.', atom: 'Hidden rail trap. Coats the first enemy through it.', disch: 'Coated agent takes 5. Wraith rests.', jump: 'Lose all stats, rest. Every enemy rests.', lost: 'Next attack: he blocks that slot for 1 turn.', stat: 'Next attack plants a bud: target cannot attack.', catnap: 'Nap: +1 Strength a turn. Exposed while asleep.', sharp: 'Next attack +1 Strength, cannot be blocked.', ds: 'Next attack hits twice. 2nd hit is half.', vesp: 'Ranged X DATA sting. 1 damage to the rest.' };
+Object.values(DEFS).forEach(d => d.abilities.forEach(a => { a.short = SHORT_TXT[a.id]; }));
+
+let G = null;
+let UID = 0;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const R = () => Math.random();
+
+/* ---------- hooks (UI plugs in here) ---------- */
+const noop = async () => {};
+const FXNAMES = ['pick', 'declare', 'strike', 'hit', 'counter', 'dodge', 'die', 'dataBurst', 'brim', 'buff', 'debuff', 'rail', 'float', 'clash', 'charge', 'coat', 'discharge', 'jumpscare', 'prick', 'credit'];
+const H = { fx: {}, askDefense: null, askCounter: null, askBrim: null, askClashAtk: null, askClashDef: null, askRetort: null, askResist: null, remoteDec: null, onChange() {}, log() {}, wait: () => Promise.resolve() };
+FXNAMES.forEach(n => { H.fx[n] = noop; });
+function setHooks(h) {
+  if (h.fx) Object.assign(H.fx, h.fx);
+  ['askDefense', 'askCounter', 'askBrim', 'askClashAtk', 'askClashDef', 'askRetort', 'askResist', 'remoteDec', 'onChange', 'log', 'wait'].forEach(k => { if (h[k]) H[k] = h[k]; });
+}
+
+/* ---------- state ---------- */
+function makeAgent(key, side, slot) {
+  const d = DEFS[key];
+  const max = Object.assign({}, d.stats);
+  const hp = Math.max(1, Math.round(d.hp * CFG.hpScale));
+  const rb = d.roleBuff && d.roleBuff[ROLE[slot] === 'ATK' ? 'atk' : 'def']; if (rb) Object.keys(rb).forEach(k => { max[k] += rb[k]; });
+  const cur0 = Object.assign({}, max, d.start || {});
+  return { uid: ++UID, key, name: d.name, side, slot, max, cur: cur0, noRegen: d.noRegen || {}, hp, maxhp: hp, restN: d.rest, rest: 0, alive: true, makeup: false, fp: false, dep: 0, bd: false, bash: false, ua: false, harden: 0, succ: false, taught: false, noInt: false, chg: 0, enki: 0, manip: false, boost: 0, hm: 0, coat: null, bud: null, lost: false, stat: false, nap: false, sharp: false, sharpNow: false, ds: false, small: !!d.small, dc: 0, baton: false, batonNow: false, imp: 0, blend: false, shard: null, glob: null, wing: false, rookie: false, coll: 0, noDodge: 0, frz: false, frzN: 0 };
+}
+let ACH = { chain: [0, 0], ch: null, ctr: [0, 0], blk: [0, 0], raise: 0, ana: [[], []], cure: [0, 0] };
+function newGame(order0, order1, ctrl, names) {
+  UID = 0; ACH = { chain: [0, 0], ch: null, ctr: [0, 0], blk: [0, 0], raise: 0, ana: [[], []], cure: [0, 0] };
+  G = { cr: { pts: [0, 0], hurt: [0, 0], log: [] }, sides: [[], []], rail: [null, null, null, null], atom: [[null, null, null, null], [null, null, null, null]], debuffs: [], seen: [[], []], turn: 0, turnNo: 1, over: false, winner: null, ctrl: ctrl || ['human', 'cpu'], names: names || ['You', 'CPU'], log: [] };
+  [order0, order1].forEach((ord, s) => ord.forEach((k, i) => G.sides[s].push(makeAgent(k, s, i))));
+  return G;
+}
+const getG = () => G;
+function setTutor(v) { TUTOR = v || false; TUT2_RAISED = false; TUT2_BLOCK = false; }
+function tutBlock(v) { TUT2_BLOCK = !!v; }
+function addAgent(side, key) { const u = makeAgent(key, side, G.sides[side].length); G.sides[side].push(u); return u; }
+function dropLast(side) { return G.sides[side].pop(); }
+function statsFor(key, slot) {
+  if (slot > 3) return Object.assign({}, DEFS[key].stats);
+  const d = DEFS[key], st = Object.assign({}, d.stats), rb = d.roleBuff && d.roleBuff[ROLE[slot] === 'ATK' ? 'atk' : 'def'];
+  if (rb) Object.keys(rb).forEach(k => { st[k] += rb[k]; }); return st;
+}
+function squadCost(keys) { return keys.reduce((n, k) => n + (DEFS[k] ? DEFS[k].cost : 0), 0); }
+function validSquad(keys) {
+  if (keys.length !== 4 || keys.some(k => !k || !DEFS[k])) return { ok: false, reason: 'Fill all four slots to start.' };
+  if (squadCost(keys) > CFG.budget) return { ok: false, reason: 'Over budget: ' + squadCost(keys) + ' of ' + CFG.budget + ' hiring points.' };
+  const j = keys.indexOf('julian'), d = keys.indexOf('delilah');
+  if (j < 0 && d < 0) return { ok: true };
+  if (j < 0) return { ok: false, reason: 'Delilah only plays with Julian beside her.' };
+  if (d < 0) return { ok: false, reason: 'Julian only plays with Delilah beside him.' };
+  if (Math.abs(j - d) !== 1) return { ok: false, reason: 'Julian and Delilah must sit side by side.' };
+  return { ok: true };
+}
+const blk = slot => !!(G.rail[slot] && G.rail[slot].type === 'lost');
+async function trigAtom(a, slot) {
+  const w = G.atom[1 - a.side][slot];
+  if (!w || !w.alive) return;
+  G.atom[1 - a.side][slot] = null;
+  if (!a.coat) { a.coat = w; log(a.name + " is coated in " + w.name + "'s DATA"); H.onChange(); await H.fx.coat(a, slot); }
+}
+const partnerOf = a => { const k = DEFS[a.key].pair; return k ? G.sides[a.side].find(u => u.key === k) || null : null; };
+const alive = s => G.sides[s].filter(u => u.alive);
+const enemies = s => alive(1 - s);
+const log = m => { G.log.push(m); H.log(m); };
+const settleRest = (a, base) => { const r = Math.max(base + (a.knock ? 1 : 0), a.frzN || 0); a.knock = false; if (a.frzN) { a.frz = true; a.frzN = 0; } return r; };
+const adjacentOf = a => [a.slot - 1, a.slot + 1].map(i => G.sides[a.side][i]).filter(u => u && u.alive);
+
+// What a stat will be once this agent is picked: debuffs on it lift first, then +1 regen up to max.
+function proj(u, k) {
+  let v = u.cur[k];
+  G.debuffs.forEach(d => { if (d.target === u && d.amt[k]) v += d.amt[k]; });
+  v = Math.min(v, u.max[k] + CFG.buffCap);
+  return (v < u.max[k] && !(u.noRegen && u.noRegen[k]) && !(k === 'BRN' && !CFG.brnRegen)) ? Math.min(u.max[k], v + 1) : v;
+}
+function regen(u) { STATS.forEach(k => { if (u.cur[k] < u.max[k] && !(u.noRegen && u.noRegen[k]) && !(k === 'BRN' && !CFG.brnRegen)) u.cur[k] = Math.min(u.max[k], u.cur[k] + 1); }); }
+const capAt = slot => !!(G.rail[slot] && G.rail[slot].type === 'cap');
+
+function protectorsOf(t) {
+  return G.sides[t.side].filter(u => u.alive && u !== t && u.rest === 0 && u.cur.BRN >= 1 &&
+    !u.nap && (u.slot === 0 || u.slot === 3) && Math.abs(u.slot - t.slot) === 1);
+}
+const unst = u => !!(G.rail[u.slot] && G.rail[u.slot].type === 'unstable');
+function neighbourOf(a) { const n = { 0: 1, 1: 0, 2: 3, 3: 2 }[a.slot]; const u = G.sides[a.side][n]; return u && u.alive ? u : null; }
+function attackMax(a, t, pool) {
+  if (unst(a) || a.chg > 0 || a.bud) return 0;
+  if (t && blk(t.slot)) return 0;
+  if (a.fp) return CFG.fpDamage;
+  if (pool) { const S = pool.cur.STR; return capAt(t.slot) ? Math.max(0, S - 2) : S; }
+  const pS = proj(a, 'STR');
+  return capAt(t.slot) ? Math.max(0, pS - 2) : pS;
+}
+function canAttack(a) {
+  const foes = enemies(a.side);
+  if (!foes.length) return { ok: false, reason: 'no targets' };
+  if (unst(a)) return { ok: false, reason: 'unstable slot' };
+  if (a.chg > 0) return { ok: false, reason: 'charging' };
+  if (a.bud) return { ok: false, reason: 'stationary bud' };
+  if (a.fp) return foes.some(f => !blk(f.slot)) ? { ok: true } : { ok: false, reason: 'slot blocked' };
+  if (foes.some(t => attackMax(a, t) >= 1)) return { ok: true };
+  return { ok: false, reason: 'no Strength' };
+}
+function abilityState(a, id) {
+  const pDraw = proj(a, 'DATA'), pS = proj(a, 'STR'), pD = pDraw + Math.min(CFG.thinkMax, Math.max(0, proj(a, 'BRN')));
+  const hasFoe = enemies(a.side).length > 0;
+  const need = c => (pD >= c ? { ok: true, cost: c } : { ok: false, reason: 'needs ' + c + ' DATA' });
+  switch (id) {
+    case 'amp': if (pS >= a.max.STR + CFG.buffCap) return { ok: false, reason: 'at buff cap' }; return need(2);
+    case 'brim': if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(8);
+    case 'leer': if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(2);
+    case 'qm': if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(2);
+    case 'cap': return need(2);
+    case 'makeup': if (a.makeup) return { ok: false, reason: 'already ready' }; return need(3);
+    case 'fp': if (a.fp) return { ok: false, reason: 'already ready' }; return need(3);
+    case 'vesp': case 'proj': if (unst(a)) return { ok: false, reason: 'unstable slot' }; if (a.bud) return { ok: false, reason: 'stationary bud' }; if (hasFoe && enemies(a.side).every(f => blk(f.slot))) return { ok: false, reason: 'slot blocked' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; return pDraw >= 1 ? { ok: true } : { ok: false, reason: 'no DATA' };
+    case 'dep': if (a.dep > 0) return { ok: false, reason: 'already active' }; return need(3);
+    case 'bd': if (a.bd) return { ok: false, reason: 'already ready' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(3);
+    case 'bash': if (a.bash) return { ok: false, reason: 'already ready' }; return need(4);
+    case 'ua': if (a.ua) return { ok: false, reason: 'already ready' }; if (pS >= a.max.STR + CFG.buffCap) return { ok: false, reason: 'at buff cap' }; return need(5);
+    case 'bb': {
+      if (unst(a) || a.bud) return { ok: false, reason: a.bud ? 'stationary bud' : 'unstable slot' };
+      if (!hasFoe) return { ok: false, reason: 'no targets' };
+      if (!G.sides[a.side].some(u => u.alive && u !== a && u.cur.STR >= 1)) return { ok: false, reason: 'no one to borrow from' };
+      return need(6);
+    }
+    case 'harden': if (a.harden > 0) return { ok: false, reason: 'already active' }; return need(7);
+    case 'tact': if (!neighbourOf(a)) return { ok: false, reason: 'no neighbour' }; return need(2);
+    case 'succ': if (a.succ) return { ok: false, reason: 'already ready' }; return need(3);
+    case 'atom': if (G.atom[a.side].every(Boolean)) return { ok: false, reason: 'every slot is coated' }; return need(4);
+    case 'disch': if (!abilityTargets(a, 'disch').length) return { ok: false, reason: 'nobody coated' }; return need(1);
+    case 'jump': if (!enemies(a.side).some(f => f.restN > 0)) return { ok: false, reason: 'nothing to freeze' }; return need(4);
+    case 'lost': if (a.lost) return { ok: false, reason: 'already ready' }; return need(2);
+    case 'stat': if (a.stat) return { ok: false, reason: 'already ready' }; return need(3);
+    case 'catnap': if (a.nap) return { ok: true }; if (a.cur.STR >= a.max.STR) return { ok: false, reason: 'Strength is maxed' }; return { ok: true };
+    case 'sharp': if (a.sharp) return { ok: false, reason: 'already ready' }; return need(2);
+    case 'ds': if (a.ds) return { ok: false, reason: 'already ready' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(3);
+    case 'teacher': if (!G.sides[a.side].some(u => u.alive && u !== a)) return { ok: false, reason: 'no teammate' }; return need(3);
+    case 'rarium': if (!abilityTargets(a, 'rarium').length) return { ok: false, reason: 'no one to bench' }; return need(4);
+    case 'ook': if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(3);
+    case 'enki':
+      if (a.chg > 0) return { ok: false, reason: 'charging' };
+      if (a.enki > 0) return { ok: false, reason: 'ready in ' + a.enki + (a.enki > 1 ? ' picks' : ' pick') };
+      if (a.hp >= a.maxhp) return { ok: false, reason: 'already full HP' };
+      return pDraw >= 1 ? { ok: true } : { ok: false, reason: 'no DATA' };
+    case 'lamb': { const p = partnerOf(a); if (!p || !p.alive) return { ok: false, reason: 'Delilah is down' }; if (p.cur.STR >= p.max.STR + CFG.buffCap) return { ok: false, reason: 'at buff cap' }; return need(1); }
+    case 'panic': if (!enemies(a.side).some(f => f.cur.AGI >= 1)) return { ok: false, reason: 'no Agility to drain' }; return need(2);
+    case 'manip': { const p = partnerOf(a); if (a.manip) return { ok: false, reason: 'already ready' }; if (!p || !p.alive) return { ok: false, reason: 'Julian is down' }; return need(4); }
+    case 'dcount': if (a.dc > 0) return { ok: false, reason: 'already active' }; return need(5);
+    case 'baton': if (a.baton) return { ok: false, reason: 'already ready' }; return need(3);
+    case 'impr': if (a.imp > 0) return { ok: false, reason: 'already active' }; return need(2);
+    case 'blend': if (a.blend) return { ok: false, reason: 'already ready' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; if (pS >= a.max.STR + CFG.buffCap) return { ok: false, reason: 'at buff cap' }; return need(2);
+    case 'fglob': if (!abilityTargets(a, 'fglob').length) return { ok: false, reason: 'everyone has one' }; return need(4);
+    case 'wing': if (a.wing) return { ok: false, reason: 'already ready' }; if (!G.sides[a.side].some(u => u.alive && u !== a)) return { ok: false, reason: 'no teammate' }; return need(3);
+    case 'rookie': if (!adjacentOf(a).some(u => u.cur.STR > a.cur.STR)) return { ok: false, reason: 'no stronger neighbour' }; if (a.rookie) return { ok: false, reason: 'already ready' }; return need(1);
+    case 'coll': if (a.coll > 0) return { ok: false, reason: 'already active' }; if (!G.sides[a.side].some(u => u.alive && u !== a)) return { ok: false, reason: 'no teammate' }; return need(1);
+    case 'hm': { const p = partnerOf(a); if (a.hm > 0) return { ok: false, reason: 'already set' }; if (!p || !p.alive) return { ok: false, reason: 'Julian is down' }; return need(5); }
+  }
+  return { ok: false, reason: '?' };
+}
+function abilityTargets(a, id) {
+  if (id === 'disch') return enemies(a.side).filter(f => f.coat && f.coat.side === a.side);
+  if (id === 'vesp') return enemies(a.side).filter(f => !blk(f.slot));
+  if (id === 'teacher') return G.sides[a.side].filter(u => u.alive && u !== a);
+  if (id === 'fglob') return G.sides[a.side].filter(u => u.alive && !u.glob);
+  if (id === 'rarium') return enemies(a.side).filter(f => f.rest === 0 && f.restN > 0);
+  return enemies(a.side);
+}
+function abilityView(a, ab) {
+  if (ab.id === 'catnap' && a.nap) return Object.assign({}, ab, { name: 'Wake up', short: 'End the nap. This uses her pick, no other action.', text: 'End the nap. This uses her pick.' });
+  if (ab.id === 'atom' && abilityTargets(a, 'disch').length) return Object.assign({}, ab, { id: 'disch', name: 'Discharge', cost: 1, target: 'enemy', short: SHORT_TXT.disch, text: 'The coated agent explodes for 5 damage. Wraith rests.' });
+  if (ab.id !== 'ook') return ab;
+  const n = a.chg | 0;
+  return Object.assign({}, ab, { name: ['One-of-a-kind 1/3', 'One-of-a-kind 2/3', 'RELEASE 3/3'][n], short: ['Gather DATA. No attacking or dodging until released.', 'Swirl DATA. Any direct hit breaks the charge.', 'Release: 15 damage to one enemy, then she rests.'][n], target: n === 2 ? 'enemy' : 'none' });
+}
+function transferStatOk(a, k) {
+  const pB = proj(a, 'BRN');
+  if (pB < 1) return false;
+  const have = proj(a, k) - (k === 'BRN' ? 1 : 0);
+  return have >= 1;
+}
+function canTransfer(a) {
+  if (proj(a, 'BRN') < 1) return { ok: false, reason: 'needs 1 Brains' };
+  if (alive(a.side).filter(u => u !== a).length === 0) return { ok: false, reason: 'no teammate' };
+  if (!STATS.some(k => transferStatOk(a, k))) return { ok: false, reason: 'nothing to give' };
+  return { ok: true };
+}
+function canRecover(a) {
+  if (proj(a, 'AGI') < 1) return { ok: false, reason: 'needs 1 Agility' };
+  return STATS.some(k => k !== 'AGI' && proj(a, k) < a.max[k] && !(a.noRegen && a.noRegen[k])) ? { ok: true } : { ok: false, reason: 'nothing to restore' };
+}
+function canMark(a) { if (proj(a, 'BRN') < 1) return { ok: false, reason: 'needs 1 Brains' }; return enemies(a.side).some(f => !f.mark) ? { ok: true } : { ok: false, reason: 'everyone is marked' }; }
+function cureTargets(a) { return G.sides[a.side].filter(u => u.alive && (u.mark || u.noDodge > 0)); }
+function canCure(a) { if (proj(a, 'BRN') < 2) return { ok: false, reason: 'needs 2 Brains' }; return cureTargets(a).length ? { ok: true } : { ok: false, reason: 'nobody has anything to cure' }; }
+function canAnalyse(a) { if (!a.alive || a.rest > 0) return { ok: false, reason: 'resting' }; if (proj(a, 'BRN') < 1) return { ok: false, reason: 'needs 1 Brains' }; return enemies(a.side).length ? { ok: true } : { ok: false, reason: 'no targets' }; }
+
+function canWake(a) {
+  if (!a.alive || a.rest < 1) return { ok: false, reason: 'not resting' };
+  if (a.frz || a.nap) return { ok: false, reason: 'cannot be woken' };
+  if (proj(a, 'AGI') < a.rest) return { ok: false, reason: 'needs ' + a.rest + ' Agility' };
+  return { ok: true, cost: a.rest };
+}
+function moveOptions(a) {
+  if (!a.alive || a.rest > 0 || a.nap || a.frz) return [];
+  const ag = proj(a, 'AGI');
+  return G.sides[a.side].filter(u => !u.alive && Math.abs(u.slot - a.slot) <= ag).map(u => ({ slot: u.slot, cost: Math.abs(u.slot - a.slot) }));
+}
+/* ---------- debuffs ---------- */
+function addDebuff(src, t, want) {
+  const amt = {};
+  Object.keys(want).forEach(k => { const x = Math.min(t.cur[k], want[k]); if (x > 0) { t.cur[k] -= x; amt[k] = x; } });
+  G.debuffs.push({ src, target: t, amt, idle: 0 });
+}
+function restoreDebuff(d) {
+  Object.keys(d.amt).forEach(k => { d.target.cur[k] = Math.min(d.target.max[k] + CFG.buffCap, d.target.cur[k] + d.amt[k]); });
+  G.debuffs = G.debuffs.filter(x => x !== d);
+}
+function expireDebuffsOn(u) { G.debuffs.filter(d => d.target === u).forEach(restoreDebuff); }
+
+/* ---------- damage ---------- */
+function credit(side, pts, txt) { if (!G || !G.cr) return; G.cr.pts[side] += pts; G.cr.log.push([side, pts, txt]); try { H.fx.credit(side, pts, txt); } catch (e) {} }
+async function dealDamage(u, n, src, kind) {
+  if (n <= 0 || !u.alive) return;
+  if (kind === 'counter' && src && src.side !== undefined && src.side !== u.side) ACH.ctr[src.side]++;
+  if (u.mark && src && src.side !== undefined && src.side !== u.side && u.mark.by === src.uid) { u.mark = false; n += 1; log(u.name + ' was marked: the hit lands +1'); }
+  G.cr.hurt[u.side] += n;
+  u.hp = Math.max(0, u.hp - n);
+  log(u.name + ' takes ' + n);
+  H.onChange();
+  await H.fx.hit(u, n, kind || 'str', src);
+  if (u.hp <= 0) {
+    u.alive = false;
+    G.atom[u.side] = [null, null, null, null]; G.sides.forEach(ss => ss.forEach(x => { if (x.coat === u) x.coat = null; if (x.bud === u) x.bud = null; }));
+    G.debuffs.filter(d => d.target === u || d.src === u).forEach(d => { if (d.target.alive) restoreDebuff(d); else G.debuffs = G.debuffs.filter(x => x !== d); });
+    log(u.name + ' is down.');
+    H.onChange();
+    if (src && src.side !== undefined && src.side !== u.side) credit(src.side, 1, '-1 Agent (' + u.name + ')');
+    await H.fx.die(u);
+  }
+}
+
+/* ---------- defence ---------- */
+function normDecision(ctx, d) {
+  const t = ctx.target, X = ctx.X;
+  if (!d) return { type: 'take' };
+  if (d.type === 'block' && ctx.canBlock) return { type: 'block', s: clamp(d.s | 0, 0, t.cur.STR) };
+  if (d.type === 'dodge' && ctx.canDodge) return { type: 'dodge' };
+  if (d.type === 'interrupt' && ctx.protectors.includes(d.by)) {
+    const by = d.by;
+    return { type: 'interrupt', by, s: ctx.kind === 'str' ? clamp(d.s | 0, 0, Math.min(X, by.cur.STR)) : 0 };
+  }
+  return { type: 'take' };
+}
+async function getDefense(ctx) {
+  const t = ctx.target;
+  let d;
+  if (G.ctrl[t.side] === 'human' && H.askDefense) d = await H.askDefense(ctx);
+  else if (G.ctrl[t.side] === 'remote' && H.remoteDec) d = await H.remoteDec('def', ctx);
+  else d = aiDefend(ctx);
+  return normDecision(ctx, d);
+}
+
+async function resolveHit(a, t, X, kind) {
+  if (t.key === 'cray') G.sides[1 - t.side].forEach(u => { if (u.bud === t) { u.bud = null; log(u.name + "'s bud withers: it can attack again"); } });
+  if (t.glob) {
+    t.glob = null; a.noDodge = 3;
+    log(a.name + "'s attack on " + t.name + ' is stopped by a glob of DATA: no dodging for 2 turns');
+    H.onChange();
+    await H.fx.strike(a, t, X, kind, 'negate', null);
+    await H.fx.float(t, 'STATIONARY', 'blk'); await H.fx.float(a, 'STOPPED', 'neg');
+    return { landed: false, dmg: 0 };
+  }
+  if (t.key !== 'mason') {
+    const mm = G.sides[t.side].find(u => u.key === 'mason' && u.alive && u.coll > 0 && u.rest === 0 && u !== t);
+    if (mm) {
+      mm.coll = 0; mm.rest = mm.restN; a.knock = true;
+      log(mm.name + ' steps in with Collateral: takes all ' + X + ' for ' + t.name + ', ' + a.name + ' rests 1 extra turn');
+      H.onChange();
+      await H.fx.float(mm, 'COLLATERAL', 'blk');
+      await H.fx.strike(a, mm, X, kind, 'body', null);
+      await dealDamage(mm, X, a, kind);
+      return { landed: true, dmg: X };
+    }
+  }
+  if (t.dc > 0) {
+    t.dc = 0;
+    const opp = G.sides[a.side][t.slot];
+    log(t.name + ' Depu-counter: the hit is reflected at ' + (opp && opp.alive ? opp.name : a.name));
+    H.onChange();
+    await H.fx.float(t, 'DEPU-COUNTER', 'blk');
+    if (opp && opp.alive && opp !== a) { await H.fx.strike(a, t, X, kind, 'negate', null); return await resolveHit(a, opp, X, kind); }
+    await H.fx.strike(a, t, X, kind, 'negate', null);
+    await dealDamage(a, X, t, 'counter');
+    return { landed: false, dmg: 0 };
+  }
+  if (t.dep > 0) {
+    t.dep = 0; a.knock = true; t.rest = Math.max(t.rest, t.restN);
+    log(t.name + ' Depulsion: ' + a.name + "'s attack is reverted and " + a.name + ' is sent back');
+    H.onChange();
+    await H.fx.strike(a, t, X, kind, 'negate', null);
+    await H.fx.float(t, 'DEPULSION', 'blk'); await H.fx.float(a, 'SENT BACK', 'neg');
+    return { landed: false, dmg: 0 };
+  }
+  if (t.manip && t.key === 'delilah') {
+    const j = partnerOf(t);
+    if (j && j.alive) {
+      t.manip = false; t.boost = Math.max(0, Math.min(3, t.max.STR + CFG.buffCap - t.cur.STR)); t.cur.STR += t.boost;
+      log(t.name + ' manipulates: the hit goes to ' + j.name + ' instead');
+      H.onChange();
+      await H.fx.float(t, 'MANIPULATOR', 'blk'); await H.fx.buff(t, '+3 STR');
+      return await resolveHit(a, j, X, kind);
+    }
+  }
+  if (t.small) {
+    X = Math.max(0, X - 1); log(t.name + ' is small: the attack loses 1 Strength');
+    if (X < 1) { H.onChange(); await H.fx.strike(a, t, 0, kind, 'negate', null); await H.fx.float(t, 'TOO SMALL', 'blk'); return { landed: false, dmg: 0 }; }
+  }
+  if (t.imp > 0 && t.alive) {
+    if (a.coat === t) {
+      a.coat = null; a.frzN = 3; log(a.name + ' attacks ' + t.name + ' a second time and is frozen in Hardened DATA for 3 turns');
+      await H.fx.float(a, 'FROZEN', 'neg');
+    } else if (!a.coat) { a.coat = t; log(a.name + ' is imprinted with ' + t.name + "'s Atomise"); await H.fx.coat(a, t.slot); }
+  }
+  const hardened = t.harden > 0 && t.alive; if (hardened) { t.harden = 0; log(t.name + ' is hardened: the hit cannot be stopped'); }
+  const exposed = t.rest > 0 || t.nap;
+  const ctx = {
+    attacker: a, target: t, X, kind, exposed,
+    protectors: (a.noInt || hardened) ? [] : protectorsOf(t),
+    canBlock: !exposed && !hardened && kind === 'str' && !a.sharpNow,
+    canDodge: !exposed && !hardened && t.chg < 1 && !(t.noDodge > 0) && t.cur.AGI >= X
+  };
+  const d = hardened ? { type: 'take' } : await getDefense(ctx);
+  let dmg = 0, byDmg = 0, counter = 0, by = null, res = 'hit';
+
+  if (d.type === 'block') {
+    let spent = d.s, dodged = false;
+    t.cur.STR -= spent;
+    log(t.name + (spent > 0 ? ' blocks with ' + spent + ' Strength' : ' takes it'));
+    // Clash: an exact match lets the attacker raise by 1, the defender answers, until someone stops.
+    let rz = 0;
+    while (CFG.clash && kind === 'str' && spent === X && X > 0 && a.alive) {
+      const extra = Math.ceil((X + 1) * CFG.attackCostFrac) - Math.ceil(X * CFG.attackCostFrac);
+      if (a.cur.STR < extra) break;
+      const cc = { attacker: a, target: t, X, extra, spent };
+      let raise;
+      if (G.ctrl[a.side] === 'human' && H.askClashAtk) raise = await H.askClashAtk(cc); else if (G.ctrl[a.side] === 'remote' && H.remoteDec) raise = await H.remoteDec('clashA', cc); else raise = aiClashAtk(cc);
+      if (!raise) break;
+      a.cur.STR -= extra; X += 1;
+      log(a.name + ' raises to ' + X); rz++; ACH.raise = Math.max(ACH.raise, rz);
+      H.onChange();
+      await H.fx.clash(a, t, X, 'raise');
+      const dc = { attacker: a, target: t, X, spent, canDodge: t.chg < 1 && !(t.noDodge > 0) && t.cur.AGI >= X, maxAdd: t.cur.STR };
+      let r;
+      if (G.ctrl[t.side] === 'human' && H.askClashDef) r = await H.askClashDef(dc); else if (G.ctrl[t.side] === 'remote' && H.remoteDec) r = await H.remoteDec('clashD', dc); else r = aiClashDef(dc);
+      if (r && r.type === 'dodge' && dc.canDodge) { t.cur.AGI -= X; dodged = true; log(t.name + ' dodges (' + X + ' Agility)'); break; }
+      const add = clamp(((r && r.s) | 0), 0, t.cur.STR);
+      t.cur.STR -= add; spent += add;
+      log(t.name + (add > 0 ? ' matches with +' + add : ' holds back'));
+      H.onChange();
+      await H.fx.clash(t, a, X, 'answer');
+    }
+    if (dodged) res = 'dodge';
+    else {
+      dmg = Math.max(0, X - spent);
+      counter = Math.max(0, spent - X);
+      res = dmg === 0 ? 'block' : (spent > 0 ? 'partial' : 'hit');
+    }
+  } else if (d.type === 'dodge') {
+    t.cur.AGI -= X;
+    res = 'dodge';
+    log(t.name + ' dodges (' + X + ' Agility)');
+  } else if (d.type === 'interrupt') {
+    by = d.by;
+    by.cur.BRN -= 1;
+    if (by.makeup) {
+      by.makeup = false; by.rest = 2; res = 'negate';
+      log(by.name + ' steps in. Makeup negates everything.');
+    } else if (kind === 'str') {
+      by.cur.STR -= d.s; dmg = X - d.s; by.rest = by.restN;
+      res = dmg === 0 ? 'intercept' : 'intercept-part';
+      log(by.name + ' interrupts with ' + d.s + ' Strength');
+    } else {
+      byDmg = X; by.rest = by.restN; res = 'body';
+      log(by.name + ' body-blocks the hit');
+    }
+  } else {
+    dmg = X; res = 'hit';
+  }
+  H.onChange();
+  await H.fx.strike(a, t, X, kind, res, by);
+  if (res === 'block') ACH.blk[t.side]++;
+  if (dmg > 0 && (res === 'hit' || res === 'partial')) { if (ACH.ch && ACH.ch.s === a.side && ACH.ch.t === t.uid) ACH.ch.n++; else ACH.ch = { s: a.side, t: t.uid, n: 1 }; ACH.chain[a.side] = Math.max(ACH.chain[a.side], ACH.ch.n); } else ACH.ch = null;
+  if ((res === 'block' || res === 'dodge') && X >= 4) credit(t.side, 1, 'Hit denied.');
+
+  if (dmg > 0) await dealDamage(t, dmg, a, kind);
+  if (dmg > 0 && t.alive && t.chg > 0) { t.chg = 0; log(t.name + "'s charge is broken"); await H.fx.float(t, 'CHARGE BROKEN', 'neg'); }
+  if (byDmg > 0) await dealDamage(by, byDmg, a, kind);
+  if (hardened && dmg > 0 && t.alive && a.alive) { log(t.name + ' reflects ' + dmg + ' back'); await H.fx.float(t, 'HARDEN', 'blk'); await dealDamage(a, dmg, t, 'counter'); }
+
+  if (counter > 0 && a.alive && a.batonNow && t.alive) {
+    log(a.name + "'s baton turns the counter back: " + t.name + ' takes ' + counter + ' more');
+    await H.fx.counter(a, t, counter); await H.fx.float(a, 'BATON', 'blk');
+    await dealDamage(t, counter, a, 'counter');
+  } else if (counter > 0 && a.alive) {
+    await H.fx.counter(t, a, counter);
+    let dodged = false;
+    if (a.cur.AGI >= counter && !(a.noDodge > 0)) {
+      if (G.ctrl[a.side] === 'human' && H.askCounter) dodged = await H.askCounter({ attacker: a, target: t, counter });
+      else if (G.ctrl[a.side] === 'remote' && H.remoteDec) dodged = await H.remoteDec('counter', { attacker: a, target: t, counter });
+      else dodged = aiCounterDodge(a, counter);
+    }
+    if (dodged && a.cur.AGI >= counter && !(a.noDodge > 0)) {
+      a.cur.AGI -= counter;
+      log(a.name + ' dodges the counter');
+      H.onChange();
+      await H.fx.dodge(a);
+    } else {
+      log(t.name + ' counters for ' + counter);
+      await dealDamage(a, counter, t, 'counter');
+    }
+  }
+  if (t.key === 'julian' && a.alive) {
+    const d = G.sides[t.side].find(u => u.key === 'delilah' && u.alive && u.hm > 0 && u.rest === 0);
+    if (d) {
+      d.hm = 0;
+      const Xc = Math.min(d.cur.STR, X);
+      log(d.name + " cries: He's Mine!");
+      await H.fx.float(d, "HE'S MINE", 'blk');
+      if (Xc >= 1) {
+        d.cur.STR -= Math.ceil(Xc * CFG.attackCostFrac); H.onChange();
+        await H.fx.declare(d, a, Xc, 'str');
+        await resolveHit(d, a, Xc, 'str');
+      } else log(d.name + ' has no Strength to strike with.');
+    }
+  }
+  return { landed: dmg > 0, dmg };
+}
+
+async function doRetort(t, a, cap) {
+  const ctx = { attacker: a, target: t, cap };
+  let d;
+  if (G.ctrl[t.side] === 'human' && H.askRetort) d = await H.askRetort(ctx);
+  else if (G.ctrl[t.side] === 'remote' && H.remoteDec) d = await H.remoteDec('ret', ctx);
+  else d = aiRetort(ctx);
+  const n = clamp((d && d.s) | 0, 0, Math.min(cap, t.cur.AGI));
+  if (n < 1) return;
+  t.cur.AGI -= n; log(t.name + ' hits back for ' + n + ' (spent ' + n + ' Agility)'); H.onChange();
+  await H.fx.float(t, 'RETORT', 'blk');
+  await H.fx.strike(t, a, n, 'str', 'take', null);
+  await dealDamage(a, n, t, 'retort');
+}
+function aiRetort(c) {
+  if (TUTOR) return { s: 0 };
+  const L = AILS[c.target.side], { attacker: a, target: t, cap } = c;
+  if (L <= 1) return { s: 0 };
+  if (L === 2) return { s: R() < 0.5 ? cap : 0 };
+  const spare = t.cur.AGI - cap;
+  if (a.hp <= cap || (a.hp <= cap * 2 && L >= 3) || (L >= 4 && spare >= 2) || (L === 3 && spare >= 3)) return { s: cap };
+  return { s: 0 };
+}
+/* ---------- actions ---------- */
+async function doAttack(a, t, Xreq, opts) {
+  opts = opts || {};
+  if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
+  if (unst(a) || a.bud) throw new Error('cannot attack');
+  if (blk(t.slot)) throw new Error('slot blocked');
+  const pool = opts.pool || null;
+  let X, kind, restN = a.restN;
+  const prepAmp = a.ampd, prepXfer = a.xferd; a.ampd = false; a.xferd = false;
+  const bash = a.bash, ua = a.ua, succ = a.succ; a.bash = false; a.ua = false; a.succ = false; a.taught = false;
+  const sharp = a.sharp, ds = a.ds, stat = a.stat, lost = a.lost; a.sharp = false; a.ds = false; a.stat = false; a.lost = false; a.sharpNow = sharp;
+  const baton = a.baton, blend = a.blend, rk = a.rookie; a.baton = false; a.blend = false; a.rookie = false; a.batonNow = baton;
+  if (a.fp && !pool) {
+    X = CFG.fpDamage; kind = 'data'; a.fp = false; restN = 2;
+  } else {
+    const mx = attackMax(a, t, pool);
+    if (mx < 1) throw new Error('cannot attack');
+    X = clamp(Xreq | 0, 1, mx);
+    kind = 'str';
+    const cost = Math.ceil(X * CFG.attackCostFrac);
+    const src = pool || a;
+    if (cost > src.cur.STR) throw new Error('not enough Strength');
+    src.cur.STR -= cost;
+    if (capAt(t.slot)) {
+      G.rail[t.slot] = null;
+      log('Capacitor on slot ' + (t.slot + 1) + ' discharges.');
+      await H.fx.rail(t.slot, 'fire');
+    }
+  }
+  if (ua || rk) restN += 1;
+  if (a.adr && kind === 'str') { X += 1; log(a.name + ' is running on adrenaline: +1 Strength on the hit'); }
+  a.noInt = succ;
+  await trigAtom(a, t.slot);
+  if (opts.t2 && opts.t2 !== t && opts.t2.alive) await trigAtom(a, opts.t2.slot);
+  log(a.name + ' attacks ' + t.name + ' for ' + X + (kind === 'data' ? ' (DATA)' : '') + (pool ? ' (with ' + pool.name + "'s Strength)" : ''));
+  H.onChange();
+  await H.fx.declare(a, t, X, kind);
+  const r1 = await resolveHit(a, t, X, kind);
+  const bashIt = async (tt, r) => { if (bash && r && r.landed && tt.alive && tt.rest < 1) { tt.rest = 1; log(tt.name + ' is bashed: resting 1 turn'); await H.fx.float(tt, 'BASHED', 'neg'); } };
+  await bashIt(t, r1);
+  if (kind === 'str' && r1 && r1.landed && r1.dmg >= X) {
+    if (prepAmp && X >= 4) credit(a.side, 2, 'Devastating attack landed.');
+    else if (prepXfer && X >= 3) credit(a.side, 2, 'Devastating attack landed.');
+    else if (X >= 4) credit(a.side, 1, 'Attack landed at optimal impact.');
+  }
+  if (ds && t.alive && a.alive) {
+    const X2 = Math.ceil(X / 2);
+    log(a.name + ' smacks ' + t.name + ' again for ' + X2); H.onChange(); await H.fx.declare(a, t, X2, kind);
+    const r2 = await resolveHit(a, t, X2, kind); await bashIt(t, r2);
+  }
+  const t2 = opts.t2;
+  if (t2 && t2 !== t && t2.alive && t2.side !== a.side && a.alive) {
+    if (r1 && r1.landed) {
+      log(a.name + ' follows up on ' + t2.name + ' with the same ' + X);
+      H.onChange(); await H.fx.declare(a, t2, X, kind);
+      const r2 = await resolveHit(a, t2, X, kind); await bashIt(t2, r2);
+    } else { log('Beatdown fizzles: the first hit did not land'); await H.fx.float(a, 'FIZZLED', 'neg'); }
+  }
+  if (r1 && r1.dmg >= 2 && t.alive && a.alive && t.cur.AGI >= 1 && !t.rest) { const cap = Math.min(t.cur.AGI, Math.floor(r1.dmg / 2)); if (cap >= 1) await doRetort(t, a, cap); }
+  if (blend && r1 && r1.landed && t.alive) { t.shard = { n: 6, src: a }; log(a.name + ' leaves red shards circling ' + t.name); await H.fx.debuff(t, 'RED SHARDS'); }
+  if (r1 && r1.landed && t.alive && a.alive) {
+    for (const w of G.sides[a.side]) {
+      if (!(w.alive && w !== a && w.wing && w.rest === 0 && !w.nap && !unst(w) && !w.bud && !(w.chg > 0)) || !t.alive || blk(t.slot)) continue;
+      w.wing = false; const Xw = Math.max(1, w.cur.STR); w.cur.STR = 0;
+      log(w.name + ' charges in behind ' + a.name + ' for ' + Xw); H.onChange();
+      await H.fx.float(w, 'WINGWOMAN', 'blk'); await trigAtom(w, t.slot);
+      await H.fx.declare(w, t, Xw, 'str'); await resolveHit(w, t, Xw, 'str');
+      w.rest = settleRest(w, w.restN) + 1; H.onChange(); /* +1: the end-of-turn tick would otherwise eat it */
+    }
+  }
+  a.noInt = false; a.sharpNow = false; a.batonNow = false;
+  if (stat && t.alive) { t.bud = a; log(a.name + ' plants a bud on ' + t.name + ': it cannot attack until ' + a.name + ' is attacked'); await H.fx.debuff(t, 'STATIONARY BUD'); }
+  if (ua) {
+    G.rail[t.slot] = { type: 'unstable', owner: a.side, ttl: CFG.unstableTTL };
+    log('Rail slot ' + (t.slot + 1) + ' is unstable: nobody in it can attack.');
+    await H.fx.rail(t.slot, 'unstable');
+  }
+  if (lost && a.alive && !G.rail[t.slot]) { G.rail[t.slot] = { type: 'lost', owner: a.side, ttl: 2, who: a }; log(a.name + ' stays on slot ' + (t.slot + 1) + ': it is blocked for a turn'); await H.fx.rail(t.slot, 'lost'); }
+  a.rest = settleRest(a, restN);
+  H.onChange();
+}
+async function doProj(a, t, X, chain) {
+  if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
+  if (unst(a) || a.bud) throw new Error('cannot attack');
+  if (blk(t.slot)) throw new Error('slot blocked');
+  X = clamp(X | 0, 1, a.cur.DATA);
+  if (X < 1) throw new Error('no DATA');
+  a.cur.DATA -= X;
+  await trigAtom(a, t.slot);
+  await H.fx.dataBurst(a, 1);
+  log(a.name + (chain ? ' stings ' : ' fires Projection at ') + t.name + ' for ' + X);
+  H.onChange();
+  await H.fx.declare(a, t, X, 'data', true);
+  await resolveHit(a, t, X, 'data');
+  if (chain) {
+    for (const f of enemies(a.side)) { if (f !== t) { log('The sting chains to ' + f.name); await dealDamage(f, 1, a, 'data'); } }
+  }
+  a.rest = settleRest(a, a.restN);
+  H.onChange();
+}
+async function doAbility(a, act) {
+  const id = act.id;
+  const st = abilityState(a, id);
+  if (!st.ok) throw new Error('ability not usable: ' + id + ' ' + st.reason);
+  if (st.cost && a.cur.DATA < st.cost) { const sh = Math.min(st.cost - a.cur.DATA, Math.max(0, a.cur.BRN)); if (sh > 0) { a.cur.BRN -= sh; a.cur.DATA += sh; log(a.name + ' thinks it through: ' + sh + ' Brains pays for the DATA'); H.onChange(); await H.fx.buff(a, '-' + sh + ' B'); } }
+  switch (id) {
+    case 'amp':
+      a.cur.DATA -= 2; a.cur.STR = Math.min(a.max.STR + CFG.buffCap, a.cur.STR + 1);
+      a.ampd = true; log(a.name + ' amplifies: +1 Strength');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, '+1 STR');
+      break;
+    case 'brim': {
+      a.cur.DATA -= 8;
+      log(a.name + ' releases Brim');
+      H.onChange();
+      await H.fx.dataBurst(a, 3);
+      await H.fx.brim(a);
+      const foes = enemies(a.side);
+      const opts = foes.map(f => ({ unit: f, canTank: f.rest === 0 && f.cur.DATA >= CFG.brimTank }));
+      let chosen;
+      if (G.ctrl[1 - a.side] === 'human' && H.askBrim && opts.some(o => o.canTank)) chosen = await H.askBrim(opts, a);
+      else if (G.ctrl[1 - a.side] === 'remote' && H.remoteDec && opts.some(o => o.canTank)) chosen = await H.remoteDec('brim', { opts, a });
+      else chosen = opts.filter(o => o.canTank && aiBrimTank(o.unit)).map(o => o.unit);
+      for (const f of foes) {
+        if (chosen.includes(f) && f.rest === 0 && f.cur.DATA >= CFG.brimTank) {
+          f.cur.DATA -= CFG.brimTank;
+          log(f.name + ' tanks Brim with DATA');
+          H.onChange();
+          await H.fx.dataBurst(f, 0);
+          await H.fx.float(f, 'TANKED', 'blk');
+        } else {
+          await dealDamage(f, CFG.brimDamage, a, 'data');
+        }
+      }
+      a.rest = a.restN;
+      break;
+    }
+    case 'leer': {
+      const t = act.target; if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
+      a.cur.DATA -= 2; addDebuff(a, t, { BRN: 1, AGI: 1 });
+      log(a.name + ' leers at ' + t.name + ': -1 Brains, -1 Agility');
+      await H.fx.dataBurst(a, 1); await H.fx.debuff(t, 'LEER');
+      break;
+    }
+    case 'qm': {
+      const t = act.target; if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
+      a.cur.DATA -= 2; addDebuff(a, t, { BRN: 2 });
+      log(a.name + ' runs Quick Maths on ' + t.name + ': -2 Brains');
+      await H.fx.dataBurst(a, 1); await H.fx.debuff(t, 'QUICK MATHS');
+      break;
+    }
+    case 'cap': {
+      const slot = act.slot | 0; if (slot < 0 || slot > 3) throw new Error('bad slot');
+      a.cur.DATA -= 2; G.rail[slot] = { type: 'cap', owner: a.side, ttl: CFG.capTTL };
+      log(a.name + ' charges the rail at slot ' + (slot + 1));
+      await H.fx.dataBurst(a, 1); await H.fx.rail(slot, 'set');
+      break;
+    }
+    case 'makeup':
+      a.cur.DATA -= 3; a.makeup = true;
+      log(a.name + ' puts on Makeup');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'MAKEUP READY');
+      break;
+    case 'fp':
+      a.cur.DATA -= 3; a.fp = true;
+      log(a.name + ' lines up Finally Perfect');
+      await H.fx.dataBurst(a, 2); await H.fx.buff(a, 'PERFECT READY');
+      break;
+    case 'proj':
+      await doProj(a, act.target, act.X);
+      break;
+    case 'vesp':
+      await doProj(a, act.target, act.X, true);
+      break;
+    case 'atom': {
+      const slot = act.slot | 0; if (slot < 0 || slot > 3 || G.atom[a.side][slot]) throw new Error('bad slot');
+      a.cur.DATA -= 4; G.atom[a.side][slot] = a; H.onChange();
+      if (G.ctrl[1 - a.side] !== 'human') { log(a.name + ' coats rail slot ' + (slot + 1) + ' with Atomise'); await H.fx.dataBurst(a, 1); await H.fx.rail(slot, 'set'); }
+      break;
+    }
+    case 'disch': {
+      const t = act.target; if (!t || !t.alive || !t.coat || t.coat.side !== a.side) throw new Error('bad target');
+      a.cur.DATA -= 1; t.coat = null; log(a.name + ' discharges: ' + t.name + ' explodes');
+      H.onChange(); await H.fx.dataBurst(a, 2); await H.fx.discharge(t);
+      await dealDamage(t, CFG.atomDamage, a, 'data');
+      a.rest = settleRest(a, a.restN);
+      break;
+    }
+    case 'jump': {
+      a.cur.DATA -= 4; log(a.name + ' goes for the Jumpscare');
+      a.cur.STR = 0; a.cur.AGI = 0; a.cur.BRN = 0; a.cur.DATA = 0; a.rest = a.restN;
+      const foes = enemies(a.side); foes.forEach(f => { f.rest = Math.max(f.rest, f.restN); if (f.chg) f.chg = 0; });
+      H.onChange(); await H.fx.dataBurst(a, 3); await H.fx.jumpscare(a, foes);
+      log('Every enemy agent must rest.');
+      break;
+    }
+    case 'lost': a.cur.DATA -= 2; a.lost = true; log(a.name + ' readies Lost'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'LOST READY'); break;
+    case 'stat': a.cur.DATA -= 3; a.stat = true; log(a.name + ' readies Stationary'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'STATIONARY READY'); break;
+    case 'catnap': if (a.wasNap) { log(a.name + ' stays awake'); await H.fx.buff(a, 'AWAKE'); } else { a.nap = true; log(a.name + ' curls up for a Catnap'); await H.fx.buff(a, 'CATNAP zzZ'); } break;
+    case 'sharp': a.cur.DATA -= 2; a.cur.STR = Math.min(a.max.STR + CFG.buffCap, a.cur.STR + 1); a.sharp = true; log(a.name + ' sharpens her claws: +1 Strength'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'CLAWS +1 STR'); break;
+    case 'ds': a.cur.DATA -= 3; a.ds = true; log(a.name + ' readies Double-Smack'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'DOUBLE-SMACK READY'); break;
+    case 'dep':
+      a.cur.DATA -= 3; a.dep = 2; log(a.name + ' braces: Depulsion');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'DEPULSION');
+      break;
+    case 'bd':
+      a.cur.DATA -= 3; a.bd = true; log(a.name + ' readies Beatdown');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'BEATDOWN READY');
+      break;
+    case 'bash':
+      a.cur.DATA -= 4; a.bash = true; log(a.name + ' readies Bash');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'BASH READY');
+      break;
+    case 'ua':
+      a.cur.DATA -= 5; a.cur.STR = Math.min(a.max.STR + CFG.buffCap, a.cur.STR + 3); a.ua = true;
+      log(a.name + ' goes Unstable: +3 Strength');
+      await H.fx.dataBurst(a, 2); await H.fx.buff(a, '+3 STR UNSTABLE');
+      break;
+    case 'harden':
+      a.cur.DATA -= 7; a.harden = 2; log(a.name + ' hardens');
+      await H.fx.dataBurst(a, 2); await H.fx.buff(a, 'HARDEN');
+      break;
+    case 'tact': {
+      const n = neighbourOf(a); a.cur.DATA -= 2;
+      n.cur.BRN = Math.min(n.max.BRN + CFG.buffCap, n.cur.BRN + 2);
+      log(a.name + ' directs ' + n.name + ': +2 Brains');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(n, '+2 BRN');
+      break;
+    }
+    case 'succ':
+      a.cur.DATA -= 3; a.succ = true; log(a.name + ' readies Successor');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'UNINTERRUPTIBLE');
+      break;
+    case 'teacher': {
+      const t = act.target; if (!t || !t.alive || t.side !== a.side || t === a) throw new Error('bad ally');
+      a.cur.DATA -= 3; t.cur.STR = Math.min(t.max.STR + CFG.buffCap, t.cur.STR + 1); t.succ = true; t.taught = true;
+      log(a.name + ' teaches ' + t.name + ': +1 Strength, next attack cannot be interrupted');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(t, 'TAUGHT +1 STR');
+      break;
+    }
+    case 'rarium': {
+      const t = act.target; if (!t || !t.alive || t.side === a.side || t.rest > 0 || t.restN < 1) throw new Error('bad target');
+      a.cur.DATA -= 4; t.rest = Math.max(t.rest, t.restN);
+      if (t.chg > 0) { t.chg = 0; log(t.name + "'s charge is broken"); }
+      log(a.name + ' uses Rarium: ' + t.name + ' must rest ' + t.restN);
+      await H.fx.dataBurst(a, 2); await H.fx.debuff(t, 'RARIUM');
+      break;
+    }
+    case 'ook': {
+      a.cur.DATA -= 3;
+      if (a.chg < 2) {
+        a.chg++; log(a.name + (a.chg === 1 ? ' gathers DATA (1/3)' : ' swirls DATA (2/3)'));
+        await H.fx.dataBurst(a, a.chg); await H.fx.charge(a, a.chg); await H.fx.buff(a, a.chg === 1 ? 'GATHERING 1/3' : 'SWIRLING 2/3');
+      } else {
+        const t = act.target; if (!t || !t.alive || t.side === a.side) { a.cur.DATA += 3; throw new Error('bad target'); }
+        a.chg = 0; log(a.name + ' releases One-of-a-kind on ' + t.name);
+        H.onChange();
+        await H.fx.dataBurst(a, 3); await H.fx.charge(a, 3);
+        await H.fx.declare(a, t, CFG.ookDamage, 'data');
+        await resolveHit(a, t, CFG.ookDamage, 'data');
+        a.rest = settleRest(a, a.restN);
+      }
+      break;
+    }
+    case 'enki': {
+      const X = clamp(act.X | 0, 1, Math.min(a.cur.DATA, a.maxhp - a.hp)); if (X < 1) throw new Error('nothing to heal');
+      a.cur.DATA -= X; a.hp += X; a.enki = 2;
+      log(a.name + ' uses Enki: heals ' + X);
+      H.onChange();
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, '+' + X + ' HP');
+      break;
+    }
+    case 'lamb': {
+      const p = partnerOf(a); a.cur.DATA -= 1; p.cur.STR = Math.min(p.max.STR + CFG.buffCap, p.cur.STR + 1);
+      log(a.name + ' gives ' + p.name + ' +1 Strength');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(p, '+1 STR');
+      break;
+    }
+    case 'panic': {
+      a.cur.DATA -= 2; const foes = enemies(a.side); foes.forEach(f => addDebuff(a, f, { AGI: 1 }));
+      log(a.name + ' panics the field: enemies lose 1 Agility');
+      await H.fx.dataBurst(a, 2);
+      for (const f of foes) await H.fx.debuff(f, 'PANIC');
+      break;
+    }
+    case 'manip':
+      a.cur.DATA -= 4; a.manip = true; log(a.name + ' readies Manipulator');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'MANIPULATOR READY');
+      break;
+    case 'hm':
+      a.cur.DATA -= 5; a.hm = CFG.hmTTL;
+      if (G.ctrl[1 - a.side] === 'human') { H.onChange(); } else { log(a.name + " sets a trap: He's Mine"); await H.fx.dataBurst(a, 1); await H.fx.buff(a, "HE'S MINE SET"); }
+      break;
+    case 'dcount':
+      a.cur.DATA -= 5; a.dc = 2; log(a.name + ' braces: Depu-counter');
+      await H.fx.dataBurst(a, 2); await H.fx.buff(a, 'DEPU-COUNTER');
+      break;
+    case 'baton':
+      a.cur.DATA -= 3; a.baton = true;
+      if (G.ctrl[1 - a.side] === 'human') H.onChange(); else { log(a.name + ' readies a baton'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'BATON READY'); }
+      break;
+    case 'impr':
+      a.cur.DATA -= 2; a.imp = 2; log(a.name + ' sets Impression');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'IMPRESSION');
+      break;
+    case 'blend':
+      a.cur.DATA -= 2; a.cur.STR = Math.min(a.max.STR + CFG.buffCap, a.cur.STR + 1); a.blend = true;
+      log(a.name + ' readies Blender: +1 Strength');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'BLENDER +1 STR');
+      break;
+    case 'fglob': {
+      const t = act.target; if (!t || !t.alive || t.side !== a.side || t.glob) throw new Error('bad ally');
+      a.cur.DATA -= 4; t.glob = { by: a };
+      if (G.ctrl[1 - a.side] === 'human') H.onChange(); else { log(a.name + ' hides a glob of DATA on ' + t.name); await H.fx.dataBurst(a, 1); await H.fx.buff(t, 'GLOB'); }
+      break;
+    }
+    case 'wing':
+      a.cur.DATA -= 3; a.wing = true; log(a.name + ' readies Wingwoman');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'WINGWOMAN');
+      break;
+    case 'rookie': {
+      const nb = adjacentOf(a).sort((p, q) => q.cur.STR - p.cur.STR)[0];
+      a.cur.DATA -= 1; a.cur.STR = Math.max(a.cur.STR, Math.min(nb.cur.STR, a.max.STR + CFG.buffCap)); a.rookie = true;
+      log(a.name + ' copies ' + nb.name + "'s Strength: " + a.cur.STR);
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'ROOKIE ' + a.cur.STR + ' STR');
+      break;
+    }
+    case 'coll':
+      a.cur.DATA -= 1; a.coll = 4; log(a.name + ' readies Collateral');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'COLLATERAL');
+      break;
+    case 'bb': {
+      const ally = act.ally, t = act.target;
+      if (!ally || !ally.alive || ally === a || ally.side !== a.side || ally.cur.STR < 1) throw new Error('bad ally');
+      if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
+      a.cur.DATA -= 6; a.cur.BRN = Math.min(a.max.BRN + CFG.buffCap, a.cur.BRN + 1);
+      log(a.name + ' borrows ' + ally.name + "'s Strength");
+      await H.fx.dataBurst(a, 2); await H.fx.buff(a, '+1 BRN'); await H.fx.buff(ally, 'LENT ' + ally.cur.STR + ' STR');
+      await doAttack(a, t, act.X, { pool: ally });
+      break;
+    }
+  }
+  H.onChange();
+}
+/* Brains = coaching. 1 Brains + 1 of the stat buys the ally 1 + floor(BRN/4) of it, so high-Brains agents are the team's feeders. */
+const transferAmt = a => 1 + Math.floor(Math.max(0, a.cur.BRN) / 4);
+async function doTransfer(a, to, k) {
+  if (!to || !to.alive || to.side !== a.side || to === a) throw new Error('bad ally');
+  if (!transferStatOk(a, k)) throw new Error('cannot give ' + k);
+  if (to.cur[k] >= to.max[k] + CFG.buffCap) throw new Error('ally at cap');
+  const n = Math.min(transferAmt(a), to.max[k] + CFG.buffCap - to.cur[k]);
+  a.cur.BRN -= 1; a.cur[k] -= 1; to.cur[k] += n; if (k === 'STR') to.xferd = true;
+  if (n > 1) credit(a.side, 1, 'Aiding co-agent.');
+  log(a.name + ' transfers +' + n + ' ' + SNAME[k] + ' to ' + to.name);
+  H.onChange();
+  await H.fx.buff(a, '-1 ' + SLETTER[k]);
+  await H.fx.buff(to, '+' + n + ' ' + SLETTER[k]);
+}
+async function doRecover(a, k) {
+  if (k === 'AGI' || a.cur[k] >= a.max[k] || (a.noRegen && a.noRegen[k]) || a.cur.AGI < 1) throw new Error('cannot recover ' + k);
+  a.cur.AGI -= 1; a.cur[k] += 1;
+  log(a.name + ' spends 1 Agility to regain 1 ' + SNAME[k]);
+  H.onChange();
+  await H.fx.buff(a, '-1 A');
+  await H.fx.buff(a, '+1 ' + SLETTER[k]);
+}
+async function doCure(a, t) {
+  if (!t || !t.alive || t.side !== a.side || !(t.mark || t.noDodge > 0) || a.cur.BRN < 2) throw new Error('cannot cure');
+  a.cur.BRN -= 2; a.rest = Math.max(a.rest, 1); if (t.mark) ACH.cure[a.side]++;
+  const what = []; if (t.mark) { t.mark = false; what.push('mark'); } if (t.noDodge > 0) { t.noDodge = 0; what.push('no-dodge'); }
+  log(a.name + ' cures ' + t.name + ' of ' + what.join(' and '));
+  H.onChange();
+  await H.fx.buff(a, '-2 B'); await H.fx.float(t, 'CURED', 'blk');
+}
+async function doMark(a, t) {
+  if (!t || !t.alive || t.side === a.side || t.mark || a.cur.BRN < 1) throw new Error('cannot mark');
+  a.cur.BRN -= 1; t.mark = { by: a.uid }; a.rest = Math.max(a.rest, 1);
+  log(a.name + ' marks ' + t.name + ': the next hit from ' + a.name + ' lands +1');
+  H.onChange();
+  await H.fx.buff(a, '-1 B'); await H.fx.float(t, 'MARKED', 'neg');
+}
+async function doAnalyse(a, t, X) {
+  X = X | 0;
+  if (!a || !a.alive || a.rest > 0 || !t || !t.alive || t.side === a.side || X < 1 || a.cur.BRN < X) throw new Error('cannot analyse');
+  a.cur.BRN -= X; log(a.name + ' bids ' + X + ' Brains to analyse ' + t.name); H.onChange();
+  await H.fx.buff(a, '-' + X + ' B');
+  let r = 0;
+  if (t.cur.BRN >= X) {
+    const ctx = { attacker: a, target: t, bid: X };
+    let d;
+    if (G.ctrl[t.side] === 'human' && H.askResist) d = await H.askResist(ctx);
+    else if (G.ctrl[t.side] === 'remote' && H.remoteDec) d = await H.remoteDec('res', ctx);
+    else d = aiResist(ctx);
+    r = d && d.block ? 1 : 0;
+  }
+  if (r) { t.cur.BRN -= X; log(t.name + ' spends ' + X + ' Brains and blocks the analysis'); H.onChange(); await H.fx.float(t, 'BLOCKED', 'blk'); return false; }
+  if (!G.seen[a.side].includes(t.uid)) G.seen[a.side].push(t.uid);
+  if (!ACH.ana[a.side].includes(t.uid)) ACH.ana[a.side].push(t.uid);
+  log(a.name + ' reads ' + t.name); H.onChange(); await H.fx.float(t, 'ANALYSED', 'neg');
+  return true;
+}
+function aiResist(c) {
+  if (TUTOR) { const b = TUTOR === 2 && TUT2_BLOCK; if (b) TUT2_BLOCK = false; return { block: b }; }
+  const L = AILS[c.target.side]; if (L <= 1) return { block: false };
+  return { block: c.target.cur.BRN >= c.bid && R() < (L >= 3 ? 0.7 : 0.4) };
+}
+
+async function executeAction(act) {
+  if (G.over) return;
+  const side = G.turn;
+  if (act.type === 'pass') {
+    if (act.skip) { for (const u of G.sides[side]) if (u.alive && u.cur.BRN < u.max.BRN) { u.cur.BRN += 1; log(u.name + ' refocuses: +1 Brains'); H.onChange(); await H.fx.buff(u, '+1 B'); } }
+    if (act.skip) { const me = G.sides[side].filter(u => u.alive), en = G.sides[1 - side].some(u => u.alive && u.rest === 0 && u.cur.STR > 0);
+      if (en && me.length && me.every(u => u.rest === 0 && !u.nap && ['STR', 'AGI', 'BRN', 'DATA'].every(k => u.cur[k] >= u.max[k]))) credit(side, 2, 'Recognition.'); }
+    log(act.skip ? G.names[side] + (G.names[side] === 'You' ? ' skip' : ' skips') + ' the turn.' : G.names[side] + ': no agent ready, turn passes.');
+    await finishTurn(side, null);
+    return;
+  }
+  if (act.type === 'wake' || act.type === 'move') {
+    const w = act.agent;
+    if (!w || !w.alive || w.side !== side) throw new Error('illegal pick');
+    expireDebuffsOn(w); regen(w);
+    if (act.type === 'wake') {
+      if (w.rest < 1 || w.frz || w.nap || w.cur.AGI < w.rest) throw new Error('cannot wake');
+      const c = w.rest; w.cur.AGI -= c; w.rest = 0; log(w.name + ' is woken for ' + c + ' Agility'); H.onChange();
+      await H.fx.pick(w); await H.fx.float(w, 'AWAKE', 'blk');
+    } else {
+      const dead = G.sides[side].find(u => !u.alive && u.slot === act.to), c = dead ? Math.abs(dead.slot - w.slot) : 99;
+      if (w.rest > 0 || w.nap || !dead || w.cur.AGI < c) throw new Error('cannot move');
+      w.cur.AGI -= c; const from = w.slot, i = G.sides[side].indexOf(w), j = G.sides[side].indexOf(dead);
+      G.sides[side][i] = dead; G.sides[side][j] = w; dead.slot = from; w.slot = act.to;
+      log(w.name + ' moves to slot ' + (act.to + 1) + ' for ' + c + ' Agility'); H.onChange();
+      await H.fx.pick(w); if (H.fx.moved) await H.fx.moved(w, dead, from);
+    }
+    await finishTurn(side, w);
+    return;
+  }
+  if (act.type === 'analyse') {
+    const w = act.agent; if (!w || !w.alive || w.side !== side) throw new Error('illegal pick');
+    await doAnalyse(w, act.target, act.X || 1);
+    return;
+  }
+  const a = act.agent;
+  if (!a || !a.alive || a.side !== side || a.rest > 0) throw new Error('illegal pick');
+  expireDebuffsOn(a);
+  if (!a.adr && G.sides[side].length > 1 && alive(side).length === 1) { a.adr = true; log(a.name + ' is the last one standing: adrenaline, every attack hits +1'); H.onChange(); await H.fx.float(a, 'ADRENALINE', 'blk'); }
+  regen(a);
+  { const pp = partnerOf(a); if (pp && pp.alive) regen(pp); }
+  a.boost = 0;
+  if (a.shard && a.shard.n > 0) {
+    const sh = a.shard; sh.n--; if (sh.n <= 0) a.shard = null;
+    log('A red shard pricks ' + a.name + ' (' + sh.n + ' left)');
+    await H.fx.prick(a, sh.src);
+    await dealDamage(a, 1, sh.src, 'shard');
+    if (sh.src && sh.src.alive) { sh.src.cur.DATA -= 1; H.onChange(); await H.fx.float(sh.src, '-1 DATA', 'neg'); }
+    if (!a.alive) { await finishTurn(side, a); return; }
+  }
+  a.wasNap = a.nap; if (a.nap) { a.nap = false; log(a.name + ' wakes up'); }
+  H.onChange();
+  await H.fx.pick(a);
+  if (a.bd && act.type !== 'attack') { a.bd = false; log('Beatdown wasted.'); }
+  if (a.ds && act.type !== 'attack') { a.ds = false; log('Double-Smack wasted.'); }
+  switch (act.type) {
+    case 'attack': { const bd = a.bd; a.bd = false; await doAttack(a, act.target, act.X, { t2: bd ? act.target2 : null }); break; }
+    case 'ability': await doAbility(a, act); break;
+    case 'transfer': await doTransfer(a, act.to, act.stat); a.rest = Math.max(a.rest, 1); H.onChange(); break; /* the giver rests 1: the Brains cost alone is refunded by the next pick */
+    case 'recover': await doRecover(a, act.stat); break;
+    case 'mark': await doMark(a, act.target); break;
+    case 'cure': await doCure(a, act.target); break;
+    default: throw new Error('unknown action ' + act.type);
+  }
+  if (a.enki > 0 && !(act.type === 'ability' && act.id === 'enki')) a.enki--;
+  await finishTurn(side, a);
+}
+
+async function finishTurn(side, actor) {
+  G.seen[side] = [];
+  for (const d of [...G.debuffs]) {
+    if (!d.target.alive) { G.debuffs = G.debuffs.filter(x => x !== d); continue; }
+    if (d.src === actor) d.idle = 0; else d.idle++;
+    if (d.idle >= CFG.debuffIdle) { log('Debuff on ' + d.target.name + ' wears off.'); restoreDebuff(d); }
+  }
+  for (let i = 0; i < 4; i++) {
+    const r = G.rail[i];
+    if (r) { r.ttl--; if (r.ttl <= 0) { G.rail[i] = null; log((r.type === 'unstable' ? 'Unstable slot ' : r.type === 'lost' ? 'Blocked slot ' : 'Capacitor on slot ') + (i + 1) + (r.type === 'lost' ? ' clears.' : ' fades.')); } }
+  }
+  G.sides[1 - side].forEach(u => {
+    if (!u.alive) return;
+    if (u.dep > 0) { u.dep--; if (!u.dep) log(u.name + "'s Depulsion fades."); }
+    if (u.dc > 0) { u.dc--; if (!u.dc) log(u.name + "'s Depu-counter fades."); }
+    if (u.imp > 0) { u.imp--; if (!u.imp) log(u.name + "'s Impression fades."); }
+    if (u.harden > 0) { u.harden--; if (!u.harden) log(u.name + "'s Harden fades."); }
+  });
+  G.sides[side].forEach(u => {
+    if (u.alive && u.boost > 0 && u !== actor) { u.cur.STR = Math.max(0, u.cur.STR - u.boost); u.boost = 0; log(u.name + "'s Manipulator strength fades."); }
+  });
+  G.sides.forEach(ss => ss.forEach(u => { if (u.alive && u.coll > 0) { u.coll--; }
+    if (u.alive && u.hm > 0) { u.hm--; if (!u.hm && G.ctrl[1 - u.side] !== 'human') log(u.name + " He's Mine fades."); } }));
+  G.sides[side].forEach(u => { if (u.alive && u.nap && u !== actor) u.cur.STR = Math.min(CFG.napMax, u.cur.STR + 1); });
+  G.sides[side].forEach(u => { if (u.alive && u.noDodge > 0) u.noDodge--; });
+  G.sides[side].forEach(u => { if (u.alive && u !== actor && u.rest > 0) { u.rest--; if (u.rest === 0) u.frz = false; } });
+  const a0 = alive(0).length, a1 = alive(1).length;
+  if (a0 === 0 || a1 === 0) { G.over = true; G.winner = a0 === 0 && a1 === 0 ? -1 : (a0 === 0 ? 1 : 0);
+    const w = G.winner; if (w >= 0) {
+      if (G.cr.hurt[w] === 0) credit(w, 5, 'Optimal performance, Agents, all opposing agents vanquished.');
+      else if (alive(w).length === 4) credit(w, 4, 'No casualties, all opposing agents vanquished.');
+      else credit(w, 3, 'All opposing agents vanquished.');
+      if (alive(w).length === 1 && G.sides[w].length > 1) credit(w, 1, 'Clutch. Last agent standing.'); } }
+  else { G.turn = 1 - side; G.turnNo++; if (G.turnNo > CFG.maxTurns) { G.over = true; G.winner = -1; } }
+  H.onChange();
+}
+
+/* ---------- CPU brain ---------- */
+const AILS = [3, 3];
+const setAI = (n, side) => { n = clamp(n | 0, 1, 5); if (side === 0 || side === 1) AILS[side] = n; else { AILS[0] = n; AILS[1] = n; } };
+function aiClashAtk(c) {
+  const { attacker: a, target: t, X, extra } = c;
+  if (TUTOR === 2) { if (!TUT2_RAISED && a.cur.STR >= extra) { TUT2_RAISED = true; return true; } return false; }
+  if (a.cur.STR < extra) return false;
+  if (t.cur.STR < 1) return true;
+  if (t.cur.STR < 1 + 0 && true) return true;
+  const margin = a.cur.STR - extra;
+  if (t.hp <= X + 2) return true;
+  return margin >= 1 && R() < (t.cur.STR <= a.cur.STR ? 0.5 : 0.25);
+}
+function aiClashDef(c) {
+  const { target: t, X, spent } = c;
+  if (c.canDodge && t.cur.AGI >= X + 2 && R() < 0.5) return { type: 'dodge' };
+  if (t.cur.STR >= 1 && (t.hp <= 6 || R() < 0.55)) return { type: 'add', s: Math.min(t.cur.STR, X - spent) };
+  if (c.canDodge && R() < 0.4) return { type: 'dodge' };
+  return { type: 'add', s: 0 };
+}
+function aiCounterDodge(a, counter) { return !(a.noDodge > 0) && a.cur.AGI >= counter && (counter >= 2 || R() < 0.5); }
+function aiBrimTank(f) { return f.cur.DATA >= 5 || f.hp <= 4; }
+
+let TUTOR = false, TUT2_RAISED = false, TUT2_BLOCK = false;
+function aiDefend(ctx) {
+  if (TUTOR) return { type: 'take' };
+  const AIL = AILS[ctx.target.side];
+  if (AIL <= 2) { if (AIL === 1 ? R() < 0.8 : R() < 0.45) return { type: 'take' }; return aiDefendBase(ctx); }
+  if (AIL >= 4 && !ctx.exposed) {
+    const { target: t, attacker: a, X, kind } = ctx;
+    const prot = ctx.protectors.slice().sort((p, q) => q.cur.STR - p.cur.STR);
+    const mk = prot.find(p => p.makeup);
+    if (mk && (X >= 3 || t.hp <= X + 2)) return { type: 'interrupt', by: mk, s: 0 };
+    if (kind === 'str') {
+      if (AIL >= 5 && ctx.canBlock && t.cur.STR > X && a.hp <= t.cur.STR - X && !(a.noInt)) return { type: 'block', s: Math.min(t.cur.STR, X + a.hp) };
+      if (t.hp <= X + 1 || X >= 3) {
+        if (ctx.canDodge && (t.hp <= X + 1 || t.cur.AGI >= X + 2)) return { type: 'dodge' };
+        if (ctx.canBlock && t.cur.STR >= X) return { type: 'block', s: X };
+        if (prot.length && prot[0].cur.STR >= 1) return { type: 'interrupt', by: prot[0], s: Math.min(X, prot[0].cur.STR) };
+        if (ctx.canBlock) return { type: 'block', s: t.cur.STR };
+      }
+    } else if (ctx.canDodge) return { type: 'dodge' };
+  }
+  return aiDefendBase(ctx);
+}
+function aiDefendBase(ctx) {
+  const { target: t, X, kind } = ctx;
+  const prot = ctx.protectors.slice().sort((p, q) => q.cur.STR - p.cur.STR);
+  const mk = prot.find(p => p.makeup);
+  if (mk && (X >= 3 || t.hp <= X + 2)) return { type: 'interrupt', by: mk, s: 0 };
+  if (ctx.exposed) {
+    if (prot.length && (X >= 3 || t.hp <= X * 2) && R() < 0.8) return { type: 'interrupt', by: prot[0], s: Math.min(X, prot[0].cur.STR) };
+    return { type: 'take' };
+  }
+  if (kind === 'data') {
+    if (ctx.canDodge && (X >= 3 || R() < 0.5)) return { type: 'dodge' };
+    const body = prot.find(p => p.hp > X + 6);
+    if (body && X <= 4 && R() < 0.4) return { type: 'interrupt', by: body, s: 0 };
+    return { type: 'take' };
+  }
+  const danger = t.hp <= X + 1;
+  if (danger) {
+    if (ctx.canDodge) return { type: 'dodge' };
+    if (t.cur.STR >= X) return { type: 'block', s: X };
+    if (prot.length) return { type: 'interrupt', by: prot[0], s: Math.min(X, prot[0].cur.STR) };
+    return { type: 'block', s: t.cur.STR };
+  }
+  const r = R();
+  if (X <= 1) return r < 0.55 ? { type: 'take' } : { type: 'block', s: Math.min(X, t.cur.STR) };
+  if (ctx.canDodge && r < 0.4) return { type: 'dodge' };
+  if (t.cur.STR >= X + 1 && X >= 2 && r < 0.75) return { type: 'block', s: X + 1 };
+  if (t.cur.STR >= X) return { type: 'block', s: X };
+  if (prot.length && r < 0.6) return { type: 'interrupt', by: prot[0], s: Math.min(X, prot[0].cur.STR) };
+  return { type: 'block', s: t.cur.STR };
+}
+
+const trapOf = f => (f.dep > 0 ? 3.5 : 0) + (f.dc > 0 ? 3 : 0) + (f.harden > 0 ? 1.5 : 0) + (f.imp > 0 && f.coat !== null ? 0 : 0);
+function aiChoose(side) {
+  const AIL = AILS[side];
+  const me = alive(side), foes = enemies(side);
+  const avail = me.filter(u => u.rest === 0);
+  if (!avail.length) return { type: 'pass' };
+  const C = [];
+  const push = (s, act) => C.push({ s, n: R() * 0.6, act });
+  for (const a of avail) {
+    const pS = proj(a, 'STR'), pD = proj(a, 'DATA'), pB = proj(a, 'BRN');
+    const guard = (a.slot === 0 || a.slot === 3) ? 0.5 : 0;
+    for (const f of foes) {
+      if (a.chg > 0) break;
+      const exposed = f.rest > 0 || f.nap;
+      const trap = (f.dep > 0 ? 3.5 : 0) + (f.dc > 0 ? 3 : 0) + (f.imp > 0 && a.coat && a.coat === f ? 4 : 0) + (f.harden > 0 ? (a.hp <= 8 ? 4 : 1.5) : 0);
+      if (a.fp) { if (!unst(a) && !a.bud && !blk(f.slot)) push(6.5 + (exposed ? 1 : 0) + (f.hp <= 6 ? 3 : 0) - guard - trap, { type: 'attack', agent: a, target: f, X: 6 }); continue; }
+      const mx = attackMax(a, f);
+      if (mx >= 1) {
+        let X = (exposed || f.hp <= mx) ? Math.min(mx, Math.max(1, f.hp + 1)) : Math.max(1, Math.round(mx * 0.6));
+        if (R() < 0.3) X++;
+        X = clamp(X, 1, mx);
+        const sc = (exposed ? X : X * 0.45) * 0.9 + (f.hp <= X ? 3 : 0) - X * 0.18 - guard - trap + (a.stat ? f.cur.STR * 0.3 : 0) + (a.sharp && !exposed ? 0.9 : 0) + (a.blend ? 1.2 : 0) + (a.baton ? 0.6 : 0) + (a.ds ? X * 0.35 : 0) - (f.small ? 0.9 : 0) - (blk(f.slot) ? 99 : 0);
+        push(sc, { type: 'attack', agent: a, target: f, X });
+        if (a.bd) foes.filter(g => g !== f).forEach(g => push(sc * 1.8 + 0.8, { type: 'attack', agent: a, target: f, target2: g, X: Math.min(mx, Math.max(X, Math.round(mx * 0.7))) }));
+        if (a.bash && !exposed) push(sc + 1.4, { type: 'attack', agent: a, target: f, X });
+      }
+      if (a.key === 'argo' && pD >= 2 && !unst(a) && !a.bud && !blk(f.slot)) {
+        const X = Math.min(pD, exposed ? pD : Math.max(2, Math.min(pD, 4)));
+        push(X * 0.55 + (f.hp <= X ? 3 : 0) - X * 0.12 - guard, { type: 'ability', agent: a, id: 'proj', target: f, X });
+      }
+    }
+    const ok = id => { const st = abilityState(a, id); return st.ok; };
+    // abilities (checked against projected stats)
+    if (a.key === 'jane') {
+      if (ok('amp') && pS >= 3 && pD >= 4) push(1.3, { type: 'ability', agent: a, id: 'amp' });
+      if (ok('brim') && foes.length >= 2) push(foes.length * 1.5 + (foes.some(f => f.rest > 0) ? 1 : 0), { type: 'ability', agent: a, id: 'brim' });
+    }
+    if (a.key === 'argo' && ok('leer')) {
+      const f = foes.slice().sort((p, q) => (q.cur.BRN + q.cur.AGI) - (p.cur.BRN + p.cur.AGI))[0];
+      if (f && !G.debuffs.some(d => d.target === f)) push(1.6, { type: 'ability', agent: a, id: 'leer', target: f });
+    }
+    if (a.key === 'wren') {
+      if (ok('qm')) { const f = foes.slice().sort((p, q) => q.cur.BRN - p.cur.BRN)[0]; if (f && f.cur.BRN >= 2 && !G.debuffs.some(d => d.target === f)) push(1.5, { type: 'ability', agent: a, id: 'qm', target: f }); }
+      if (ok('cap')) { const mine = alive(side).slice().sort((p, q) => p.hp - q.hp)[0]; if (mine && !capAt(mine.slot)) push(1.3, { type: 'ability', agent: a, id: 'cap', slot: mine.slot }); }
+    }
+    if (a.key === 'cathy') {
+      if (ok('makeup') && guard > 0) push(2.0, { type: 'ability', agent: a, id: 'makeup' });
+      if (ok('fp')) push(2.4, { type: 'ability', agent: a, id: 'fp' });
+    }
+    if (a.key === 'edica') {
+      if (ok('dep') && foes.some(f => f.rest === 0 && f.cur.STR >= 3)) push(1.7 + (a.hp < 12 ? 0.8 : 0), { type: 'ability', agent: a, id: 'dep' });
+      if (ok('bd') && foes.length >= 2 && pS >= 3) push(2.0, { type: 'ability', agent: a, id: 'bd' });
+    }
+    if (a.key === 'ellie') {
+      if (ok('bash') && pS >= 3) push(1.8, { type: 'ability', agent: a, id: 'bash' });
+      if (ok('ua') && pD >= 5 && foes.some(f => f.rest === 0)) push(1.7, { type: 'ability', agent: a, id: 'ua' });
+    }
+    if (a.key === 'miera') {
+      if (ok('harden') && (a.slot === 0 || a.slot === 3 || a.hp > 20)) push(1.6, { type: 'ability', agent: a, id: 'harden' });
+      if (ok('bb')) {
+        const lenders = alive(side).filter(u => u !== a && u.cur.STR >= 4).sort((p, q) => q.cur.STR - p.cur.STR);
+        const ally = lenders[0]; const f = foes.slice().sort((p, q) => (q.rest > 0) - (p.rest > 0) || p.hp - q.hp)[0];
+        if (ally && f && !blk(f.slot)) { const X = clamp(f.hp <= ally.cur.STR ? f.hp + 1 : Math.round(ally.cur.STR * 0.7), 1, attackMax(a, f, ally)); push(X * 0.7 + (f.hp <= X ? 3 : 0) + (f.rest > 0 ? 1 : 0) - trapOf(f), { type: 'ability', agent: a, id: 'bb', ally, target: f, X }); }
+      }
+    }
+    if (a.key === 'opal') {
+      const nb = neighbourOf(a);
+      if (ok('tact') && nb && nb.cur.BRN < nb.max.BRN + 2) push(1.5 + (nb.cur.BRN === 0 ? 0.8 : 0), { type: 'ability', agent: a, id: 'tact' });
+      if (ok('succ') && foes.some(f => protectorsOf(f).length)) push(1.5, { type: 'ability', agent: a, id: 'succ' });
+    }
+    if (a.key === 'rarity') {
+      if (ok('teacher')) { const al = alive(side).filter(u => u !== a && u.rest === 0 && !u.succ && u.cur.STR >= 3).sort((p, q) => q.cur.STR - p.cur.STR)[0]; if (al && foes.some(f => protectorsOf(f).length || f.rest > 0)) push(1.9, { type: 'ability', agent: a, id: 'teacher', target: al }); else if (al) push(1.2, { type: 'ability', agent: a, id: 'teacher', target: al }); }
+      if (ok('rarium')) { const f = abilityTargets(a, 'rarium').sort((p, q) => q.cur.STR + q.cur.DATA * 0.3 - p.cur.STR - q.cur.DATA * 0.3)[0]; if (f && f.cur.STR >= 3) push(1.7 + (f.cur.STR >= 6 ? 0.8 : 0), { type: 'ability', agent: a, id: 'rarium', target: f }); }
+    }
+    if (a.key === 'echidna') {
+      if (a.chg === 2 && ok('ook')) { const f = foes.slice().sort((p, q) => protectorsOf(p).length - protectorsOf(q).length || p.hp - q.hp)[0]; push(9, { type: 'ability', agent: a, id: 'ook', target: f }); }
+      else if (a.chg === 1 && ok('ook')) push(8, { type: 'ability', agent: a, id: 'ook' });
+      else if (a.chg === 0 && ok('ook') && a.hp >= 6) push(1.8 + (foes.some(f => f.cur.STR >= 6 && f.rest === 0) ? -0.6 : 0.4), { type: 'ability', agent: a, id: 'ook' });
+      if (ok('enki') && a.maxhp - a.hp >= 3) { const X = Math.min(pD, a.maxhp - a.hp); push(0.9 + X * 0.2, { type: 'ability', agent: a, id: 'enki', X }); }
+    }
+    if (a.key === 'julian') {
+      if (ok('lamb')) push(1.4, { type: 'ability', agent: a, id: 'lamb' });
+      if (ok('panic') && foes.length >= 2) push(1.5 + (foes.some(f => f.cur.AGI >= 4) ? 0.4 : 0), { type: 'ability', agent: a, id: 'panic' });
+    }
+    if (a.key === 'delilah') {
+      if (ok('manip') && foes.some(f => f.rest === 0 && f.cur.STR >= 2)) push(1.4, { type: 'ability', agent: a, id: 'manip' });
+      if (ok('hm')) push(1.5, { type: 'ability', agent: a, id: 'hm' });
+    }
+    if (a.key === 'wraith') {
+      if (ok('disch')) { const t = abilityTargets(a, 'disch').sort((p, q) => p.hp - q.hp)[0]; push(2.2 + (t.hp <= 5 ? 3 : 0) + (t.hp <= 8 ? 0.8 : 0), { type: 'ability', agent: a, id: 'disch', target: t }); }
+      else if (ok('atom')) { const free = [0, 1, 2, 3].filter(i => !G.atom[side][i] && G.sides[side][i] && G.sides[side][i].alive); const slot = free.sort((p, q) => G.sides[side][p].hp - G.sides[side][q].hp)[0]; if (slot != null) push(1.7, { type: 'ability', agent: a, id: 'atom', slot }); }
+      if (ok('jump') && foes.length >= 2 && alive(side).filter(u => u !== a && u.rest === 0 && u.cur.STR >= 3).length >= 2) push(2.4 + foes.length * 0.3, { type: 'ability', agent: a, id: 'jump' });
+    }
+    if (a.key === 'cray') {
+      if (ok('stat') && foes.some(f => f.rest === 0 && f.cur.STR >= 5)) push(1.9, { type: 'ability', agent: a, id: 'stat' });
+      if (ok('lost') && pS >= 2) push(1.2, { type: 'ability', agent: a, id: 'lost' });
+    }
+    if (a.key === 'neko') {
+      if (ok('catnap') && a.cur.STR <= 6 && a.hp >= 9 && !foes.some(f => f.rest === 0 && f.cur.STR >= 7)) push(2.1 - a.cur.STR * 0.2, { type: 'ability', agent: a, id: 'catnap' });
+      if (ok('sharp') && pS >= 3) push(1.5, { type: 'ability', agent: a, id: 'sharp' });
+    }
+    if (a.key === 'tyrees') {
+      if (ok('dcount') && foes.some(f => f.rest === 0 && f.cur.STR >= 3)) push(1.7 + (a.hp < 10 ? 0.6 : 0), { type: 'ability', agent: a, id: 'dcount' });
+      if (ok('baton') && pS >= 2) push(1.5, { type: 'ability', agent: a, id: 'baton' });
+    }
+    if (a.key === 'argithia') {
+      if (ok('impr') && foes.some(f => f.rest === 0 && f.cur.STR >= 3)) push(1.5, { type: 'ability', agent: a, id: 'impr' });
+      if (ok('blend') && pS >= 4 && foes.some(f => !f.shard)) push(2.0, { type: 'ability', agent: a, id: 'blend' });
+    }
+    if (a.key === 'frey') {
+      if (ok('fglob')) { const al = abilityTargets(a, 'fglob').sort((p, q) => (q.cur.STR + q.cur.DATA * 0.3 + (q.slot === 1 || q.slot === 2 ? 2 : 0)) - (p.cur.STR + p.cur.DATA * 0.3 + (p.slot === 1 || p.slot === 2 ? 2 : 0)))[0]; if (al) push(1.5, { type: 'ability', agent: a, id: 'fglob', target: al }); }
+      if (ok('wing') && alive(side).some(u => u !== a && u.rest === 0 && u.cur.STR >= 3)) push(1.6, { type: 'ability', agent: a, id: 'wing' });
+    }
+    if (a.key === 'mason') {
+      if (ok('rookie')) { const nb = adjacentOf(a).sort((p, q) => q.cur.STR - p.cur.STR)[0]; if (nb && nb.cur.STR >= 4 && foes.some(f => !blk(f.slot))) push(1.4 + nb.cur.STR * 0.25, { type: 'ability', agent: a, id: 'rookie' }); }
+      if (ok('coll') && a.hp >= 9) push(1.5, { type: 'ability', agent: a, id: 'coll' });
+    }
+    if (a.key === 'nessy') {
+      if (ok('ds') && pS >= 3) push(1.9, { type: 'ability', agent: a, id: 'ds' });
+      if (ok('vesp') && pD >= 2) { const f = abilityTargets(a, 'vesp').sort((p, q) => p.hp - q.hp)[0]; if (f) { const X = Math.min(pD, 3); push(X * 0.5 + foes.length * 0.7 + (f.hp <= X ? 3 : 0), { type: 'ability', agent: a, id: 'vesp', target: f, X }); } }
+    }
+    { const ms = alive(side).find(u => u.key === 'mason' && u !== a && u.cur.DATA < 1);
+      if (ms && ms.cur.DATA < ms.max.DATA + CFG.buffCap && canTransfer(a).ok && transferStatOk(a, 'DATA') && proj(a, 'DATA') >= 3) push(1.45, { type: 'transfer', agent: a, to: ms, stat: 'DATA' }); }
+    // transfer: give a high stat to a teammate who values it
+    if (canTransfer(a).ok && pB >= 1) {
+      const stat = STATS.filter(k => k !== 'BRN' && transferStatOk(a, k)).sort((p, q) => proj(a, q) - proj(a, p))[0];
+      if (stat && proj(a, stat) >= 3) {
+        const ally = alive(side).filter(u => u !== a && u.max[stat] >= 5 && u.cur[stat] < u.max[stat] + CFG.buffCap).sort((p, q) => p.cur[stat] - q.cur[stat])[0];
+        if (ally) push(0.9, { type: 'transfer', agent: a, to: ally, stat });
+      }
+    }
+    // recover
+    if (canRecover(a).ok && proj(a, 'AGI') >= 3) {
+      const lows = STATS.map(k => ({ k, d: a.max[k] - proj(a, k) })).filter(x => x.k !== 'AGI' && x.d > 0 && !(a.noRegen && a.noRegen[x.k])).sort((p, q) => q.d - p.d);
+      const deficit = lows.reduce((n, x) => n + x.d, 0);
+      push(Math.min(2.2, 0.5 + 0.15 * deficit), { type: 'recover', agent: a, stat: lows[0].k });
+    }
+  }
+  if (AIL >= 3) alive(side).forEach(u => { if (u.rest > 0 && canWake(u).ok && alive(side).filter(x => x.rest === 0).length <= 1) C.push({ s: 0.9 + u.rest * 0.25, n: R() * 0.6, act: { type: 'wake', agent: u } }); });
+  { const def = alive(side).reduce((n, u) => n + Math.max(0, u.max.BRN - u.cur.BRN), 0); if (def >= 2 && AIL >= 2) C.push({ s: Math.min(1.7, 0.3 * def), n: R() * 0.6, act: { type: 'pass', skip: true } }); }
+  if (!C.length) return { type: 'pass' };
+  if (AIL === 1) return C[(R() * C.length) | 0].act;
+  if (AIL === 2 && R() < 0.2) return C[(R() * C.length) | 0].act;
+  if (AIL >= 4) {
+    const pat = (AIL >= 5 ? 1 : 0.5) * (G.turnNo > CFG.maxTurns * 0.6 ? 0 : 1), enemyReady = foes.filter(f => f.rest === 0).length;
+    C.forEach(c => {
+      const act = c.act, a = act.agent, f = act.target;
+      if (act.type === 'recover') c.s += pat * 1.2;
+      if (act.type === 'attack' && f) {
+        const exposed = f.rest > 0 || f.nap;
+        if (exposed && f.hp <= act.X) c.s += 2.5;
+        c.s += (1 - f.hp / Math.max(1, f.maxhp)) * 1.2;
+        c.s -= pat;
+        if (AIL >= 5) {
+          const kill = f.hp <= act.X && exposed;
+          if (!kill && avail.length === 1 && enemyReady > 0) c.s -= 1.8;
+          if (!kill && (a.slot === 0 || a.slot === 3) && alive(side).some(u => u !== a && u.rest > 0)) c.s -= 0.6;
+          if (exposed) c.s += 0.8;
+        }
+      }
+    });
+  }
+  const nm = AIL === 2 ? 4 : AIL === 3 ? 1 : AIL === 4 ? 0.4 : 0;
+  C.sort((p, q) => (q.s + q.n * nm) - (p.s + p.n * nm));
+  return C[0].act;
+}
+
+const API = {
+  CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
+  ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
+  VERSION: 'linked-41', setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+};
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
+})(typeof window !== 'undefined' ? window : globalThis);
