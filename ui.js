@@ -19,7 +19,7 @@ const ICO = { STR: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My
 const SHORT = { STR: 'Strength', AGI: 'Agility', BRN: 'Brains', DATA: 'DATA' };
 
 let G = null, loopId = 0;
-const ROSTER_ALL = ['wren', 'argo', 'jane', 'rarity', 'cathy', 'edica', 'ellie', 'miera', 'opal', 'echidna', 'julian', 'delilah', 'wraith', 'cray', 'neko', 'nessy', 'tyrees', 'argithia', 'frey', 'mason'];
+const ROSTER_ALL = ['wren', 'argo', 'jane', 'rarity', 'cathy', 'edica', 'ellie', 'miera', 'opal', 'echidna', 'julian', 'delilah', 'wraith', 'cray', 'neko', 'nessy', 'tyrees', 'argithia', 'frey', 'mason', 'aimee', 'feri', 'marsh', 'griff'];
 let roster = ROSTER_ALL.slice();
 const DK = 'anomex-decks'; let decks = null, activeDeck = 0;
 const fixOrder = o => {
@@ -110,6 +110,7 @@ function sfx(name, p = 1) {
         osc(ac, 'sine', 95, 30, 1.3, 0.5, 0.85, 0.004); nz(ac, 0.5, 0.2, 0, 0.85, 3000, 200); fm(ac, 1175, 2.76, 1.2, 1.2, 0.07, 0.86);
         [523, 659, 784, 1047, 1319].forEach((f, i) => { fm(ac, f, 2, 0.45, 1.7, 0.055, 0.87 + i * 0.045); fm(ac, f * 2, 1, 0.15, 1.2, 0.02, 0.87 + i * 0.045); });
         [1568, 2093, 2637, 3136, 2637, 3136, 4186].forEach((f, i) => fm(ac, f, 2, 0.3, 0.5, 0.03, 1.5 + i * 0.09)); break;
+      case 'defeat': osc(ac, 'sine', 90, 38, 1.8, 0.4, 0, 0.01); [392, 330, 262, 196, 131].forEach((f, i) => fm(ac, f, 1.01, 0.8, 0.9, 0.06, 0.25 + i * 0.3)); nz(ac, 1.2, 0.08, 0.3, 0, 120, 900); break;
       case 'lose': [330, 262, 196, 147].forEach((f, i) => fm(ac, f, 1.01, 0.8, 0.5, 0.07, i * 0.16)); break;
     }
   } catch (e) {}
@@ -321,7 +322,7 @@ function buildCard(u) {
   const d = DEFS[u.key];
   const w = el('div', 'cardwrap'); w.dataset.uid = u.uid; w.tabIndex = 0; w.setAttribute('role', 'button');
   w.innerHTML = `<div class="card tilt"><div class="aura"><i></i><i></i></div><div class="glare"></div><div class="frame"></div>
-    <div class="icon"><img src="icons/${u.key}.png" alt="" draggable="false"></div><div class="tags"></div><div class="rest"></div>
+    <div class="icon"><img src="icons/${u.key}.png" alt="" draggable="false"></div><div class="tags"></div><div class="actb" hidden></div><div class="trkb" hidden></div><div class="eyeb" hidden><svg viewBox="0 0 16 14" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path class="open" d="M1 7C4 1.5 12 1.5 15 7C12 12.5 4 12.5 1 7Z"/><circle class="iris" cx="8" cy="7" r="2.7" fill="#fff" stroke="none"/><path class="shut" d="M1 6C4 11.5 12 11.5 15 6M4.5 9.6L3.3 12M8 10.6V13M11.5 9.6L12.7 12"/></svg></div><div class="momb" hidden></div><div class="rest"></div>
     ${STATS.map(k => `<button type="button" class="notch n-${k.toLowerCase()}" data-k="${k}" tabindex="-1" aria-label="${SNAME[k]}"><img src="${ICO[k]}" alt="" draggable="false"><i class="lg"></i><i class="val"></i><i class="pv"></i></button>`).join('')}
     <div class="info"><div class="irow"><b class="nm"${(d.short || d.name).length > 6 ? ' data-l="' + (d.short || d.name).length + '"' : ''}>${d.short || d.name}</b><span class="hpn"></span></div><div class="role">${d.role}</div><div class="hp"><b class="tr"></b><i></i></div></div></div>${STATS.map(k => `<i class="na na-${k.toLowerCase()}" data-k="${k}"></i>`).join('')}`;
   paint(w, u);
@@ -339,11 +340,16 @@ function paintRefs(w) {
 function paint(w, u) {
   const R = paintRefs(w), card = R.card; if (!card) return;
   w.classList.toggle('dead', !u.alive);
+  { const tb = w.querySelector('.trkb'), mb = w.querySelector('.momb'), fe = u.key === 'feri' && !!u.track && !!E.TRACKS[u.track];
+    if (tb && mb) { tb.hidden = mb.hidden = !fe; if (fe) { tb.textContent = ({ might: 'MIGHT', accel: 'ACCEL', mind: 'MIND' })[u.track]; mb.textContent = '\u25CF'.repeat(u.mom | 0) + '\u25CB'.repeat(3 - (u.mom | 0)); mb.dataset.m = u.mom | 0; } } }
+  { const eb = w.querySelector('.eyeb'); if (eb) { eb.hidden = u.key !== 'aimee' || !u.alive; eb.classList.toggle('closed', E.isCloaked(u)); } }
+  { const ab = w.querySelector('.actb'); if (ab) { ab.hidden = !u.act; ab.textContent = ['', 'I', 'II', 'III'][u.act || 0]; ab.dataset.a = u.act || 0; } }
   w.classList.toggle('au-red', u.alive && !u.pseudo && (u.cur.STR > u.max.STR || u.ua));
   w.classList.toggle('au-dep', u.alive && (u.dep > 0 || u.chg > 0));
   w.classList.toggle('au-hard', u.alive && u.harden > 0);
   w.classList.toggle('au-coat', u.alive && !!u.coat);
-  w.classList.toggle('au-rdy', u.alive && !!(u.bash || u.bd || u.succ || u.fp || u.makeup || u.manip || u.lost || u.stat || u.sharp || u.ds || u.blend || u.wing || u.rookie || u.coll > 0 || u.imp > 0 || ((u.baton || u.glob) && !(real0(u)))));
+  w.classList.toggle('cloaked', E.isCloaked(u));
+  w.classList.toggle('au-rdy', u.alive && !!(u.mchg || u.gs || u.bash || u.bd || u.succ || u.fp || u.makeup || u.manip || u.lost || u.stat || u.sharp || u.ds || u.blend || u.wing || u.rookie || u.coll > 0 || u.imp > 0 || ((u.baton || u.glob) && !(real0(u)))));
   card.classList.toggle('resting', u.alive && (u.rest > 0 || u.nap));
   const rt = u.rest > 0 ? 'REST<br>' + u.rest : (u.nap ? 'NAP<br>zzZ' : ''); if (w._rt !== rt) { w._rt = rt; R.rest.innerHTML = rt; }
   const pct = u.hp / u.maxhp * 100, hk = u.hp + '/' + u.maxhp;
@@ -353,7 +359,7 @@ function paint(w, u) {
   STATS.forEach(k => {
     const n = R.n[k], v = viewVal(u, k), hd = hid(u), vt = hd ? '?' : (v === u.max[k] ? mxs(u, k, v) : v + '/' + mxs(u, k, u.max[k]));
     if (R.v[k]._t !== vt) { R.v[k]._t = vt; R.v[k].textContent = vt; }
-    n.classList.toggle('zero', !hd && v === 0); n.classList.toggle('up', !hd && v > u.max[k]);
+    n.classList.toggle('zero', !hd && v <= 0); n.classList.toggle('up', !hd && v > u.max[k]);
     n.classList.toggle('dbf', !!(real && G.debuffs.some(d => d.target === u && d.amt[k])));
   });
   const fl = [];
@@ -367,6 +373,14 @@ function paint(w, u) {
   if (u.dc > 0) fl.push('<span>DEPU-COUNTER</span>'); if (u.imp > 0) fl.push('<span>IMPRESSION</span>'); if (u.blend) fl.push('<span>BLENDER</span>'); if (u.shard) fl.push('<span class="neg">SHARDS ' + u.shard.n + '</span>');
   if (u.wing) fl.push('<span>WINGWOMAN</span>'); if (u.rookie) fl.push('<span>ROOKIE</span>'); if (u.coll > 0) fl.push('<span>COLLATERAL</span>'); if (u.frz && u.rest > 0) fl.push('<span class="neg">FROZEN</span>'); if (u.noDodge > 0) fl.push('<span class="neg">NO DODGE</span>');
   if (u.baton && !(real && G.ctrl[1 - u.side] === 'human')) fl.push('<span>BATON</span>'); if (u.glob && !(real && G.ctrl[1 - u.side] === 'human')) fl.push('<span>GLOB</span>');
+  { const hideFromFoe = real && G.ctrl[1 - u.side] === 'human';
+    if (u.fzw) fl.push('<span class="neg">FROZEN: ' + u.fzw + ' AGI</span>');
+    if (u.abs && !hideFromFoe) fl.push('<span>ABSORB ' + E.SLETTER[u.abs.stat] + '</span>');
+    if (u.mchg) fl.push('<span>CHARGE</span>');
+    if (u.charged) fl.push('<span class="neg">CHARGED</span>');
+    if (u.pull) fl.push('<span class="neg">PULLED &rarr; ' + (u.pull.slot + 1) + '</span>');
+    if (u.gs && !hideFromFoe) fl.push('<span>' + (u.gs === 'baton' ? 'BATON' : 'KNIFE') + '</span>');
+    if (u.bleed > 0) fl.push('<span class="neg">BLEED ' + u.bleed + '</span>'); }
   if (real && G.debuffs.some(d => d.target === u)) fl.push('<span class="neg">DEBUFF</span>');
   const tg = fl.join(''); if (w._tg !== tg) { w._tg = tg; R.tags.innerHTML = tg; }
   const al = `${u.name}, ${u.hp} of ${u.maxhp} HP${u.alive ? '' : ', down'}${u.rest > 0 ? ', resting' : ''}. ${hid(u) ? ' Stats hidden until analysed.' : ' Strength ' + u.cur.STR + ', Agility ' + u.cur.AGI + ', Brains ' + u.cur.BRN + ', DATA ' + u.cur.DATA + '.'}`;
@@ -775,7 +789,7 @@ async function hintDrag(u) {
 }
 function startPlace(u) {
   closeMenus(); UI.mode = 'place'; camReset();
-  E.enemies(0).forEach(t => railEls[t.slot].classList.add('pick'));
+  E.hittable(0).forEach(t => railEls[t.slot].classList.add('pick'));
   hintSet('Drag to the Action Rail', `Drag ${u.name} onto a lit slot (or tap one). The slot is the enemy column you strike.${u.fp ? ' Finally Perfect: 6 damage, no Strength.' : ''}${u.bd ? ' Beatdown ready: you can pick a second target on the rail.' : ''}`);
   hintDrag(u);
 }
@@ -795,6 +809,7 @@ function placeOnRail(u, idx, kind, lender) {
   if (kind === 'str') { mx = E.attackMax(u, t); if (mx < 1) { toast('Not enough Strength for that slot.'); return backToSel(); } X = Math.min(mx, 3); }
   else if (kind === 'bb') { mx = E.attackMax(u, t, lender); if (mx < 1) { toast(lender.name + ' cannot lend enough Strength for that slot.'); return backToSel(); } X = Math.min(mx, 3); }
   else if (kind === 'proj' || kind === 'vesp') { mx = E.proj(u, 'DATA'); X = Math.min(mx, 3); }
+  else if (kind === 'barr') { mx = Math.max(1, Math.min(5, Math.floor(E.proj(u, 'DATA')), Math.floor(E.proj(u, 'AGI')))); X = Math.min(mx, 3); }
   else if (kind === 'heal') { mx = Math.max(1, Math.min(E.proj(u, 'DATA'), u.maxhp - u.hp)); X = Math.min(mx, 3); }
   else { mx = X = CFG.fpDamage; }
   if (TUT && TUT.cap) { mx = Math.min(mx, TUT.cap); X = mx; }
@@ -805,7 +820,7 @@ function placeOnRail(u, idx, kind, lender) {
   const pod = el('div', 'pod' + (kind === 'proj' || kind === 'vesp' || kind === 'heal' ? ' data' : ''));
   pod.innerHTML = `<div class="ptop"><div class="pinfo"></div></div>
     ${kind === 'fp' ? '' : '<div class="prow"><button type="button" class="pbtn" data-d="-1" aria-label="Less"><i>-</i></button><span class="pnum" aria-live="polite"></span><button type="button" class="pbtn" data-d="1" aria-label="More"><i>+</i></button></div>'}
-    <button type="button" class="pgo">${kind === 'proj' || kind === 'vesp' ? 'Fire' : kind === 'heal' ? 'Heal' : 'Strike'}</button>`;
+    <button type="button" class="pgo">${kind === 'barr' ? 'Barrage' : kind === 'proj' || kind === 'vesp' ? 'Fire' : kind === 'heal' ? 'Heal' : 'Strike'}</button>`;
   if (u.bd && kind === 'str') {
     const others = E.enemies(0).filter(f => f !== t);
     if (others.length) {
@@ -821,6 +836,7 @@ function placeOnRail(u, idx, kind, lender) {
     $$('.pbtn', pod).forEach(b => { b.disabled = (+b.dataset.d < 0 && X <= 1) || (+b.dataset.d > 0 && X >= mx); });
     if (kind === 'bb') { const c = Math.ceil(X * CFG.attackCostFrac); $('.pinfo', pod).textContent = `-${c} ${lender.name} STR  |  ${lender.cur.STR - c} left`; }
     else if (kind === 'str') { const c = Math.ceil(X * CFG.attackCostFrac); $('.pinfo', pod).textContent = `-${c} STR  |  ${E.proj(u, 'STR') - c}${P.t2 ? ' | 2nd hit free: ' + P.t2.name : ' left'}`; }
+    else if (kind === 'barr') $('.pinfo', pod).textContent = `${X} hits = ${2 * X} dmg  |  -${X} DATA, -${X} AGI  |  dodge ${X}  |  rest ${X}`;
     else if (kind === 'proj' || kind === 'vesp') $('.pinfo', pod).textContent = `-${X} DATA  |  ${mx - X} left${kind === 'vesp' ? ' | +1 to the rest' : ''}`;
     else if (kind === 'heal') $('.pinfo', pod).textContent = `-${X} DATA  |  +${X} HP`;
     else $('.pinfo', pod).textContent = '6 DMG  |  no STR';
@@ -838,7 +854,7 @@ function placeOnRail(u, idx, kind, lender) {
     sfx('tick'); const P = UI.plot;
     if (kind === 'bb') commit({ type: 'ability', agent: u, id: 'bb', ally: lender, target: t, X: P.X });
     else if (kind === 'str') commit({ type: 'attack', agent: u, target: t, X: P.X, target2: P.t2 || null });
-    else if (kind === 'proj' || kind === 'vesp') commit({ type: 'ability', agent: u, id: kind, target: t, X: P.X });
+    else if (kind === 'proj' || kind === 'vesp' || kind === 'barr') commit({ type: 'ability', agent: u, id: kind, target: t, X: P.X });
     else if (kind === 'heal') commit({ type: 'ability', agent: u, id: 'enki', X: P.X });
     else commit({ type: 'attack', agent: u, target: t, X: CFG.fpDamage });
   });
@@ -864,6 +880,8 @@ const AB_ICON = {
   impr: '<circle cx="12" cy="12" r="8" fill="none"/><path d="M8 12h8M12 8v8" fill="none"/>', blend: '<path d="M12 2l3 7-3 13-3-13z"/><path d="M4 8l5 2M20 8l-5 2" fill="none"/>',
   fglob: '<circle cx="12" cy="13" r="6"/><path d="M12 2c2 3 3 4 3 6" fill="none"/>', wing: '<path d="M3 17c4-1 7-4 9-10 2 6 5 9 9 10-4 1-7 0-9-3-2 3-5 4-9 3z" fill="none"/>',
   rookie: '<path d="M12 4l7 6-7 6-7-6z" fill="none"/><path d="M12 16v5" fill="none"/>', coll: '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" fill="none"/><path d="M12 8v6M9 11h6" fill="none"/>',
+  barr: '<path d="M3 7h10M3 12h14M3 17h10M17 5l4 7-4 7" fill="none"/>', ach: '<path d="M8 3l3 8-3 10M16 3l-3 8 3 10" fill="none"/><path d="M6 21h12" fill="none"/>', play: '<path d="M9 18V6l10-2v12" fill="none"/><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="16" r="2.5"/>', sb: '<path d="M3 12h4M10 6l4 6-4 6M16 3l5 9-5 9" fill="none"/>',
+  absb: '<circle cx="12" cy="12" r="8" fill="none"/><path d="M12 7v10M7 12h10" fill="none"/>', mchg: '<path d="M7 12h10M12 7v10" fill="none"/><circle cx="12" cy="12" r="9" fill="none"/>', redir: '<path d="M4 6h9a4 4 0 014 4v8m0 0l-3-3m3 3l3-3" fill="none"/>', gbat: '<path d="M5 19L17 7m0 0h-4m4 0v4" fill="none"/><path d="M4 20l3-3" fill="none"/>', gknife: '<path d="M5 20L18 4l1 9-9 8z" fill="none"/>',
   tact: '<circle cx="12" cy="12" r="3"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5" fill="none"/>', succ: '<path d="M4 12h12m-4-5l5 5-5 5M20 5v14" fill="none"/>'
 };
 const svgIcon = id => `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${AB_ICON[id]}</svg>`;
@@ -875,7 +893,7 @@ function openAbil(u) {
   const sr = slot.getBoundingClientRect(), side = (sr.left + sr.width / 2) < window.innerWidth / 2 ? 'r' : 'l';
   const box = el('div', 'ablist ' + side); box.setAttribute('role', 'menu');
   d.abilities.forEach((ab0, i) => {
-    const ab = E.abilityView(u, ab0), st = E.abilityState(u, ab.id), needs = ab.target === 'none' && ab.id !== 'enki';
+    const ab = E.abilityView(u, ab0), st = E.abilityState(u, ab.id), needs = ab.target === 'none' && ab.id !== 'enki' && ab.id !== 'absb' && ab.id !== 'play';
     const cost = ab.cost === 'X' ? 'X DATA' : (ab.id === 'fp' ? 'ALL DATA' : ab.cost === 0 ? 'FREE' : ab.cost + ' DATA');
     const b = el('button', 'abil', `<span class="ai">${svgIcon(ab.id)}</span><span class="t2"><b>${ab.name}</b><span class="cost">${cost}</span></span><small>${st.ok ? (ab.short || ab.text) : st.reason + '.'}</small><em class="arm">TAP AGAIN TO USE</em>`);
     b.style.setProperty('--i', i); b.type = 'button'; b.disabled = !st.ok; b.setAttribute('role', 'menuitem');
@@ -909,6 +927,8 @@ function useAbility(u, ab) {
       return hintSet('Atomise', 'Tap a rail slot to coat in secret. The enemy will not see it. The first agent that attacks through it is coated.');
     }
     if (ab.id === 'bb') return flowBloodbrother(u);
+    if (ab.id === 'absb') return flowStatPick(u, 'Absorb', 'Pick the stat that stores the damage.', k => commit({ type: 'ability', agent: u, id: 'absb', stat: k }));
+    if (ab.id === 'play') return commit({ type: 'playlist', agent: u });
     if (ab.id === 'enki') return placeOnRail(u, u.slot, 'heal');
     if (ab.target === 'ally') {
       UI.mode = 'ally'; UI.allySelf = ab.id === 'fglob'; camReset(); const okA = E.abilityTargets(u, ab.id);
@@ -919,7 +939,7 @@ function useAbility(u, ab) {
     UI.mode = 'target'; camReset();
     const okT = E.abilityTargets(u, ab.id);
     okT.forEach(t => { cards[t.uid].wrap.classList.add('tgt'); railEls[t.slot].classList.add('pick'); });
-    UI.targetFn = t => { if (!okT.includes(t)) return toast(t.name + ' cannot be targeted.'); if (ab.id === 'proj' || ab.id === 'vesp') placeOnRail(u, t.slot, ab.id === 'vesp' ? 'vesp' : 'proj'); else commit({ type: 'ability', agent: u, id: ab.id, target: t }); };
+    UI.targetFn = t => { if (!okT.includes(t)) return toast(t.name + ' cannot be targeted.'); if (ab.id === 'proj' || ab.id === 'vesp' || ab.id === 'barr') placeOnRail(u, t.slot, ab.id); else if (ab.id === 'redir') return flowRedirect(u, t); else commit({ type: 'ability', agent: u, id: ab.id, target: t }); };
     hintSet(ab.name, 'Tap an enemy (or its rail slot) to target. ' + ab.text);
   }, 280);
 }
@@ -1032,7 +1052,7 @@ function flowBloodbrother(u) {
   UI.allyFn = ally => {
     if (ally.cur.STR < 1) return toast(ally.name + ' has no Strength to lend.');
     UI.allyFn = null; $$('.cardwrap').forEach(w => w.classList.remove('tgt')); UI.mode = 'target'; camReset();
-    E.enemies(0).forEach(t => { cards[t.uid].wrap.classList.add('tgt'); railEls[t.slot].classList.add('pick'); });
+    E.hittable(0).forEach(t => { cards[t.uid].wrap.classList.add('tgt'); railEls[t.slot].classList.add('pick'); });
     UI.targetFn = t => placeOnRail(u, t.slot, 'bb', ally);
     hintSet('Bloodbrother: ' + ally.name, `Borrowing ${ally.cur.STR} Strength. Tap an enemy (or its rail slot) to attack. Their pool is spent.`);
   };
@@ -1050,6 +1070,24 @@ function flowCure(a) {
   const ok = E.cureTargets(a); ok.forEach(x => cards[x.uid].wrap.classList.add('tgt'));
   UI.allyFn = t => { if (!ok.includes(t)) return toast(t.name + ' has nothing to cure.'); UI.allyFn = null; commit({ type: 'cure', agent: a, target: t }); };
   hintSet('Cure', 'Tap a teammate (or yourself) with Mark or a no-dodge penalty. Costs 2 Brains and your turn, then you rest 1.');
+}
+function flowPick(u, title, hint, items, cb) {
+  UI.mode = 'ally'; UI.allyFn = () => {}; camReset(); $$('.statpick').forEach(x => x.remove());
+  const slot = cards[u.uid].slot, p = el('div', 'statpick');
+  items.forEach(it => {
+    const b = el('button', 'sp ' + (it.txt ? 'txt' : ''), it.img ? `<img src="${it.img}" alt="${it.label}"><small>${it.small || ''}</small>` : `<b>${it.label}</b><small>${it.small || ''}</small>`); b.type = 'button'; b.disabled = !!it.off; b.setAttribute('aria-label', it.label);
+    b.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); cb(it.val); }); p.appendChild(b);
+  });
+  p.addEventListener('click', e => e.stopPropagation()); slot.appendChild(p);
+  hintSet(title, hint);
+}
+function flowStatPick(u, title, hint, cb) {
+  flowPick(u, title, hint, STATS.map(k => ({ img: ICO[k], label: SHORT[k], small: u.cur[k], val: k })), cb);
+}
+function flowRedirect(u, t) {
+  flowPick(u, 'Redirect ' + t.name, 'Pick the slot on your side that its next attack is pulled onto. An empty slot wastes the attack.',
+    [0, 1, 2, 3].map(i => { const v = G.sides[0][i]; return { label: 'Slot ' + (i + 1), small: v && v.alive ? v.name : 'empty', val: i, txt: 1 }; }),
+    i => commit({ type: 'ability', agent: u, id: 'redir', target: t, slot: i }));
 }
 function allyPicked(ally) {
   if (UI.allyFn) return UI.allyFn(ally);
@@ -1193,7 +1231,7 @@ function askClashDef(c) {
     const upd = () => { const tot = spent + add; lab.innerHTML = tot === X ? `Total <b>${tot}</b>. Matched again.` : tot < X ? `Total <b>${tot}</b>. Take <b>${X - tot}</b>.` : `Total <b>${tot}</b>. <b>Counter ${tot - X}</b>.`; };
     r.append(miniStep(0, c.maxAdd, add, v => { add = v; upd(); }), btn('Add', 'primary', () => done({ type: 'add', s: add }))); upd();
     const opts = el('div', 'dopts'); opts.appendChild(r);
-    if (c.canDodge) { const d = drow(ICO.AGI, `Dodge: spend <b>${X}</b> AGI. Your spent Strength stays spent.`); d.r.appendChild(btn('Dodge', 'primary', () => done({ type: 'dodge' }))); opts.appendChild(d.r); }
+    if (c.canDodge) { const d = drow(ICO.AGI, `Dodge: spend <b>${c.dodgeCost || X}</b> AGI. Your spent Strength stays spent.`); d.r.appendChild(btn('Dodge', 'primary', () => done({ type: 'dodge' }))); opts.appendChild(d.r); }
     setTray(incHead(a, t, X, 'str', `${a.name} raises to ${X}. You've spent ${spent} so far. Add Strength to keep up, or let it through.`), opts, btn('Let it through', 'ghost', () => done({ type: 'add', s: 0 })));
   });
 }
@@ -1973,14 +2011,26 @@ async function victorySeq() {
   await wait(900); if (!skip) { ring(cx, cy, R * 0.35, 0, '255,255,255', 2, 0.8, 6); twinkles(cx, cy, 24, R * 0.4, COL_FIELD, { speed: 1.6 }); }
   await wait(1500); clearInterval(rain);
 }
+async function defeatSeq() {
+  const v = el('div', 'vic def'); v.id = 'vic';
+  v.innerHTML = '<div class="dvig"></div><div class="dash">' + Array.from({ length: 26 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${3 + (i * 7) % 5}s;--w:${(i * 0.23) % 2.2}s;--s:${2 + (i % 3)}px"></i>`).join('') + '</div><div class="vline"></div><div class="vtxt">' + [...'DEFEATED'].map((c, i) => `<span style="--i:${i}">${c}</span>`).join('') + '</div><div class="vsub">Your squad has fallen</div>';
+  document.body.appendChild(v);
+  let skip = false; v.addEventListener('pointerdown', () => { skip = true; });
+  const wait = async ms => { const t0 = performance.now(); while (!skip && performance.now() - t0 < ms) await sleep(40); };
+  sfx('defeat');
+  if (RM) { v.classList.add('rm'); await wait(900); return; }
+  await wait(900); if (!skip) shake(9, 0.6);
+  await wait(2300);
+}
 async function showOver() {
   liveSet(false);
   const w = G.winner, ov = $('#over'), win = w === 0, g0 = G, D = G.daily, dres = D ? dailyRecord() : null;
   chalEnd(dres); const nch = (G.newChal || []).map(x => `<li><b>\u2713</b> ${x}</li>`).join('');
+  if (w === 1) { await defeatSeq(); if (G !== g0 || !G.over || $('#arrange').classList.contains('on')) { removeVic(); return; } $('#vic').classList.add('settle'); }
   if (win) { await victorySeq(); if (G !== g0 || !G.over || $('#arrange').classList.contains('on')) { removeVic(); return; } $('#vic').classList.add('settle'); }
-  ov.innerHTML = `<div class="verdict ${win ? 'win' : 'lose'}">${win ? '' : `<h1>${w === -1 ? 'Stalemate' : 'Defeat'}</h1>`}<p>${w === -1 ? 'Nobody could finish it.' : win ? '' : 'Your squad was wiped out.'} Round ${Math.ceil(G.turnNo / 2)}.</p>${nch ? `<div class="cpsum"><h3>Challenge complete</h3><ul>${nch}</ul></div>` : ''}${dres ? dailyHtml(dres) : creditSummary()}
+  ov.innerHTML = `<div class="verdict ${win ? 'win' : 'lose'}">${w === -1 ? '<h1>Stalemate</h1>' : ''}<p>${w === -1 ? 'Nobody could finish it.' : win ? '' : 'Your squad was wiped out.'} Round ${Math.ceil(G.turnNo / 2)}.</p>${nch ? `<div class="cpsum"><h3>Challenge complete</h3><ul>${nch}</ul></div>` : ''}${dres ? dailyHtml(dres) : creditSummary()}
     <div class="btnrow" style="max-width:380px;margin:16px auto 0"><button class="btn" type="button" id="oOrder">${ONL ? 'Leave' : 'Squad order'}</button>${dres ? '<button class="btn" type="button" id="oShare">Share</button>' : ''}<button class="btn primary" type="button" id="oAgain">${D ? 'Retry' : 'Rematch'}</button></div></div>`;
-  ov.classList.toggle('vwin', win); ov.classList.add('on'); if (!win) sfx('lose');
+  ov.classList.toggle('vwin', win || w === 1); ov.classList.add('on'); if (w === -1) sfx('lose');
   $('#oAgain').onclick = () => { if (ONL) return rematchAsk(); ov.classList.remove('on'); removeVic(); startGame(['human', 'cpu'], D ? { daily: D } : undefined); };
   if (dres) $('#oShare').onclick = () => dailyShare(dres);
   $('#oOrder').onclick = () => { ov.classList.remove('on'); removeVic(); if (ONL) leaveOnline(); showArrange(); };

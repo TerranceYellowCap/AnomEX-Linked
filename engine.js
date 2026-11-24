@@ -37,8 +37,9 @@ const DEFS = {
   },
   argo: {
     cost: 4, key: 'argo', name: 'Argo', role: 'All-rounder', color: '#2fd0c4',
-    blurb: 'No weakness, no spike. Reaches across the rail.',
-    stats: { STR: 7, AGI: 5, BRN: 3, DATA: 5 }, hp: 25, rest: 2,
+    blurb: 'Act I-II-III: his max Strength grows (6, 7, then 9) every time a full-Strength attack lands in full. If a full-Strength attack fails he drops back to Act I; landing the 9 resets him too. Reaches across the rail.',
+    acts: true,
+    stats: { STR: 6, AGI: 5, BRN: 3, DATA: 5 }, hp: 25, rest: 2,
     abilities: [
       { id: 'leer', name: 'Leer', cost: 2, target: 'enemy', text: 'Enemy loses 1 Brains and 1 Agility until they are picked, or 3 turns pass with neither of you acting.' },
       { id: 'proj', name: 'Projection', cost: 'X', target: 'enemy', text: 'Ranged. Spend any amount of DATA as damage. Only dodgeable (exact Agility) or body-blocked.' }
@@ -205,10 +206,47 @@ const DEFS = {
       { id: 'rookie', name: 'Rookie numbers', cost: 1, target: 'none', text: 'Raise his Strength to match the agent next to him. His next attack makes him rest 1 turn longer.' },
       { id: 'coll', name: 'Collateral', cost: 1, target: 'none', text: 'For 2 turns, when a teammate is attacked he takes ALL of it and rests. The attacker rests 1 extra turn.' }
     ]
+  },
+  aimee: {
+    cost: 4, key: 'aimee', name: 'Aimee', role: 'Rogue', color: '#c9c9c9',
+    blurb: 'Fast and sneaky. While she rests after her own move her eye closes and only an agent that analysed her can attack her.',
+    stats: { STR: 2, AGI: 5, BRN: 4, DATA: 5 }, hp: 19, rest: 1,
+    abilities: [
+      { id: 'barr', name: 'Barrage', cost: 'X', target: 'enemy', text: 'X rapid hits of 2 damage, one dodge check (a dodge costs X Agility). Each hit costs 1 DATA and 1 Agility and adds 1 turn of rest.' },
+      { id: 'ach', name: 'Achilles', cost: 2, target: 'enemy', text: 'An unavoidable 1 damage from behind, and the target loses 3 Agility (it can go below zero).' }
+    ]
+  },
+  feri: {
+    cost: 4, key: 'feri', name: 'Feri', role: 'Sprinter', color: '#ffd23a',
+    blurb: 'Dodging builds Momentum. Her Playlist boosts a max stat, and three Momentum freezes whoever she hits.',
+    stats: { STR: 3, AGI: 3, BRN: 3, DATA: 3 }, hp: 20, rest: 3,
+    abilities: [
+      { id: 'play', name: 'Playlist', cost: 0, target: 'none', text: 'Free, once per turn: swap the track. Might = +2 max Strength, Accelerate = +2 max Agility, Mind = +2 max Brains. Does not use her pick.' },
+      { id: 'sb', name: 'Sound Barrier', cost: 6, target: 'enemy', text: 'A guaranteed sonic hit of 5 (+1 per Momentum) that nothing can stop. A shockwave hits the neighbours for 2 and -2 Agility. Spends her Momentum.' }
+    ]
+  },
+  marsh: {
+    cost: 4, key: 'marsh', name: 'Marsh', role: 'Polarity', color: '#6ad0c0',
+    blurb: 'Soaks up big hits as stat points, and bends an enemy\'s next attack onto the slot he chooses.',
+    stats: { STR: 5, AGI: 2, BRN: 4, DATA: 5 }, hp: 24, rest: 2,
+    abilities: [
+      { id: 'absb', name: 'Absorb', cost: 5, target: 'none', text: 'For 3 turns, the next attack of 4+ damage on him does nothing. He stores the damage as points in a stat he picks (up to +3 over max).' },
+      { id: 'mchg', name: 'Charge', cost: 2, target: 'none', text: 'His next attack that lands plants a charge on its target.' },
+      { id: 'redir', name: 'Redirect', cost: 3, target: 'enemy', text: 'Pick a charged enemy and one of your slots. For 2 of their turns, their next attack is pulled onto that slot (an empty slot wastes it).' }
+    ]
+  },
+  griff: {
+    cost: 5, key: 'griff', name: 'Griff', role: 'Bruiser', color: '#ff7a5a',
+    blurb: 'Heavy and tough. Readies a Baton to stun or a Knife to bleed, one at a time.',
+    stats: { STR: 6, AGI: 3, BRN: 4, DATA: 6 }, hp: 30, rest: 3,
+    abilities: [
+      { id: 'gbat', name: 'Baton', cost: 4, target: 'none', text: 'If his next attack lands in full, the target rests 2 more turns (3 at most).' },
+      { id: 'gknife', name: 'Knife', cost: 4, target: 'none', text: 'If his next attack lands, the target bleeds: its next 3 hits that it tanks still deal 1 damage.' }
+    ]
   }
 };
 
-const SHORT_TXT = { dcount: 'Next attack on him goes to the enemy opposite him.', baton: 'Hidden. His next attack turns the target\'s counter back on them.', impr: 'Attackers get marked. Hit her twice and they freeze.', blend: '+1 Strength. A landed hit leaves 6 shards. Costs her DATA.', fglob: 'Hidden. Stops the next attacker of one teammate.', wing: 'A teammate lands a hit: she charges in on it.', rookie: 'Match a neighbour\'s Strength. Next attack: rest +1.', coll: 'Takes the next attack on a teammate. Attacker rests +1.', amp: '+1 Strength. Stacks to +3 over max.', brim: 'Hits every enemy for 2. They can tank it with 2 DATA.', leer: 'Enemy: -1 Brains, -1 Agility until picked.', proj: 'Ranged. Spend X DATA as damage. Dodge only.', makeup: 'Next cover negates all damage. Rests 2.', fp: 'Next attack: 6 damage, no Strength.', cap: 'Charge a slot: next Strength hit there gets -2.', qm: 'Enemy: -2 Brains until picked.', dep: 'Next attack on her is reverted. She then rests 2.', bd: 'Next attack hits 2 agents, same Strength.', bash: 'Next hit that lands makes the target rest 1.', ua: '+3 Strength. Next attack locks its slot.', bb: '+1 Brains. Attack using an ally\'s Strength.', harden: 'Next hit lands, then reflects onto the attacker.', tact: '+2 Brains to her neighbouring agent.', succ: 'Next attack cannot be interrupted.', teacher: 'Ally: next attack +1 Strength, uninterruptible.', rarium: 'Force an enemy into its Resting Period.', ook: '3 turn charge, 15 damage release.', enki: 'Spend X DATA to heal X HP. Once per 3 picks.', lamb: '+1 Strength to Delilah.', panic: 'Every enemy: -1 Agility until picked.', manip: 'Next hit on her goes to Julian. She gets +3 Strength.', hm: 'Hidden. She strikes back at anyone who hits Julian.', atom: 'Hidden rail trap. Coats the first enemy through it.', disch: 'Coated agent takes 5. Wraith rests.', jump: 'Lose all stats, rest. Every enemy rests.', lost: 'Next attack: he blocks that slot for 1 turn.', stat: 'Next attack plants a bud: target cannot attack.', catnap: 'Nap: +1 Strength a turn. Exposed while asleep.', sharp: 'Next attack +1 Strength, cannot be blocked.', ds: 'Next attack hits twice. 2nd hit is half.', vesp: 'Ranged X DATA sting. 1 damage to the rest.' };
+const SHORT_TXT = { barr: 'X hits of 2, one dodge check. Costs X DATA and Agility, X rest.', ach: '1 unavoidable damage, -3 Agility on the target.', play: 'Free: swap the track (max-stat boost). Once per turn.', sb: 'Unstoppable sonic hit. Shockwave on the neighbours.', absb: 'Next 4+ hit does nothing; he banks it in a stat.', mchg: 'His next landed attack plants a charge.', redir: 'Pull a charged enemy\'s next attack onto one of your slots.', gbat: 'A full hit on the target adds 2 rest turns.', gknife: 'A landed hit makes the target bleed on tanks.', dcount: 'Next attack on him goes to the enemy opposite him.', baton: 'Hidden. His next attack turns the target\'s counter back on them.', impr: 'Attackers get marked. Hit her twice and they freeze.', blend: '+1 Strength. A landed hit leaves 6 shards. Costs her DATA.', fglob: 'Hidden. Stops the next attacker of one teammate.', wing: 'A teammate lands a hit: she charges in on it.', rookie: 'Match a neighbour\'s Strength. Next attack: rest +1.', coll: 'Takes the next attack on a teammate. Attacker rests +1.', amp: '+1 Strength. Stacks to +3 over max.', brim: 'Hits every enemy for 2. They can tank it with 2 DATA.', leer: 'Enemy: -1 Brains, -1 Agility until picked.', proj: 'Ranged. Spend X DATA as damage. Dodge only.', makeup: 'Next cover negates all damage. Rests 2.', fp: 'Next attack: 6 damage, no Strength.', cap: 'Charge a slot: next Strength hit there gets -2.', qm: 'Enemy: -2 Brains until picked.', dep: 'Next attack on her is reverted. She then rests 2.', bd: 'Next attack hits 2 agents, same Strength.', bash: 'Next hit that lands makes the target rest 1.', ua: '+3 Strength. Next attack locks its slot.', bb: '+1 Brains. Attack using an ally\'s Strength.', harden: 'Next hit lands, then reflects onto the attacker.', tact: '+2 Brains to her neighbouring agent.', succ: 'Next attack cannot be interrupted.', teacher: 'Ally: next attack +1 Strength, uninterruptible.', rarium: 'Force an enemy into its Resting Period.', ook: '3 turn charge, 15 damage release.', enki: 'Spend X DATA to heal X HP. Once per 3 picks.', lamb: '+1 Strength to Delilah.', panic: 'Every enemy: -1 Agility until picked.', manip: 'Next hit on her goes to Julian. She gets +3 Strength.', hm: 'Hidden. She strikes back at anyone who hits Julian.', atom: 'Hidden rail trap. Coats the first enemy through it.', disch: 'Coated agent takes 5. Wraith rests.', jump: 'Lose all stats, rest. Every enemy rests.', lost: 'Next attack: he blocks that slot for 1 turn.', stat: 'Next attack plants a bud: target cannot attack.', catnap: 'Nap: +1 Strength a turn. Exposed while asleep.', sharp: 'Next attack +1 Strength, cannot be blocked.', ds: 'Next attack hits twice. 2nd hit is half.', vesp: 'Ranged X DATA sting. 1 damage to the rest.' };
 Object.values(DEFS).forEach(d => d.abilities.forEach(a => { a.short = SHORT_TXT[a.id]; }));
 
 let G = null;
@@ -233,12 +271,15 @@ function makeAgent(key, side, slot) {
   const hp = Math.max(1, Math.round(d.hp * CFG.hpScale));
   const rb = d.roleBuff && d.roleBuff[ROLE[slot] === 'ATK' ? 'atk' : 'def']; if (rb) Object.keys(rb).forEach(k => { max[k] += rb[k]; });
   const cur0 = Object.assign({}, max, d.start || {});
-  return { uid: ++UID, key, name: d.name, side, slot, max, cur: cur0, noRegen: d.noRegen || {}, hp, maxhp: hp, restN: d.rest, rest: 0, alive: true, makeup: false, fp: false, dep: 0, bd: false, bash: false, ua: false, harden: 0, succ: false, taught: false, noInt: false, chg: 0, enki: 0, manip: false, boost: 0, hm: 0, coat: null, bud: null, lost: false, stat: false, nap: false, sharp: false, sharpNow: false, ds: false, small: !!d.small, dc: 0, baton: false, batonNow: false, imp: 0, blend: false, shard: null, glob: null, wing: false, rookie: false, coll: 0, noDodge: 0, frz: false, frzN: 0 };
+  if (key === 'feri') { max.STR += 2; cur0.STR += 2; }
+  const u0 = { act: d.acts ? 1 : 0, uid: ++UID, key, name: d.name, side, slot, max, cur: cur0, noRegen: d.noRegen || {}, hp, maxhp: hp, restN: d.rest, rest: 0, alive: true, makeup: false, fp: false, dep: 0, bd: false, bash: false, ua: false, harden: 0, succ: false, taught: false, noInt: false, chg: 0, enki: 0, manip: false, boost: 0, hm: 0, coat: null, bud: null, lost: false, stat: false, nap: false, sharp: false, sharpNow: false, ds: false, small: !!d.small, dc: 0, baton: false, batonNow: false, imp: 0, blend: false, shard: null, glob: null, wing: false, rookie: false, coll: 0, noDodge: 0, frz: false, frzN: 0, cloak: false, mom: 0, track: null, playT: -1, fzw: 0, abs: null, charged: null, pull: null, mchg: false, gs: null, bleed: 0, dodgeX: 0 };
+  if (key === 'feri') u0.track = 'might';
+  return u0;
 }
 let ACH = { chain: [0, 0], ch: null, ctr: [0, 0], blk: [0, 0], raise: 0, ana: [[], []], cure: [0, 0] };
 function newGame(order0, order1, ctrl, names) {
   UID = 0; ACH = { chain: [0, 0], ch: null, ctr: [0, 0], blk: [0, 0], raise: 0, ana: [[], []], cure: [0, 0] };
-  G = { cr: { pts: [0, 0], hurt: [0, 0], log: [] }, sides: [[], []], rail: [null, null, null, null], atom: [[null, null, null, null], [null, null, null, null]], debuffs: [], seen: [[], []], turn: 0, turnNo: 1, over: false, winner: null, ctrl: ctrl || ['human', 'cpu'], names: names || ['You', 'CPU'], log: [] };
+  G = { cr: { pts: [0, 0], hurt: [0, 0], log: [], rec: [0, 0], ctr0: [0, 0] }, sides: [[], []], rail: [null, null, null, null], atom: [[null, null, null, null], [null, null, null, null]], debuffs: [], seen: [[], []], turn: 0, turnNo: 1, over: false, winner: null, ctrl: ctrl || ['human', 'cpu'], names: names || ['You', 'CPU'], log: [] };
   [order0, order1].forEach((ord, s) => ord.forEach((k, i) => G.sides[s].push(makeAgent(k, s, i))));
   return G;
 }
@@ -276,6 +317,10 @@ const enemies = s => alive(1 - s);
 const log = m => { G.log.push(m); H.log(m); };
 const settleRest = (a, base) => { const r = Math.max(base + (a.knock ? 1 : 0), a.frzN || 0); a.knock = false; if (a.frzN) { a.frz = true; a.frzN = 0; } return r; };
 const adjacentOf = a => [a.slot - 1, a.slot + 1].map(i => G.sides[a.side][i]).filter(u => u && u.alive);
+const isCloaked = u => !!(u && u.cloak && u.rest > 0 && u.alive);
+const hittable = s => enemies(s).filter(f => !isCloaked(f) || G.seen[s].includes(f.uid));
+const TRACKS = { might: { k: 'STR', n: 'Might' }, accel: { k: 'AGI', n: 'Accelerate' }, mind: { k: 'BRN', n: 'Mind' } };
+const TRK = ['might', 'accel', 'mind'];
 
 // What a stat will be once this agent is picked: debuffs on it lift first, then +1 regen up to max.
 function proj(u, k) {
@@ -302,7 +347,7 @@ function attackMax(a, t, pool) {
   return capAt(t.slot) ? Math.max(0, pS - 2) : pS;
 }
 function canAttack(a) {
-  const foes = enemies(a.side);
+  const foes = hittable(a.side);
   if (!foes.length) return { ok: false, reason: 'no targets' };
   if (unst(a)) return { ok: false, reason: 'unstable slot' };
   if (a.chg > 0) return { ok: false, reason: 'charging' };
@@ -314,7 +359,7 @@ function canAttack(a) {
 }
 function abilityState(a, id) {
   const pDraw = proj(a, 'DATA'), pS = proj(a, 'STR'), pD = pDraw + Math.min(CFG.thinkMax, Math.max(0, proj(a, 'BRN')));
-  const hasFoe = enemies(a.side).length > 0;
+  const hasFoe = hittable(a.side).length > 0;
   const need = c => (pD >= c ? { ok: true, cost: c } : { ok: false, reason: 'needs ' + c + ' DATA' });
   switch (id) {
     case 'amp': if (pS >= a.max.STR + CFG.buffCap) return { ok: false, reason: 'at buff cap' }; return need(2);
@@ -325,6 +370,14 @@ function abilityState(a, id) {
     case 'makeup': if (a.makeup) return { ok: false, reason: 'already ready' }; return need(3);
     case 'fp': if (a.fp) return { ok: false, reason: 'already ready' }; return need(3);
     case 'vesp': case 'proj': if (unst(a)) return { ok: false, reason: 'unstable slot' }; if (a.bud) return { ok: false, reason: 'stationary bud' }; if (hasFoe && enemies(a.side).every(f => blk(f.slot))) return { ok: false, reason: 'slot blocked' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; return pDraw >= 1 ? { ok: true } : { ok: false, reason: 'no DATA' };
+    case 'barr': { if (unst(a)) return { ok: false, reason: 'unstable slot' }; if (a.bud) return { ok: false, reason: 'stationary bud' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; if (hittable(a.side).every(f => blk(f.slot))) return { ok: false, reason: 'slot blocked' }; return Math.min(pDraw, proj(a, 'AGI')) >= 1 ? { ok: true } : { ok: false, reason: 'needs DATA and Agility' }; }
+    case 'ach': if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(2);
+    case 'sb': if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(6);
+    case 'absb': if (a.abs) return { ok: false, reason: 'already active' }; return need(5);
+    case 'mchg': if (a.mchg) return { ok: false, reason: 'already ready' }; return need(2);
+    case 'redir': if (!abilityTargets(a, 'redir').length) return { ok: false, reason: 'no charged enemy' }; return need(3);
+    case 'gbat': case 'gknife': if (a.gs) return { ok: false, reason: 'already ready' }; return need(4);
+    case 'play': return a.playT === G.turnNo ? { ok: false, reason: 'already swapped this turn' } : { ok: true };
     case 'dep': if (a.dep > 0) return { ok: false, reason: 'already active' }; return need(3);
     case 'bd': if (a.bd) return { ok: false, reason: 'already ready' }; if (!hasFoe) return { ok: false, reason: 'no targets' }; return need(3);
     case 'bash': if (a.bash) return { ok: false, reason: 'already ready' }; return need(4);
@@ -371,13 +424,15 @@ function abilityState(a, id) {
 }
 function abilityTargets(a, id) {
   if (id === 'disch') return enemies(a.side).filter(f => f.coat && f.coat.side === a.side);
-  if (id === 'vesp') return enemies(a.side).filter(f => !blk(f.slot));
+  if (id === 'redir') return enemies(a.side).filter(f => f.charged && f.charged.by === a);
+  if (id === 'vesp') return hittable(a.side).filter(f => !blk(f.slot));
   if (id === 'teacher') return G.sides[a.side].filter(u => u.alive && u !== a);
   if (id === 'fglob') return G.sides[a.side].filter(u => u.alive && !u.glob);
-  if (id === 'rarium') return enemies(a.side).filter(f => f.rest === 0 && f.restN > 0);
-  return enemies(a.side);
+  if (id === 'rarium') return hittable(a.side).filter(f => f.rest === 0 && f.restN > 0);
+  return hittable(a.side);
 }
 function abilityView(a, ab) {
+  if (ab.id === 'play') { const nx = TRACKS[TRK[(TRK.indexOf(a.track) + 1) % TRK.length]]; return Object.assign({}, ab, { name: 'Playlist', short: 'Free: swap to ' + nx.n + ' (+2 max ' + SNAME[nx.k] + ', drops ' + TRACKS[a.track].n + '). Once per turn.' }); }
   if (ab.id === 'catnap' && a.nap) return Object.assign({}, ab, { name: 'Wake up', short: 'End the nap. This uses her pick, no other action.', text: 'End the nap. This uses her pick.' });
   if (ab.id === 'atom' && abilityTargets(a, 'disch').length) return Object.assign({}, ab, { id: 'disch', name: 'Discharge', cost: 1, target: 'enemy', short: SHORT_TXT.disch, text: 'The coated agent explodes for 5 damage. Wraith rests.' });
   if (ab.id !== 'ook') return ab;
@@ -408,8 +463,9 @@ function canAnalyse(a) { if (!a.alive || a.rest > 0) return { ok: false, reason:
 function canWake(a) {
   if (!a.alive || a.rest < 1) return { ok: false, reason: 'not resting' };
   if (a.frz || a.nap) return { ok: false, reason: 'cannot be woken' };
-  if (proj(a, 'AGI') < a.rest) return { ok: false, reason: 'needs ' + a.rest + ' Agility' };
-  return { ok: true, cost: a.rest };
+  const wc = a.fzw || a.rest;
+  if (proj(a, 'AGI') < wc) return { ok: false, reason: 'needs ' + wc + ' Agility' };
+  return { ok: true, cost: wc };
 }
 function moveOptions(a) {
   if (!a.alive || a.rest > 0 || a.nap || a.frz) return [];
@@ -471,6 +527,22 @@ async function getDefense(ctx) {
   return normDecision(ctx, d);
 }
 
+const ACT_MAX = [0, 6, 7, 9];
+async function actStep(a, full) {
+  const from = a.act;
+  if (full) a.act = from >= 3 ? 1 : from + 1;
+  else if (from > 1) a.act = 1; else return;
+  a.max.STR = ACT_MAX[a.act]; a.cur.STR = Math.min(a.cur.STR, a.max.STR + 3);
+  if (a.act === 1) a.cur.STR = Math.min(a.cur.STR, a.max.STR);
+  log(a.name + (full ? (a.act === 1 ? ' lands the finale and returns to Act I' : ' lands every point: Act ' + ['', 'I', 'II', 'III'][a.act]) : ' fails the hit and falls back to Act I'));
+  H.onChange(); await H.fx.buff(a, full && a.act > 1 ? 'ACT ' + ['', 'I', 'II', 'III'][a.act] : 'ACT I');
+}
+async function gainMomentum(t) {
+  if (!t || t.key !== 'feri' || !t.alive || t.mom >= 3) return;
+  t.mom++; t.cur.STR = Math.min(t.cur.STR + 1, t.max.STR + CFG.buffCap);
+  log(t.name + ' builds Momentum (' + t.mom + '/3): +1 Strength'); H.onChange();
+  await H.fx.buff(t, 'MOMENTUM ' + t.mom);
+}
 async function resolveHit(a, t, X, kind) {
   if (t.key === 'cray') G.sides[1 - t.side].forEach(u => { if (u.bud === t) { u.bud = null; log(u.name + "'s bud withers: it can attack again"); } });
   if (t.glob) {
@@ -512,6 +584,15 @@ async function resolveHit(a, t, X, kind) {
     await H.fx.float(t, 'DEPULSION', 'blk'); await H.fx.float(a, 'SENT BACK', 'neg');
     return { landed: false, dmg: 0 };
   }
+  if (t.abs && X > 3 && t.alive) {
+    const st = t.abs.stat; t.abs = null;
+    const add = Math.max(0, Math.min(X, t.max[st] + CFG.buffCap - t.cur[st])); t.cur[st] += add;
+    log(t.name + ' absorbs the hit: ' + X + ' damage becomes +' + add + ' ' + SNAME[st]);
+    H.onChange();
+    await H.fx.strike(a, t, X, kind, 'negate', null);
+    await H.fx.float(t, 'ABSORB', 'blk'); await H.fx.buff(t, '+' + add + ' ' + SLETTER[st]);
+    return { landed: false, dmg: 0 };
+  }
   if (t.manip && t.key === 'delilah') {
     const j = partnerOf(t);
     if (j && j.alive) {
@@ -538,7 +619,7 @@ async function resolveHit(a, t, X, kind) {
     attacker: a, target: t, X, kind, exposed,
     protectors: (a.noInt || hardened) ? [] : protectorsOf(t),
     canBlock: !exposed && !hardened && kind === 'str' && !a.sharpNow,
-    canDodge: !exposed && !hardened && t.chg < 1 && !(t.noDodge > 0) && t.cur.AGI >= X
+    canDodge: !exposed && !hardened && t.chg < 1 && !(t.noDodge > 0) && t.cur.AGI >= (a.dodgeX || X), dodgeCost: a.dodgeX || X
   };
   const d = hardened ? { type: 'take' } : await getDefense(ctx);
   let dmg = 0, byDmg = 0, counter = 0, by = null, res = 'hit';
@@ -577,9 +658,9 @@ async function resolveHit(a, t, X, kind) {
       res = dmg === 0 ? 'block' : (spent > 0 ? 'partial' : 'hit');
     }
   } else if (d.type === 'dodge') {
-    t.cur.AGI -= X;
+    const dcost = a.dodgeX || X; t.cur.AGI -= dcost;
     res = 'dodge';
-    log(t.name + ' dodges (' + X + ' Agility)');
+    log(t.name + ' dodges (' + dcost + ' Agility)');
   } else if (d.type === 'interrupt') {
     by = d.by;
     by.cur.BRN -= 1;
@@ -598,12 +679,19 @@ async function resolveHit(a, t, X, kind) {
     dmg = X; res = 'hit';
   }
   H.onChange();
-  await H.fx.strike(a, t, X, kind, res, by);
+  let skipHit = false;
+  if (a.dodgeX > 0 && res === 'hit' && dmg > 0) {
+    skipHit = true; const hits = a.dodgeX;
+    for (let i = 0; i < hits && t.alive; i++) { const per = Math.floor(dmg / hits) + (i < dmg % hits ? 1 : 0); if (per < 1) continue; await H.fx.strike(a, t, per, 'str', 'hit', null); await dealDamage(t, per, a, 'str'); }
+  }
+  if (!skipHit) await H.fx.strike(a, t, X, kind, res, by);
   if (res === 'block') ACH.blk[t.side]++;
+  if (res === 'dodge') await gainMomentum(t);
   if (dmg > 0 && (res === 'hit' || res === 'partial')) { if (ACH.ch && ACH.ch.s === a.side && ACH.ch.t === t.uid) ACH.ch.n++; else ACH.ch = { s: a.side, t: t.uid, n: 1 }; ACH.chain[a.side] = Math.max(ACH.chain[a.side], ACH.ch.n); } else ACH.ch = null;
   if ((res === 'block' || res === 'dodge') && X >= 4) credit(t.side, 1, 'Hit denied.');
 
-  if (dmg > 0) await dealDamage(t, dmg, a, kind);
+  if (dmg > 0 && !skipHit) await dealDamage(t, dmg, a, kind);
+  if (t.bleed > 0 && t.alive && dmg === 0 && res === 'block') { t.bleed--; log(t.name + ' bleeds through the block'); await H.fx.float(t, 'BLEEDING', 'neg'); await dealDamage(t, 1, a, 'data'); }
   if (dmg > 0 && t.alive && t.chg > 0) { t.chg = 0; log(t.name + "'s charge is broken"); await H.fx.float(t, 'CHARGE BROKEN', 'neg'); }
   if (byDmg > 0) await dealDamage(by, byDmg, a, kind);
   if (hardened && dmg > 0 && t.alive && a.alive) { log(t.name + ' reflects ' + dmg + ' back'); await H.fx.float(t, 'HARDEN', 'blk'); await dealDamage(a, dmg, t, 'counter'); }
@@ -622,7 +710,7 @@ async function resolveHit(a, t, X, kind) {
     }
     if (dodged && a.cur.AGI >= counter && !(a.noDodge > 0)) {
       a.cur.AGI -= counter;
-      log(a.name + ' dodges the counter');
+      log(a.name + ' dodges the counter'); await gainMomentum(a);
       H.onChange();
       await H.fx.dodge(a);
     } else {
@@ -675,11 +763,13 @@ async function doAttack(a, t, Xreq, opts) {
   if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
   if (unst(a) || a.bud) throw new Error('cannot attack');
   if (blk(t.slot)) throw new Error('slot blocked');
+  if (isCloaked(t) && !G.seen[a.side].includes(t.uid)) throw new Error('target is hidden');
   const pool = opts.pool || null;
   let X, kind, restN = a.restN;
   const prepAmp = a.ampd, prepXfer = a.xferd; a.ampd = false; a.xferd = false;
   const bash = a.bash, ua = a.ua, succ = a.succ; a.bash = false; a.ua = false; a.succ = false; a.taught = false;
   const sharp = a.sharp, ds = a.ds, stat = a.stat, lost = a.lost; a.sharp = false; a.ds = false; a.stat = false; a.lost = false; a.sharpNow = sharp;
+  const gs = a.gs, mchg = a.mchg; a.gs = null; a.mchg = false;
   const baton = a.baton, blend = a.blend, rk = a.rookie; a.baton = false; a.blend = false; a.rookie = false; a.batonNow = baton;
   if (a.fp && !pool) {
     X = CFG.fpDamage; kind = 'data'; a.fp = false; restN = 2;
@@ -699,8 +789,14 @@ async function doAttack(a, t, Xreq, opts) {
     }
   }
   if (ua || rk) restN += 1;
+  const actBid = X;
   if (a.adr && kind === 'str') { X += 1; log(a.name + ' is running on adrenaline: +1 Strength on the hit'); }
   a.noInt = succ;
+  if (a.pull) {
+    const p = a.pull; a.pull = null; const dest = G.sides[1 - a.side][p.slot];
+    if (dest && dest.alive) { log(a.name + "'s attack is pulled onto " + dest.name); await H.fx.float(a, 'PULLED', 'neg'); t = dest; }
+    else { log(a.name + "'s attack is pulled into an empty slot and wasted"); await H.fx.float(a, 'WHIFFED', 'neg'); a.noInt = false; a.rest = settleRest(a, restN); H.onChange(); return; }
+  }
   await trigAtom(a, t.slot);
   if (opts.t2 && opts.t2 !== t && opts.t2.alive) await trigAtom(a, opts.t2.slot);
   log(a.name + ' attacks ' + t.name + ' for ' + X + (kind === 'data' ? ' (DATA)' : '') + (pool ? ' (with ' + pool.name + "'s Strength)" : ''));
@@ -709,6 +805,16 @@ async function doAttack(a, t, Xreq, opts) {
   const r1 = await resolveHit(a, t, X, kind);
   const bashIt = async (tt, r) => { if (bash && r && r.landed && tt.alive && tt.rest < 1) { tt.rest = 1; log(tt.name + ' is bashed: resting 1 turn'); await H.fx.float(tt, 'BASHED', 'neg'); } };
   await bashIt(t, r1);
+  if (gs && r1 && r1.landed && t.alive) {
+    if (gs === 'baton' && r1.dmg >= X - (t.small ? 1 : 0) && !t.fzw) { t.rest = Math.min(3, Math.max(t.rest, 0) + 2); log(a.name + "'s baton lands: " + t.name + ' rests ' + t.rest); H.onChange(); await H.fx.float(t, 'BATON', 'neg'); }
+    else if (gs === 'knife') { t.bleed = 3; log(a.name + "'s knife cuts " + t.name + ': it will bleed through blocks'); H.onChange(); await H.fx.debuff(t, 'BLEEDING'); }
+  }
+  if (mchg && r1 && r1.landed && t.alive) { t.charged = { by: a, ttl: 3 }; log(a.name + ' plants a charge on ' + t.name); H.onChange(); await H.fx.debuff(t, 'CHARGED'); }
+  if (a.key === 'feri' && a.mom >= 3 && kind === 'str' && r1 && r1.landed && t.alive) {
+    const c = Math.max(1, Math.floor(Math.max(0, t.cur.AGI) / 2)); t.rest = 99; t.fzw = c; a.cur.STR = Math.max(0, a.cur.STR - a.mom); a.mom = 0;
+    log(a.name + "'s Momentum freezes " + t.name + ': it needs ' + c + ' Agility to be woken'); H.onChange(); await H.fx.float(t, 'FROZEN', 'neg');
+  }
+  if (a.act && kind === 'str' && !pool && actBid >= a.max.STR) await actStep(a, !!(r1 && r1.landed && r1.dmg >= X - (t.small ? 1 : 0)));
   if (kind === 'str' && r1 && r1.landed && r1.dmg >= X) {
     if (prepAmp && X >= 4) credit(a.side, 2, 'Devastating attack landed.');
     else if (prepXfer && X >= 3) credit(a.side, 2, 'Devastating attack landed.');
@@ -762,8 +868,8 @@ async function doProj(a, t, X, chain) {
   log(a.name + (chain ? ' stings ' : ' fires Projection at ') + t.name + ' for ' + X);
   H.onChange();
   await H.fx.declare(a, t, X, 'data', true);
-  await resolveHit(a, t, X, 'data');
-  if (chain) {
+  const rr = await resolveHit(a, t, X, 'data');
+  if (chain && rr && rr.landed && rr.dmg > 0) {
     for (const f of enemies(a.side)) { if (f !== t) { log('The sting chains to ' + f.name); await dealDamage(f, 1, a, 'data'); } }
   }
   a.rest = settleRest(a, a.restN);
@@ -1000,6 +1106,59 @@ async function doAbility(a, act) {
       a.cur.DATA -= 1; a.coll = 4; log(a.name + ' readies Collateral');
       await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'COLLATERAL');
       break;
+    case 'barr': {
+      const t = act.target; if (!t || !t.alive || t.side === a.side || blk(t.slot) || unst(a) || a.bud || (isCloaked(t) && !G.seen[a.side].includes(t.uid))) throw new Error('bad target');
+      const n = clamp(act.X | 0, 1, Math.min(5, a.cur.DATA, a.cur.AGI)); if (n < 1) throw new Error('cannot barrage');
+      a.cur.DATA -= n; a.cur.AGI -= n; await trigAtom(a, t.slot);
+      log(a.name + ' unleashes a barrage of ' + n + ' on ' + t.name + ' (' + (2 * n) + ' damage, one dodge for ' + n + ' Agility)');
+      H.onChange(); await H.fx.declare(a, t, 2 * n, 'str');
+      a.dodgeX = n; try { await resolveHit(a, t, 2 * n, 'data'); } finally { a.dodgeX = 0; }
+      a.rest = settleRest(a, Math.max(a.restN, n)); H.onChange();
+      break;
+    }
+    case 'ach': {
+      const t = act.target; if (!t || !t.alive || t.side === a.side || (isCloaked(t) && !G.seen[a.side].includes(t.uid))) throw new Error('bad target');
+      a.cur.DATA -= 2; log(a.name + ' strikes ' + t.name + "'s heel: 1 damage and -3 Agility");
+      await H.fx.dataBurst(a, 1);
+      t.cur.AGI -= 3; H.onChange(); await H.fx.debuff(t, '-3 AGI');
+      await dealDamage(t, 1, a, 'data');
+      a.rest = settleRest(a, a.restN); H.onChange();
+      break;
+    }
+    case 'sb': {
+      const t = act.target; if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
+      a.cur.DATA -= 6; const dmg = 5 + a.mom;
+      log(a.name + ' breaks the Sound Barrier on ' + t.name + ' for ' + dmg);
+      await H.fx.dataBurst(a, 3); H.onChange(); await H.fx.declare(a, t, dmg, 'data', true); await H.fx.strike(a, t, dmg, 'data', 'hit', null);
+      await dealDamage(t, dmg, a, 'data');
+      for (const n of [t.slot - 1, t.slot + 1].map(i => G.sides[t.side][i]).filter(u => u && u.alive)) {
+        log('The shockwave hits ' + n.name); n.cur.AGI -= 2; H.onChange(); await H.fx.float(n, '-2 AGI', 'neg'); await dealDamage(n, 2, a, 'data');
+      }
+      if (a.mom > 0) { a.cur.STR = Math.max(0, a.cur.STR - a.mom); a.mom = 0; }
+      a.rest = settleRest(a, a.restN); H.onChange();
+      break;
+    }
+    case 'absb': {
+      const st = STATS.includes(act.stat) ? act.stat : 'STR';
+      a.cur.DATA -= 5; a.abs = { stat: st, ttl: 3 };
+      log(a.name + ' readies Absorb (' + SNAME[st] + ')');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'ABSORB ' + SLETTER[st]);
+      break;
+    }
+    case 'mchg':
+      a.cur.DATA -= 2; a.mchg = true; log(a.name + ' readies Charge');
+      await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'CHARGE');
+      break;
+    case 'redir': {
+      const t = act.target; if (!t || !t.alive || !t.charged || t.charged.by !== a) throw new Error('bad target');
+      const slot = clamp(act.slot | 0, 0, 3);
+      a.cur.DATA -= 3; t.charged = null; t.pull = { slot, ttl: 2, src: a };
+      log(a.name + ' redirects ' + t.name + ': its next attack is pulled onto slot ' + (slot + 1));
+      await H.fx.dataBurst(a, 1); await H.fx.debuff(t, 'REDIRECTED');
+      break;
+    }
+    case 'gbat': a.cur.DATA -= 4; a.gs = 'baton'; log(a.name + ' readies the Baton'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'BATON'); break;
+    case 'gknife': a.cur.DATA -= 4; a.gs = 'knife'; log(a.name + ' readies the Knife'); await H.fx.dataBurst(a, 1); await H.fx.buff(a, 'KNIFE'); break;
     case 'bb': {
       const ally = act.ally, t = act.target;
       if (!ally || !ally.alive || ally === a || ally.side !== a.side || ally.cur.STR < 1) throw new Error('bad ally');
@@ -1056,7 +1215,7 @@ async function doAnalyse(a, t, X) {
   a.cur.BRN -= X; log(a.name + ' bids ' + X + ' Brains to analyse ' + t.name); H.onChange();
   await H.fx.buff(a, '-' + X + ' B');
   let r = 0;
-  if (t.cur.BRN >= X) {
+  if (t.cur.BRN >= X && !isCloaked(t)) {
     const ctx = { attacker: a, target: t, bid: X };
     let d;
     if (G.ctrl[t.side] === 'human' && H.askResist) d = await H.askResist(ctx);
@@ -1079,10 +1238,13 @@ function aiResist(c) {
 async function executeAction(act) {
   if (G.over) return;
   const side = G.turn;
+  const snap = (G.cr.snap = G.cr.snap || [[], []])[side]; snap.push(ACH.ctr[1 - side]);
   if (act.type === 'pass') {
     if (act.skip) { for (const u of G.sides[side]) if (u.alive && u.cur.BRN < u.max.BRN) { u.cur.BRN += 1; log(u.name + ' refocuses: +1 Brains'); H.onChange(); await H.fx.buff(u, '+1 B'); } }
-    if (act.skip) { const me = G.sides[side].filter(u => u.alive), en = G.sides[1 - side].some(u => u.alive && u.rest === 0 && u.cur.STR > 0);
-      if (en && me.length && me.every(u => u.rest === 0 && !u.nap && ['STR', 'AGI', 'BRN', 'DATA'].every(k => u.cur[k] >= u.max[k]))) credit(side, 2, 'Recognition.'); }
+    /* Recognition: only when a rest was forced on you (whole squad resting) or the enemy keeps countering you; max 2 per match */
+    { const me = G.sides[side].filter(u => u.alive), foe = G.sides[1 - side].some(u => u.alive), cn = ACH.ctr[1 - side] - snap[Math.max(0, snap.length - 3)];
+      const stuck = me.length && me.every(u => u.rest > 0), pressed = act.skip && cn >= 2;
+      if (foe && G.cr.rec[side] < 2 && (stuck || pressed)) { G.cr.rec[side]++; G.cr.ctr0[side] = ACH.ctr[1 - side]; credit(side, 2, 'Recognition.'); } }
     log(act.skip ? G.names[side] + (G.names[side] === 'You' ? ' skip' : ' skips') + ' the turn.' : G.names[side] + ': no agent ready, turn passes.');
     await finishTurn(side, null);
     return;
@@ -1090,10 +1252,11 @@ async function executeAction(act) {
   if (act.type === 'wake' || act.type === 'move') {
     const w = act.agent;
     if (!w || !w.alive || w.side !== side) throw new Error('illegal pick');
-    expireDebuffsOn(w); regen(w);
+    expireDebuffsOn(w); regen(w); w.cloak = false;
     if (act.type === 'wake') {
-      if (w.rest < 1 || w.frz || w.nap || w.cur.AGI < w.rest) throw new Error('cannot wake');
-      const c = w.rest; w.cur.AGI -= c; w.rest = 0; log(w.name + ' is woken for ' + c + ' Agility'); H.onChange();
+      const c = w.fzw || w.rest;
+      if (w.rest < 1 || w.frz || w.nap || w.cur.AGI < c) throw new Error('cannot wake');
+      w.cur.AGI -= c; w.rest = 0; w.fzw = 0; w.cloak = false; log(w.name + ' is woken for ' + c + ' Agility'); H.onChange();
       await H.fx.pick(w); await H.fx.float(w, 'AWAKE', 'blk');
     } else {
       const dead = G.sides[side].find(u => !u.alive && u.slot === act.to), c = dead ? Math.abs(dead.slot - w.slot) : 99;
@@ -1106,6 +1269,16 @@ async function executeAction(act) {
     await finishTurn(side, w);
     return;
   }
+  if (act.type === 'playlist') {
+    const w = act.agent; if (!w || !w.alive || w.side !== side || w.key !== 'feri' || w.rest > 0 || w.playT === G.turnNo) throw new Error('cannot swap track');
+    const nx = (act.to && TRACKS[act.to] && act.to !== w.track) ? act.to : TRK[(TRK.indexOf(w.track) + 1) % TRK.length];
+    const o = TRACKS[w.track], n = TRACKS[nx];
+    w.max[o.k] -= 2; w.cur[o.k] = Math.min(w.cur[o.k], w.max[o.k] + CFG.buffCap);
+    w.max[n.k] += 2; w.cur[n.k] = Math.min(w.cur[n.k] + 2, w.max[n.k] + CFG.buffCap);
+    w.track = nx; w.playT = G.turnNo; log(w.name + ' swaps the track: ' + n.n + ' (+2 max ' + SNAME[n.k] + ')'); H.onChange();
+    await H.fx.buff(w, 'TRACK: ' + n.n.toUpperCase());
+    return;
+  }
   if (act.type === 'analyse') {
     const w = act.agent; if (!w || !w.alive || w.side !== side) throw new Error('illegal pick');
     await doAnalyse(w, act.target, act.X || 1);
@@ -1113,7 +1286,7 @@ async function executeAction(act) {
   }
   const a = act.agent;
   if (!a || !a.alive || a.side !== side || a.rest > 0) throw new Error('illegal pick');
-  expireDebuffsOn(a);
+  expireDebuffsOn(a); a.cloak = false;
   if (!a.adr && G.sides[side].length > 1 && alive(side).length === 1) { a.adr = true; log(a.name + ' is the last one standing: adrenaline, every attack hits +1'); H.onChange(); await H.fx.float(a, 'ADRENALINE', 'blk'); }
   regen(a);
   { const pp = partnerOf(a); if (pp && pp.alive) regen(pp); }
@@ -1146,6 +1319,8 @@ async function executeAction(act) {
 
 async function finishTurn(side, actor) {
   G.seen[side] = [];
+  if (actor && actor.key === 'aimee' && actor.alive && actor.rest > 0) actor.cloak = true;
+  G.sides[side].forEach(u => { if (!u.alive) return; if (u.pull) { u.pull.ttl--; if (u.pull.ttl <= 0) u.pull = null; } if (u.charged) { u.charged.ttl--; if (u.charged.ttl <= 0) u.charged = null; } });
   for (const d of [...G.debuffs]) {
     if (!d.target.alive) { G.debuffs = G.debuffs.filter(x => x !== d); continue; }
     if (d.src === actor) d.idle = 0; else d.idle++;
@@ -1158,6 +1333,7 @@ async function finishTurn(side, actor) {
   G.sides[1 - side].forEach(u => {
     if (!u.alive) return;
     if (u.dep > 0) { u.dep--; if (!u.dep) log(u.name + "'s Depulsion fades."); }
+    if (u.abs) { u.abs.ttl--; if (u.abs.ttl <= 0) { u.abs = null; log(u.name + "'s Absorb fades."); } }
     if (u.dc > 0) { u.dc--; if (!u.dc) log(u.name + "'s Depu-counter fades."); }
     if (u.imp > 0) { u.imp--; if (!u.imp) log(u.name + "'s Impression fades."); }
     if (u.harden > 0) { u.harden--; if (!u.harden) log(u.name + "'s Harden fades."); }
@@ -1169,7 +1345,7 @@ async function finishTurn(side, actor) {
     if (u.alive && u.hm > 0) { u.hm--; if (!u.hm && G.ctrl[1 - u.side] !== 'human') log(u.name + " He's Mine fades."); } }));
   G.sides[side].forEach(u => { if (u.alive && u.nap && u !== actor) u.cur.STR = Math.min(CFG.napMax, u.cur.STR + 1); });
   G.sides[side].forEach(u => { if (u.alive && u.noDodge > 0) u.noDodge--; });
-  G.sides[side].forEach(u => { if (u.alive && u !== actor && u.rest > 0) { u.rest--; if (u.rest === 0) u.frz = false; } });
+  G.sides[side].forEach(u => { if (u.alive && u !== actor && u.rest > 0 && !u.fzw) { u.rest--; if (u.rest === 0) u.frz = false; } });
   const a0 = alive(0).length, a1 = alive(1).length;
   if (a0 === 0 || a1 === 0) { G.over = true; G.winner = a0 === 0 && a1 === 0 ? -1 : (a0 === 0 ? 1 : 0);
     const w = G.winner; if (w >= 0) {
@@ -1258,9 +1434,10 @@ function aiDefendBase(ctx) {
 }
 
 const trapOf = f => (f.dep > 0 ? 3.5 : 0) + (f.dc > 0 ? 3 : 0) + (f.harden > 0 ? 1.5 : 0) + (f.imp > 0 && f.coat !== null ? 0 : 0);
+const adjFoes = f => [f.slot - 1, f.slot + 1].map(i => G.sides[f.side][i]).filter(u => u && u.alive).length;
 function aiChoose(side) {
   const AIL = AILS[side];
-  const me = alive(side), foes = enemies(side);
+  const me = alive(side), foes = hittable(side);
   const avail = me.filter(u => u.rest === 0);
   if (!avail.length) return { type: 'pass' };
   const C = [];
@@ -1301,6 +1478,21 @@ function aiChoose(side) {
     if (a.key === 'wren') {
       if (ok('qm')) { const f = foes.slice().sort((p, q) => q.cur.BRN - p.cur.BRN)[0]; if (f && f.cur.BRN >= 2 && !G.debuffs.some(d => d.target === f)) push(1.5, { type: 'ability', agent: a, id: 'qm', target: f }); }
       if (ok('cap')) { const mine = alive(side).slice().sort((p, q) => p.hp - q.hp)[0]; if (mine && !capAt(mine.slot)) push(1.3, { type: 'ability', agent: a, id: 'cap', slot: mine.slot }); }
+    }
+    if (a.key === 'aimee') {
+      const nb = Math.min(4, Math.floor(proj(a, 'DATA')), Math.floor(proj(a, 'AGI')));
+      if (ok('barr') && nb >= 2) foes.filter(f => !blk(f.slot)).forEach(f => push(nb * 0.9 + (f.hp <= 2 * nb ? 3 : 0) - (f.rest === 0 && f.cur.AGI >= nb ? 1.3 : 0) - nb * 0.25, { type: 'ability', agent: a, id: 'barr', target: f, X: nb }));
+      if (ok('ach')) { const f = foes.filter(g => g.cur.AGI >= 2).sort((p, q) => q.cur.AGI - p.cur.AGI)[0]; if (f) push(1.5 + (f.hp <= 1 ? 3 : 0), { type: 'ability', agent: a, id: 'ach', target: f }); }
+    }
+    if (a.key === 'feri' && ok('sb')) foes.forEach(f => push(2.0 + (f.hp <= 5 + a.mom ? 3 : 0) + adjFoes(f) * 0.5, { type: 'ability', agent: a, id: 'sb', target: f }));
+    if (a.key === 'marsh') {
+      if (ok('absb') && foes.some(f => f.cur.STR >= 4)) push(1.4, { type: 'ability', agent: a, id: 'absb', stat: STATS.slice().sort((p, q) => (a.max[q] - a.cur[q]) - (a.max[p] - a.cur[p]))[0] === 'AGI' ? 'STR' : STATS.slice().sort((p, q) => (a.max[q] - a.cur[q]) - (a.max[p] - a.cur[p]))[0] });
+      if (ok('mchg') && pS >= 3) push(1.2, { type: 'ability', agent: a, id: 'mchg' });
+      if (ok('redir')) { const f = abilityTargets(a, 'redir')[0]; const dead = G.sides[side].find(u => !u.alive); const slot = dead ? dead.slot : alive(side).slice().sort((p, q) => q.hp - p.hp)[0].slot; if (f) push(1.8, { type: 'ability', agent: a, id: 'redir', target: f, slot }); }
+    }
+    if (a.key === 'griff') {
+      if (ok('gbat') && pS >= 4) push(1.6, { type: 'ability', agent: a, id: 'gbat' });
+      if (ok('gknife') && pS >= 3) push(1.4, { type: 'ability', agent: a, id: 'gknife' });
     }
     if (a.key === 'cathy') {
       if (ok('makeup') && guard > 0) push(2.0, { type: 'ability', agent: a, id: 'makeup' });
@@ -1427,7 +1619,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-44', setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-59', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);
