@@ -1619,7 +1619,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-59', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-62', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);
