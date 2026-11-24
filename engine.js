@@ -1273,8 +1273,8 @@ async function executeAction(act) {
     const w = act.agent; if (!w || !w.alive || w.side !== side || w.key !== 'feri' || w.rest > 0 || w.playT === G.turnNo) throw new Error('cannot swap track');
     const nx = (act.to && TRACKS[act.to] && act.to !== w.track) ? act.to : TRK[(TRK.indexOf(w.track) + 1) % TRK.length];
     const o = TRACKS[w.track], n = TRACKS[nx];
-    w.max[o.k] -= 2; w.cur[o.k] = Math.min(w.cur[o.k], w.max[o.k] + CFG.buffCap);
-    w.max[n.k] += 2; w.cur[n.k] = Math.min(w.cur[n.k] + 2, w.max[n.k] + CFG.buffCap);
+    w.max[o.k] -= 2; w.cur[o.k] = Math.min(w.cur[o.k], w.max[o.k] + (o.k === 'STR' ? w.mom : 0));
+    w.max[n.k] += 2; w.cur[n.k] = Math.min(w.cur[n.k] + 2, w.max[n.k] + (n.k === 'STR' ? w.mom : 0));
     w.track = nx; w.playT = G.turnNo; log(w.name + ' swaps the track: ' + n.n + ' (+2 max ' + SNAME[n.k] + ')'); H.onChange();
     await H.fx.buff(w, 'TRACK: ' + n.n.toUpperCase());
     return;
@@ -1619,7 +1619,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-64', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-65', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);
