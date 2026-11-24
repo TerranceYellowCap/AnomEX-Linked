@@ -899,6 +899,7 @@ function openAbil(u) {
     b.style.setProperty('--i', i); b.type = 'button'; b.disabled = !st.ok; b.setAttribute('role', 'menuitem');
     b.addEventListener('click', e => {
       e.stopPropagation(); sfx('tick');
+      if (ab.id === 'play') return trackMenu(u, box, b);
       if (needs) {
         if (UI.armed === ab.id) return commit({ type: 'ability', agent: u, id: ab.id });
         UI.armed = ab.id; $$('.abil', box).forEach(x => x.classList.remove('armed')); b.classList.add('armed'); return;
@@ -911,6 +912,21 @@ function openAbil(u) {
   slot.appendChild(box);
   camEl(slot, { panX: side === 'r' ? 0.26 : 0.74, sc: 1.3, free: true, rx: 9, cy: 0.42 });
   hintSet('DATA', 'Pick an ability, or hit Back.');
+}
+function trackMenu(u, box, btn) {
+  const slot = box.parentElement, side = box.classList.contains('r') ? 'r' : 'l', pan = f => camEl(slot, { panX: side === 'r' ? f : 1 - f, sc: 1.3, free: true, rx: 9, cy: 0.42 });
+  const old = $('.trksub', box); if (old) { old.remove(); btn.classList.remove('opn'); pan(0.26); return; }
+  const sub = el('div', 'trksub'); sub.setAttribute('role', 'menu');
+  Object.keys(E.TRACKS).forEach(key => {
+    const T = E.TRACKS[key], on = u.track === key;
+    const b = el('button', 'trk' + (on ? ' on' : ''), `<b>${T.n}</b><small>${on ? 'playing' : '+2 ' + T.k}</small>`); b.type = 'button'; b.disabled = on; b.setAttribute('role', 'menuitem');
+    b.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); commit({ type: 'playlist', agent: u, to: key }); });
+    sub.appendChild(b);
+  });
+  sub.addEventListener('click', e => e.stopPropagation()); sub.addEventListener('pointerdown', e => e.stopPropagation());
+  sub.style.top = btn.offsetTop + 'px'; sub.style.minHeight = btn.offsetHeight + 'px';
+  box.appendChild(sub); btn.classList.add('opn');
+  if (!box.classList.contains('sheet')) pan(0.15);
 }
 function useAbility(u, ab) {
   $$('.abil').forEach(b => b.classList.add('out'));

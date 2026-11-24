@@ -221,7 +221,7 @@ const DEFS = {
     blurb: 'Dodging builds Momentum. Her Playlist boosts a max stat, and three Momentum freezes whoever she hits.',
     stats: { STR: 3, AGI: 3, BRN: 3, DATA: 3 }, hp: 20, rest: 3,
     abilities: [
-      { id: 'play', name: 'Playlist', cost: 0, target: 'none', text: 'Free, once per turn: swap the track. Might = +2 max Strength, Accelerate = +2 max Agility, Mind = +2 max Brains. Does not use her pick.' },
+      { id: 'play', name: 'Playlist', cost: 0, target: 'none', text: 'Free, once per turn: swap the track. Might = +2 max Strength, Accelerate = +2 max Agility, Mind = +2 max Brains, Surge = +2 max DATA. Does not use her pick.' },
       { id: 'sb', name: 'Sound Barrier', cost: 6, target: 'enemy', text: 'A guaranteed sonic hit of 5 (+1 per Momentum) that nothing can stop. A shockwave hits the neighbours for 2 and -2 Agility. Spends her Momentum.' }
     ]
   },
@@ -319,8 +319,8 @@ const settleRest = (a, base) => { const r = Math.max(base + (a.knock ? 1 : 0), a
 const adjacentOf = a => [a.slot - 1, a.slot + 1].map(i => G.sides[a.side][i]).filter(u => u && u.alive);
 const isCloaked = u => !!(u && u.cloak && u.rest > 0 && u.alive);
 const hittable = s => enemies(s).filter(f => !isCloaked(f) || G.seen[s].includes(f.uid));
-const TRACKS = { might: { k: 'STR', n: 'Might' }, accel: { k: 'AGI', n: 'Accelerate' }, mind: { k: 'BRN', n: 'Mind' } };
-const TRK = ['might', 'accel', 'mind'];
+const TRACKS = { might: { k: 'STR', n: 'Might' }, accel: { k: 'AGI', n: 'Accelerate' }, mind: { k: 'BRN', n: 'Mind' }, surge: { k: 'DATA', n: 'Surge' } };
+const TRK = ['might', 'accel', 'mind', 'surge'];
 
 // What a stat will be once this agent is picked: debuffs on it lift first, then +1 regen up to max.
 function proj(u, k) {
@@ -1619,7 +1619,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-62', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-64', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);
