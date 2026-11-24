@@ -3,6 +3,9 @@
 'use strict';
 const E = window.Duel;
 const { DEFS, STATS, SNAME, ROLE, CFG } = E;
+/* lore codenames replace the role line on cards; the real role stays in the inspect view */
+const CODE = { argo: 'The Sullen', jane: 'The Secretary', cathy: 'White Thread', wren: 'Artificer', edica: 'Hestia', ellie: 'The Ungracer', miera: 'Lilith', opal: 'Black Damsel', rarity: 'Urshanabi', echidna: 'Enkidu', julian: 'The Wreck', delilah: 'The Wreckess', wraith: 'Nocturna', cray: 'The Seisman', neko: 'The Feline', nessy: 'Vesp', tyrees: 'Calico', argithia: 'Lady Luck', frey: 'Bloometh', mason: 'The Spokesman' };
+Object.keys(CODE).forEach(k => { if (DEFS[k]) { DEFS[k].realRole = DEFS[k].role; DEFS[k].role = CODE[k]; } });
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
@@ -98,6 +101,7 @@ function sfx(name, p = 1) {
       case 'msg2': fm(ac, 1100, 2, 0.4, 0.12, 0.025); break;
       case 'csend': osc(ac, 'sine', 520, 760, 0.07, 0.03, 0, 0.004); break;
       case 'copen': osc(ac, 'sine', 400, 640, 0.09, 0.03, 0, 0.004); break;
+      case 'mstart': osc(ac, 'sine', 70, 55, 0.9, 0.35, 0, 0.004); nz(ac, 0.6, 0.12, 0, 0, 400, 5200); fm(ac, 330, 2.01, 1.2, 0.9, 0.05, 0.05); [660, 880, 1320].forEach((f, i) => fm(ac, f, 2, 0.4, 0.5, 0.04, 0.5 + i * 0.1)); break;
       case 'twinkle': fm(ac, 1760, 2, 0.5, 0.2, 0.045); fm(ac, 2640, 2, 0.4, 0.18, 0.03, 0.06); break;
       case 'die': osc(ac, 'sine', 110, 26, 0.7, 0.4, 0, 0.004); nz(ac, 0.5, 0.14, 0, 0, 1800, 180); fm(ac, 330, 1.5, 2, 0.45, 0.05); break;
       case 'win': [523, 659, 784, 1047].forEach((f, i) => { fm(ac, f, 2, 0.5, 0.45, 0.07, i * 0.11); fm(ac, f * 2, 1, 0.2, 0.35, 0.025, i * 0.11); }); break;
@@ -1520,7 +1524,7 @@ function showInspect(u) {
   ov.innerHTML = `<div class="inner holo" style="display:flex;flex-direction:column;align-items:center">
     <div class="hstage"><div class="hbeam"></div><div class="hbase"><i></i><i></i></div><div class="hfloat"><div class="bigslot"><div class="hsheen"></div><div class="hscan"></div></div></div></div>
     <div class="det hp3d">
-    <h2 style="font-size:17px">${d.name}</h2><p style="margin:0 0 8px">${d.role.toUpperCase()} &middot; ${ROLE[u.slot]} slot ${u.slot + 1} &middot; rests ${d.rest} after acting${u.rest > 0 ? ' (resting ' + u.rest + ')' : ''}</p>
+    <h2 style="font-size:17px">${d.name}</h2><p style="margin:0 0 8px">${d.role.toUpperCase()} &middot; ${(d.realRole || '').toUpperCase()} &middot; ${ROLE[u.slot]} slot ${u.slot + 1} &middot; rests ${d.rest} after acting${u.rest > 0 ? ' (resting ' + u.rest + ')' : ''}</p>
     <div class="hr"><div><b>${u.hp}/${u.maxhp}</b>HP</div>${STATS.map(k => `<div><b>${hid(u) ? '?' : v(k) === u.max[k] ? mxs(u, k, v(k)) : v(k) + '/' + mxs(u, k, u.max[k])}</b>${k === 'DATA' ? 'DATA' : k}</div>`).join('')}</div>
     ${d.abilities.map(a => `<div class="ab"><span>${a.cost === 'X' ? 'X DATA' : (a.id === 'fp' ? 'ALL DATA' : a.cost + ' DATA')}</span><b>${a.name}</b><br>${a.text}</div>`).join('')}
     <p>${d.blurb}</p><div class="btnrow"><button class="btn primary" type="button" id="inspClose">Close</button></div></div></div>`;
@@ -1537,7 +1541,7 @@ function showInspect(u) {
   const close = () => { ov.classList.remove('on'); };
   $('#inspClose').onclick = close; ov.onclick = e => { if (e.target === ov || e.target.classList.contains('inner')) close(); };
 }
-function closePanels() { $$('.ov').forEach(o => { if (o.id !== 'arrange' && o.id !== 'over') o.classList.remove('on'); }); }
+function closePanels() { $$('.ov').forEach(o => { if (o.id !== 'arrange' && o.id !== 'over' && o.id !== 'title') o.classList.remove('on'); }); }
 function showPanel(html, after) { const p = $('#panel'); p.innerHTML = `<div class="inner">${html}</div>`; p.classList.add('on'); const c = $('.pclose', p); if (c) { c.onclick = () => p.classList.remove('on'); c.focus({ preventScroll: true }); } if (after) after(p); }
 function showRules() {
   const S = {
@@ -1756,14 +1760,57 @@ function showTune() {
   });
 }
 window.addEventListener('touchmove', e => { if (UI.dnd && e.cancelable) e.preventDefault(); }, { passive: false });
+/* ---------- theme, title screen, settings, mission start ---------- */
+function applyTheme() {
+  const light = prefs.theme === 'light';
+  document.documentElement.classList.toggle('light', light);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = light ? '#ffffff' : '#000000';
+}
+function showSettings() {
+  showPanel(`<h2>Settings</h2>
+  <div class="field"><label>Sound</label><div class="seg"><button class="btn" type="button" id="sOn">On</button><button class="btn" type="button" id="sOff">Off</button></div></div>
+  <div class="field"><label>Theme</label><div class="seg"><button class="btn" type="button" id="thDark">Dark</button><button class="btn" type="button" id="thLight">Light</button></div><small>Light inverts the whole archive: white becomes black. DATA keeps its colour.</small></div>
+  <div class="btnrow col opts"><button class="btn" type="button" id="sTune">Tune (test knobs)</button></div>
+  <div class="btnrow"><button class="btn primary pclose" type="button">Done</button></div><p class="note" style="text-align:center;margin-top:14px">Version ${E.VERSION}</p>`, p => {
+    const sync = () => { $('#sOn', p).classList.toggle('on', !!prefs.sfx); $('#sOff', p).classList.toggle('on', !prefs.sfx); $('#thDark', p).classList.toggle('on', prefs.theme !== 'light'); $('#thLight', p).classList.toggle('on', prefs.theme === 'light'); };
+    $('#sOn', p).onclick = () => { prefs.sfx = true; savePrefs(); sync(); sfx('tick'); }; $('#sOff', p).onclick = () => { prefs.sfx = false; savePrefs(); sync(); };
+    $('#thDark', p).onclick = () => { prefs.theme = 'dark'; savePrefs(); applyTheme(); sync(); sfx('tick'); }; $('#thLight', p).onclick = () => { prefs.theme = 'light'; savePrefs(); applyTheme(); sync(); sfx('tick'); };
+    $('#sTune', p).onclick = () => { sfx('tick'); showTune(); };
+    sync();
+  });
+}
+function showTitle() {
+  UI.mode = 'title'; const ov = $('#title'); $('#arrange').classList.remove('on'); $('#over').classList.remove('on'); closePanels(); ov.classList.add('on');
+  const lobby = !!(ONL && ONL.lobby && !ONL.playing);
+  const pool = ROSTER_ALL.filter(k => DEFS[k]).slice(); for (let i = pool.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  ov.innerHTML = `<div class="tscan"></div>
+  <div class="tcore"><div class="tlogo"><b>${[...'ANOMEX'].map((c, i) => `<span style="--i:${i}">${c}</span>`).join('')}</b><em>LINKED</em></div>
+  <p class="tsub">Archive link established</p>
+  <div class="tmenu"><button class="tbtn main" type="button" id="tPlay">${lobby ? 'Back to lobby' : 'Play'}</button>
+  <div class="tgrid"><button class="tbtn" type="button" id="tOnl">Online</button><button class="tbtn" type="button" id="tDaily">Daily${dailyDone() ? ' ' + '★'.repeat(prefs.dStars || 0) : ''}</button><button class="tbtn" type="button" id="tChal">Challenges <i>${chalDone()}/${CHALS.length}</i></button><button class="tbtn" type="button" id="tTut">${prefs.tutDone ? 'Tutorials' : 'Tutorials <i>new</i>'}</button><button class="tbtn" type="button" id="tRules">Rules</button><button class="tbtn" type="button" id="tSet">Settings</button></div></div>
+  <small class="tver">${E.VERSION}</small></div>`;
+  const go = (id, fn) => { $(id, ov).onclick = () => { sfx('tick'); fn(); }; };
+  go('#tPlay', () => { if (lobby) ONL.lobby(); else showArrange(); }); go('#tOnl', () => { if (lobby) ONL.lobby(); else showOnline(); });
+  go('#tDaily', showDaily); go('#tChal', showChallenges); go('#tTut', showTutorials); go('#tRules', showRules); go('#tSet', showSettings);
+}
+async function missionStart(label, sub) {
+  const gid = loopId, v = el('div', 'mis'); v.id = 'mis';
+  v.innerHTML = `<div class="mgrid"></div><div class="mline top"></div><div class="mline bot"></div><div class="mtag">${esc(sub || '')}</div><div class="mtxt">${[...(label || 'MISSION START')].map((c, i) => `<span style="--i:${i}">${c === ' ' ? '&nbsp;' : c}</span>`).join('')}</div><div class="msub">Tap to skip</div>`;
+  document.body.appendChild(v);
+  let skip = false; v.addEventListener('pointerdown', () => { skip = true; });
+  const wait = async ms => { const t0 = performance.now(); while (!skip && performance.now() - t0 < ms) await sleep(40); };
+  sfx('mstart');
+  await wait(RM ? 900 : 2100);
+  v.classList.add('out'); await sleep(RM ? 0 : 380); v.remove();
+}
 function showArrange() {
-  UI.mode = 'arrange'; let sel = 0, swapping = false, first = true, dragEnd = 0, lq = '', lsort = 'deck', ldir = 1; const ov = $('#arrange'); ov.classList.add('on'); $('#over').classList.remove('on');
+  UI.mode = 'arrange'; let sel = 0, swapping = false, first = true, dragEnd = 0, lq = '', lsort = 'deck', ldir = 1; const ov = $('#arrange'); ov.classList.add('on'); $('#over').classList.remove('on'); $('#title').classList.remove('on');
   const statBar = (k, v, d) => `<div class="sb"><span class="sl"><img src="${ICO[k]}" alt="">${SHORT[k]}</span><span class="st"><i style="--w:${Math.min(100, v / 10 * 100)}%"></i></span><b>${v}</b></div>`;
   const panel = key => {
     if (!key) return `<div class="ahead"><b>Empty slot</b><span>${ROLE[sel]} ${sel + 1}</span></div><p class="blurb">Pick an agent from the roster below and tap Add to squad, drag one in, or hit Random.</p>`;
     const d = DEFS[key], st0 = E.statsFor(key, sel), hp = Math.max(1, Math.round(d.hp * prefs.hp)), slotNote = sel < 4 ? (sel === 0 || sel === 3 ? 'Guard slot: can interrupt for the agent beside them' : 'Attack slot: hits harder, nobody guards for it') : 'On the bench';
     const brnNote = (E.statsFor(key, sel).BRN < 1 ? ' Has no Brains, so it cannot interrupt for a teammate.' : '') + (d.pair ? ' Must sit next to ' + DEFS[d.pair].name + ' (both or neither).' : '');
-    return `<div class="ahead"><b>${d.name}</b><span>${d.role.toUpperCase()} &middot; rests ${d.rest} after acting &middot; costs ${d.cost} hiring point${d.cost > 1 ? 's' : ''}</span></div>
+    return `<div class="ahead"><b>${d.name}</b><span>${d.role.toUpperCase()} &middot; ${(d.realRole || '').toUpperCase()} &middot; rests ${d.rest} after acting &middot; costs ${d.cost} hiring point${d.cost > 1 ? 's' : ''}</span></div>
       <p class="blurb">${d.blurb}</p>
       <div class="hpbig"><b>${hp}</b><span>HP in duel &middot; ${d.hp} on card at ${Math.round(prefs.hp * 100)}% Tune</span></div>
       <div class="sbs">${STATS.map(k => statBar(k, st0[k])).join('')}</div>
@@ -1780,7 +1827,7 @@ function showArrange() {
       <div class="swaprow"></div>
       <div class="apanel"></div>
       <div class="cpurow"><span>CPU level</span>${[1, 2, 3, 4, 5].map(n => `<button class="lchip${prefs.ai === n ? ' on' : ''}" type="button" data-ai="${n}">${n}</button>`).join('')}<b id="aiName">${AI_NAMES[prefs.ai]}</b></div>
-      <div class="btnrow" style="width:min(100%,420px)"><button class="btn" type="button" id="aRules">Rules</button><button class="btn" type="button" id="aTune">Tune</button><button class="btn" type="button" id="aOnl">Online</button><button class="btn primary" type="button" id="aGo">Start duel</button></div><div class="btnrow" style="width:min(100%,420px)"><button class="btn" type="button" id="aChal">Challenges ${chalDone()}/${CHALS.length}</button><button class="btn" type="button" id="aDaily">Daily${dailyDone() ? ' ' + '\u2605'.repeat(prefs.dStars || 0) : ''}</button><button class="btn ghost" type="button" id="aTut">${prefs.tutDone ? 'Tutorial' : 'New here? Play the tutorial'}</button></div></div>`;
+      <div class="btnrow abot"><button class="btn" type="button" id="aMenu">Menu</button><button class="btn" type="button" id="aOnl" style="display:none">Back to lobby</button><button class="btn primary" type="button" id="aGo">Start duel</button></div></div>`;
     const bar = $('.decks', ov), dkrow = $('.dkrow', ov);
     decks.forEach((d, i) => { const b = el('button', 'dk' + (i === activeDeck ? ' on' : '')); b.type = 'button'; b.textContent = d.name; b.onclick = () => { if (i === activeDeck) return; sfx('tick'); activeDeck = i; roster = decks[i].order; saveDecks(); sel = 0; swapping = false; first = true; draw(); }; bar.appendChild(b); });
     if (decks.length < 5) { const b = el('button', 'dk add', '+'); b.type = 'button'; b.setAttribute('aria-label', 'New deck'); b.onclick = () => { sfx('tick'); decks.push({ name: 'Deck ' + (decks.length + 1), order: emptyOrder() }); activeDeck = decks.length - 1; roster = decks[activeDeck].order; saveDecks(); sel = 0; swapping = false; first = true; draw(); }; bar.appendChild(b); }
@@ -1893,7 +1940,7 @@ function showArrange() {
       if (!swapping) mkB('Remove from squad', '', () => { let bn = roster.findIndex((k, q) => q >= 4 && !k); if (bn < 0) { roster.push(null); bn = roster.length - 1; } const from = sel; roster[bn] = roster[from]; roster[from] = null; swapping = false; UI.landed = null; saveDecks(); sfx('whoosh'); draw(); });
     }
     $$('.cpurow .lchip', ov).forEach(b => { b.onclick = () => { prefs.ai = +b.dataset.ai; savePrefs(); sfx('tick'); $$('.cpurow .lchip', ov).forEach(x => x.classList.toggle('on', x === b)); $('#aiName', ov).textContent = AI_NAMES[prefs.ai]; }; });
-    $('#aTut').onclick = () => { sfx('tick'); showTutorials(); }; $('#aDaily').onclick = () => { sfx('tick'); showDaily(); }; $('#aChal').onclick = () => { sfx('tick'); showChallenges(); }; $('#aRules').onclick = showRules; $('#aTune').onclick = showTune; $('#aOnl').onclick = () => { sfx('tick'); if (ONL && ONL.lobby && !ONL.playing) ONL.lobby(); else showOnline(); }; if (ONL && ONL.lobby && !ONL.playing) { $('#aOnl').textContent = 'Back to lobby'; $('#aGo').style.display = 'none'; } $('#aGo').onclick = () => { sfx('tick'); startGame(); };
+    $('#aMenu').onclick = () => { sfx('tick'); showTitle(); }; if (ONL && ONL.lobby && !ONL.playing) { $('#aOnl').style.display = ''; $('#aOnl').onclick = () => { sfx('tick'); ONL.lobby(); }; $('#aGo').style.display = 'none'; } $('#aGo').onclick = () => { sfx('tick'); startGame(); };
   };
   ov.onscroll = () => ov.classList.toggle('scrolled', ov.scrollTop > 30);
   ov.classList.remove('scrolled'); draw();
@@ -1964,12 +2011,12 @@ function quitToSquad() { tutKill(); loopId++; closeMenus(); stopHint(); $('#pane
 function showOptions() {
   const live = !!(G && !G.over && !$('#arrange').classList.contains('on') && !(ONL && ONL.ended));
   const online = !!(ONL && ONL.playing);
-  showPanel(`<h2>Options</h2><div class="btnrow col opts"><button class="btn" type="button" id="opRules">Rules</button>${live ? '' : '<button class="btn" type="button" id="opTut">Tutorials</button>'}<button class="btn" type="button" id="opLog">Log</button><button class="btn" type="button" id="opTune">Tune</button><button class="btn" type="button" id="opSnd"></button></div>
+  showPanel(`<h2>Options</h2><div class="btnrow col opts"><button class="btn" type="button" id="opRules">Rules</button>${live ? '' : '<button class="btn" type="button" id="opTut">Tutorials</button>'}<button class="btn" type="button" id="opLog">Log</button><button class="btn" type="button" id="opSet">Settings</button><button class="btn" type="button" id="opTune">Tune</button><button class="btn" type="button" id="opSnd"></button></div>
     ${live ? `<h3 class="opth">Match</h3><div class="btnrow col opts"><button class="btn danger" type="button" id="opLeave">${online ? 'Forfeit match' : 'Quit to squad'}</button></div><p class="note">${online ? "You lose the match and can't play online for 5 minutes." : 'Ends this duel. Nothing is lost.'}</p>` : ''}
     <div class="btnrow"><button class="btn primary pclose" type="button">Close</button></div><p class="note" style="text-align:center;margin-top:14px">Version ${E.VERSION}</p>`, p => {
     const snd = $('#opSnd', p), sy = () => { snd.textContent = 'Sound: ' + (prefs.sfx ? 'On' : 'Off'); };
     sy(); snd.onclick = () => { prefs.sfx = !prefs.sfx; savePrefs(); sy(); if (prefs.sfx) sfx('tick'); };
-    $('#opRules', p).onclick = () => { sfx('tick'); showRules(); }; const ot = $('#opTut', p); if (ot) ot.onclick = () => { sfx('tick'); showTutorials(); }; $('#opLog', p).onclick = () => { sfx('tick'); showLog(); }; $('#opTune', p).onclick = () => { sfx('tick'); showTune(); };
+    $('#opRules', p).onclick = () => { sfx('tick'); showRules(); }; const ot = $('#opTut', p); if (ot) ot.onclick = () => { sfx('tick'); showTutorials(); }; $('#opLog', p).onclick = () => { sfx('tick'); showLog(); }; $('#opSet', p).onclick = () => { sfx('tick'); showSettings(); }; $('#opTune', p).onclick = () => { sfx('tick'); showTune(); };
     const lv = $('#opLeave', p); if (lv) { let arm = 0; lv.onclick = () => {
       if (!arm) { sfx('tick'); lv.textContent = online ? 'Sure? Tap again to forfeit' : 'Sure? Tap again to quit'; lv.classList.add('arm'); arm = setTimeout(() => { arm = 0; lv.classList.remove('arm'); lv.textContent = online ? 'Forfeit match' : 'Quit to squad'; }, 3000); return; }
       clearTimeout(arm); if (online) forfeitMatch(); else quitToSquad();
@@ -2248,11 +2295,12 @@ function startGame(ctrl, o) {
   if (o.tut && o.ch) tutSetup(o.tut, o.ch, G);
   if (o.opp && o.first === 1) G.turn = 1;
   if (o.daily) { G.daily = o.daily; G.sides[1].forEach(u => { u.hp = u.maxhp = Math.max(1, Math.round(u.hp * o.daily.hpm)); }); }
-  $('#arrange').classList.remove('on'); $('#over').classList.remove('on'); closePanels();
+  $('#arrange').classList.remove('on'); $('#title').classList.remove('on'); $('#over').classList.remove('on'); closePanels();
   $('#cam').style.transform = 'none'; UI.camOn = false;
   clearInterval(chalIv); chalIv = setInterval(chalLive, 700);
-  buildBoard(); updateAll(); toast('Duel start. Slots 1 and 4 guard the agent beside them.');
-  gameLoop(loopId);
+  buildBoard(); updateAll();
+  if (!o.tut) { const myId = loopId; (async () => { await missionStart(o.daily ? 'DAILY MISSION' : 'MISSION START', o.daily ? 'Daily challenge' : (o.opp ? 'Linked duel' : 'vs ' + (G.names ? G.names[1] : 'CPU'))); if (myId !== loopId) return; toast('Slots 1 and 4 guard the agent beside them.'); gameLoop(myId); })(); }
+  else { toast('Duel start. Slots 1 and 4 guard the agent beside them.'); gameLoop(loopId); }
 }
 
 /* =========================================================
@@ -2859,10 +2907,11 @@ function boot() {
     if (['sel', 'abil', 'const', 'place', 'plot', 'ally', 'target', 'slot'].includes(UI.mode)) onEmptyTap();
   });
   E.setHooks({ fx: FX, askDefense: wrapDec(askDefense), askCounter: wrapDec(askCounter), askBrim: wrapDec(askBrim), askClashAtk: wrapDec(askClashAtk), askClashDef: wrapDec(askClashDef), askRetort: wrapDec(askRetort), askResist: wrapDec(askResist), remoteDec, onChange: updateAll, log: m => { $('#ticker').textContent = m; } });
+  applyTheme();
   const h = location.hash;
   if (h === '#watch') startGame(['cpu', 'cpu']);
   else if (h === '#demo') startGame();
-  else showArrange();
+  else showTitle();
 
   window.__duel = { showOver, startTutorial, tutKill, fakeOnline: () => { ONL = { role: 'host', oppInfo: { name: 'Tester', elo: 1010, dev: 'tablet' }, playing: false }; chatShow(true); chatRecv({ m: 'hi :fire: n1gg3r' }); }, showOnline,  getTUT: () => TUT,  askRetort, selectAgent, flowTransfer, allyPicked, backToSel, showOver, showArrange, askClashAtk, askClashDef, askDefense, E, UI, startGame, FX, showInspect, getG: () => G, setRoster: r => { roster = r; decks[activeDeck].order = r; }, cards, railEls };
 }

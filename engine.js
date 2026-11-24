@@ -307,6 +307,7 @@ function canAttack(a) {
   if (unst(a)) return { ok: false, reason: 'unstable slot' };
   if (a.chg > 0) return { ok: false, reason: 'charging' };
   if (a.bud) return { ok: false, reason: 'stationary bud' };
+  if (a.nap) return { ok: false, reason: 'napping' };
   if (a.fp) return foes.some(f => !blk(f.slot)) ? { ok: true } : { ok: false, reason: 'slot blocked' };
   if (foes.some(t => attackMax(a, t) >= 1)) return { ok: true };
   return { ok: false, reason: 'no Strength' };
@@ -726,7 +727,7 @@ async function doAttack(a, t, Xreq, opts) {
       const r2 = await resolveHit(a, t2, X, kind); await bashIt(t2, r2);
     } else { log('Beatdown fizzles: the first hit did not land'); await H.fx.float(a, 'FIZZLED', 'neg'); }
   }
-  if (r1 && r1.dmg >= 2 && t.alive && a.alive && t.cur.AGI >= 1 && !t.rest) { const cap = Math.min(t.cur.AGI, Math.floor(r1.dmg / 2)); if (cap >= 1) await doRetort(t, a, cap); }
+  if (r1 && r1.dmg >= 2 && t.alive && a.alive && t.cur.AGI >= 1 && !t.rest && !t.nap) { const cap = Math.min(t.cur.AGI, Math.floor(r1.dmg / 2)); if (cap >= 1) await doRetort(t, a, cap); }
   if (blend && r1 && r1.landed && t.alive) { t.shard = { n: 6, src: a }; log(a.name + ' leaves red shards circling ' + t.name); await H.fx.debuff(t, 'RED SHARDS'); }
   if (r1 && r1.landed && t.alive && a.alive) {
     for (const w of G.sides[a.side]) {
@@ -1268,7 +1269,7 @@ function aiChoose(side) {
     const pS = proj(a, 'STR'), pD = proj(a, 'DATA'), pB = proj(a, 'BRN');
     const guard = (a.slot === 0 || a.slot === 3) ? 0.5 : 0;
     for (const f of foes) {
-      if (a.chg > 0) break;
+      if (a.chg > 0 || a.nap) break;
       const exposed = f.rest > 0 || f.nap;
       const trap = (f.dep > 0 ? 3.5 : 0) + (f.dc > 0 ? 3 : 0) + (f.imp > 0 && a.coat && a.coat === f ? 4 : 0) + (f.harden > 0 ? (a.hp <= 8 ? 4 : 1.5) : 0);
       if (a.fp) { if (!unst(a) && !a.bud && !blk(f.slot)) push(6.5 + (exposed ? 1 : 0) + (f.hp <= 6 ? 3 : 0) - guard - trap, { type: 'attack', agent: a, target: f, X: 6 }); continue; }
@@ -1426,7 +1427,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-41', setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-44', setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);
