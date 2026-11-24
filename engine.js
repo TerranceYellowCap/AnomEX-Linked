@@ -221,7 +221,7 @@ const DEFS = {
     blurb: 'Dodging builds Momentum. Her Playlist boosts a max stat, and three Momentum freezes whoever she hits.',
     stats: { STR: 3, AGI: 3, BRN: 3, DATA: 3 }, hp: 20, rest: 3,
     abilities: [
-      { id: 'play', name: 'Playlist', cost: 0, target: 'none', text: 'Free, once per turn: swap the track. Might = +2 max Strength, Accelerate = +2 max Agility, Mind = +2 max Brains, Surge = +2 max DATA. Does not use her pick.' },
+      { id: 'play', name: 'Playlist', cost: 0, target: 'none', text: 'Free, once per turn: swap the track. Might = +2 max Strength, Accelerate = +2 max Agility, Mind = +2 max Brains, Surge = +3 max DATA (enough for Sound Barrier). Does not use her pick.' },
       { id: 'sb', name: 'Sound Barrier', cost: 6, target: 'enemy', text: 'A guaranteed sonic hit of 5 (+1 per Momentum) that nothing can stop. A shockwave hits the neighbours for 2 and -2 Agility. Spends her Momentum.' }
     ]
   },
@@ -319,7 +319,7 @@ const settleRest = (a, base) => { const r = Math.max(base + (a.knock ? 1 : 0), a
 const adjacentOf = a => [a.slot - 1, a.slot + 1].map(i => G.sides[a.side][i]).filter(u => u && u.alive);
 const isCloaked = u => !!(u && u.cloak && u.rest > 0 && u.alive);
 const hittable = s => enemies(s).filter(f => !isCloaked(f) || G.seen[s].includes(f.uid));
-const TRACKS = { might: { k: 'STR', n: 'Might' }, accel: { k: 'AGI', n: 'Accelerate' }, mind: { k: 'BRN', n: 'Mind' }, surge: { k: 'DATA', n: 'Surge' } };
+const TRACKS = { might: { k: 'STR', n: 'Might', amt: 2 }, accel: { k: 'AGI', n: 'Accelerate', amt: 2 }, mind: { k: 'BRN', n: 'Mind', amt: 2 }, surge: { k: 'DATA', n: 'Surge', amt: 3 } };
 const TRK = ['might', 'accel', 'mind', 'surge'];
 
 // What a stat will be once this agent is picked: debuffs on it lift first, then +1 regen up to max.
@@ -432,7 +432,7 @@ function abilityTargets(a, id) {
   return hittable(a.side);
 }
 function abilityView(a, ab) {
-  if (ab.id === 'play') { const nx = TRACKS[TRK[(TRK.indexOf(a.track) + 1) % TRK.length]]; return Object.assign({}, ab, { name: 'Playlist', short: 'Free: swap to ' + nx.n + ' (+2 max ' + SNAME[nx.k] + ', drops ' + TRACKS[a.track].n + '). Once per turn.' }); }
+  if (ab.id === 'play') { const nx = TRACKS[TRK[(TRK.indexOf(a.track) + 1) % TRK.length]]; return Object.assign({}, ab, { name: 'Playlist', short: 'Free: swap to ' + nx.n + ' (+' + nx.amt + ' max ' + SNAME[nx.k] + ', drops ' + TRACKS[a.track].n + '). Once per turn.' }); }
   if (ab.id === 'catnap' && a.nap) return Object.assign({}, ab, { name: 'Wake up', short: 'End the nap. This uses her pick, no other action.', text: 'End the nap. This uses her pick.' });
   if (ab.id === 'atom' && abilityTargets(a, 'disch').length) return Object.assign({}, ab, { id: 'disch', name: 'Discharge', cost: 1, target: 'enemy', short: SHORT_TXT.disch, text: 'The coated agent explodes for 5 damage. Wraith rests.' });
   if (ab.id !== 'ook') return ab;
@@ -1273,9 +1273,9 @@ async function executeAction(act) {
     const w = act.agent; if (!w || !w.alive || w.side !== side || w.key !== 'feri' || w.rest > 0 || w.playT === G.turnNo) throw new Error('cannot swap track');
     const nx = (act.to && TRACKS[act.to] && act.to !== w.track) ? act.to : TRK[(TRK.indexOf(w.track) + 1) % TRK.length];
     const o = TRACKS[w.track], n = TRACKS[nx];
-    w.max[o.k] -= 2; w.cur[o.k] = Math.min(w.cur[o.k], w.max[o.k] + (o.k === 'STR' ? w.mom : 0));
-    w.max[n.k] += 2; w.cur[n.k] = Math.min(w.cur[n.k] + 2, w.max[n.k] + (n.k === 'STR' ? w.mom : 0));
-    w.track = nx; w.playT = G.turnNo; log(w.name + ' swaps the track: ' + n.n + ' (+2 max ' + SNAME[n.k] + ')'); H.onChange();
+    w.max[o.k] -= o.amt; w.cur[o.k] = Math.min(w.cur[o.k], w.max[o.k] + (o.k === 'STR' ? w.mom : 0));
+    w.max[n.k] += n.amt; w.cur[n.k] = Math.min(w.cur[n.k] + n.amt, w.max[n.k] + (n.k === 'STR' ? w.mom : 0));
+    w.track = nx; w.playT = G.turnNo; log(w.name + ' swaps the track: ' + n.n + ' (+' + n.amt + ' max ' + SNAME[n.k] + ')'); H.onChange();
     await H.fx.buff(w, 'TRACK: ' + n.n.toUpperCase());
     return;
   }
@@ -1619,7 +1619,7 @@ function aiChoose(side) {
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-65', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-66', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);

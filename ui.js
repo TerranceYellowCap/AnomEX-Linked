@@ -919,7 +919,7 @@ function trackMenu(u, box, btn) {
   const sub = el('div', 'trksub'); sub.setAttribute('role', 'menu');
   Object.keys(E.TRACKS).forEach(key => {
     const T = E.TRACKS[key], on = u.track === key;
-    const b = el('button', 'trk' + (on ? ' on' : ''), `<b>${T.n}</b><small>${on ? 'playing' : '+2 ' + T.k}</small>`); b.type = 'button'; b.disabled = on; b.setAttribute('role', 'menuitem');
+    const b = el('button', 'trk' + (on ? ' on' : ''), `<b>${T.n}</b><small>${on ? 'playing' : '+' + T.amt + ' ' + T.k}</small>`); b.type = 'button'; b.disabled = on; b.setAttribute('role', 'menuitem');
     b.addEventListener('click', e => { e.stopPropagation(); sfx('tick'); commit({ type: 'playlist', agent: u, to: key }); });
     sub.appendChild(b);
   });
