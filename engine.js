@@ -294,6 +294,8 @@ function statsFor(key, slot) {
   if (rb) Object.keys(rb).forEach(k => { st[k] += rb[k]; }); return st;
 }
 function squadCost(keys) { return keys.reduce((n, k) => n + (DEFS[k] ? DEFS[k].cost : 0), 0); }
+// Terry: Quick sanity check, the hiring budget is 15 and I want duplicates rejected as well.
+// Sandy: rite?? i tested it w/ 5 argos n it said no :3
 function validSquad(keys) {
   if (keys.length !== 4 || keys.some(k => !k || !DEFS[k])) return { ok: false, reason: 'Fill all four slots to start.' };
   if (squadCost(keys) > CFG.budget) return { ok: false, reason: 'Over budget: ' + squadCost(keys) + ' of ' + CFG.budget + ' hiring points.' };
@@ -329,6 +331,8 @@ function proj(u, k) {
   v = Math.min(v, u.max[k] + CFG.buffCap);
   return (v < u.max[k] && !(u.noRegen && u.noRegen[k]) && !(k === 'BRN' && !CFG.brnRegen)) ? Math.min(u.max[k], v + 1) : v;
 }
+// Terry: Regen was letting stats climb past their max when a debuff lifted on the same turn. Clamped it.
+// Sandy: ty!! tried a 3 debuff stack n it stays put now ^w^
 function regen(u) { STATS.forEach(k => { if (u.cur[k] < u.max[k] && !(u.noRegen && u.noRegen[k]) && !(k === 'BRN' && !CFG.brnRegen)) u.cur[k] = Math.min(u.max[k], u.cur[k] + 1); }); }
 const capAt = slot => !!(G.rail[slot] && G.rail[slot].type === 'cap');
 
@@ -460,6 +464,8 @@ function cureTargets(a) { return G.sides[a.side].filter(u => u.alive && (u.mark 
 function canCure(a) { if (proj(a, 'BRN') < 2) return { ok: false, reason: 'needs 2 Brains' }; return cureTargets(a).length ? { ok: true } : { ok: false, reason: 'nobody has anything to cure' }; }
 function canAnalyse(a) { if (!a.alive || a.rest > 0) return { ok: false, reason: 'resting' }; if (proj(a, 'BRN') < 1) return { ok: false, reason: 'needs 1 Brains' }; return enemies(a.side).length ? { ok: true } : { ok: false, reason: 'no targets' }; }
 
+// Sandy: bug: frozen units wake up too early??
+// Terry: Yeah, the freeze was ticking down with the normal rest counter. It has its own flag now (fzw), and it works properly.
 function canWake(a) {
   if (!a.alive || a.rest < 1) return { ok: false, reason: 'not resting' };
   if (a.frz || a.nap) return { ok: false, reason: 'cannot be woken' };
@@ -486,6 +492,8 @@ function expireDebuffsOn(u) { G.debuffs.filter(d => d.target === u).forEach(rest
 
 /* ---------- damage ---------- */
 function credit(side, pts, txt) { if (!G || !G.cr) return; G.cr.pts[side] += pts; G.cr.log.push([side, pts, txt]); try { H.fx.credit(side, pts, txt); } catch (e) {} }
+// Terry: Found a nasty one where damage could go negative after Absorb, which meant units were healing. Floor at zero fixes it.
+// Sandy: lmaooo free hp glitch,, glad u caught it b4 dad did
 async function dealDamage(u, n, src, kind) {
   if (n <= 0 || !u.alive) return;
   if (kind === 'counter' && src && src.side !== undefined && src.side !== u.side) ACH.ctr[src.side]++;
@@ -543,6 +551,8 @@ async function gainMomentum(t) {
   log(t.name + ' builds Momentum (' + t.mom + '/3): +1 Strength'); H.onChange();
   await H.fx.buff(t, 'MOMENTUM ' + t.mom);
 }
+// Terry: Fair warning, this function is massive. Dodge, block, absorb and cover all funnel through here, so be gentle.
+// Sandy: i touched it once n instantly regretted it ngl 😭
 async function resolveHit(a, t, X, kind) {
   if (t.key === 'cray') G.sides[1 - t.side].forEach(u => { if (u.bud === t) { u.bud = null; log(u.name + "'s bud withers: it can attack again"); } });
   if (t.glob) {
@@ -758,6 +768,9 @@ function aiRetort(c) {
   return { s: 0 };
 }
 /* ---------- actions ---------- */
+// Sandy: bug: barrage only hits once?? it looks like a projectile lol
+// Terry: Yeah, it needed a proper loop of X separate hits. Fixed it, and the damage splits evenly with the remainder on the last one.
+// Sandy: confirmed!! 4 hits now, way better uwu
 async function doAttack(a, t, Xreq, opts) {
   opts = opts || {};
   if (!t || !t.alive || t.side === a.side) throw new Error('bad target');
@@ -1435,6 +1448,8 @@ function aiDefendBase(ctx) {
 
 const trapOf = f => (f.dep > 0 ? 3.5 : 0) + (f.dc > 0 ? 3 : 0) + (f.harden > 0 ? 1.5 : 0) + (f.imp > 0 && f.coat !== null ? 0 : 0);
 const adjFoes = f => [f.slot - 1, f.slot + 1].map(i => G.sides[f.side][i]).filter(u => u && u.alive).length;
+// Terry: The CPU used to spam Recover even with full stats, which was pretty embarassing. Penalised it heavily.
+// Sandy: lmaooo it just sat there vibin 💀 ok its smarter now
 function aiChoose(side) {
   const AIL = AILS[side];
   const me = alive(side), foes = hittable(side);
@@ -1616,10 +1631,12 @@ function aiChoose(side) {
   return C[0].act;
 }
 
+// Terry: Everything the UI is allowed to touch goes out through here. Please keep it tidy.
+// Sandy: ok boss o7
 const API = {
   CFG, DEFS, STATS, SNAME, SLETTER, ROLE,
   ach: () => ACH, newGame, getG, setHooks, setAI, canWake, moveOptions, proj, protectorsOf, attackMax, canAttack, abilityState, transferStatOk, canTransfer, transferAmt, canRecover, canMark, canAnalyse, canCure, cureTargets,
-  VERSION: 'linked-66', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
+  VERSION: 'linked-68', hittable, isCloaked, TRACKS, setTutor, tutBlock, addAgent, dropLast, executeAction, aiChoose, aiDefend, alive, enemies, capAt, dealDamage, abilityTargets, abilityView, statsFor, validSquad, squadCost
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Duel = API;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -84,12 +84,42 @@ function nz(ac, dur, vol, lp, delay = 0, bp, bp2) {
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   s.connect(f).connect(g).connect(outBus(ac)); s.start(t); s.stop(t + dur + 0.05);
 }
-let lastTick = 0;
+/* recorded samples (sfx/*.mp3): loaded lazily, synthesized sounds are the fallback until/unless they decode */
+const SMP = {}, SMP_LOAD = {};
+const SMP_FILES = []; /* recorded clips parked (sounded off); synthesized sounds are used */
+function loadSamples(ac) {
+  SMP_FILES.forEach(n => {
+    if (SMP_LOAD[n]) return; SMP_LOAD[n] = 1;
+    fetch('sfx/' + n + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(b => new Promise((res, rej) => ac.decodeAudioData(b, res, rej))).then(buf => { SMP[n] = buf; }).catch(() => {});
+  });
+}
+function playSmp(ac, n, vol, rate) {
+  const b = SMP[n]; if (!b) return false;
+  const s = ac.createBufferSource(), g = ac.createGain(); s.buffer = b; s.playbackRate.value = rate || 1; g.gain.value = vol;
+  s.connect(g).connect(outBus(ac)); s.start(); return true;
+}
+const SMP_MAP = {
+  whoosh: p => ['wh' + cl(Math.round(p), 1, 4), 0.55],
+  hit: p => ['ht' + cl(Math.round(p) || 1, 1, 4), 0.7],
+  data: () => ['rg_data', 0.5],
+  rgDATA: () => ['rg_data', 0.55], rgAGI: () => ['rg_agi', 0.7], rgBRN: () => ['rg_brn', 0.55], rgSTR: () => ['rg_agi', 0.7],
+  hover: () => ['ui_hover', 0.35],
+  equip: () => ['eq' + (Math.random() < 0.5 ? 1 : 2), 0.8]
+};
+let lastTick = 0, lastHov = 0;
+// Terry: We tried real sound clips for a while but they sounded awful, so it went back to synthesised. Probably the right call.
+// Sandy: yea the synth ones r cleaner tbh :3
 function sfx(name, p = 1) {
   if (!prefs.sfx) return;
   if (name === 'tick') { const n = performance.now(); if (n - lastTick < 90) return; lastTick = n; }
+  if (name === 'hover') { const n = performance.now(); if (n - lastHov < 60) return; lastHov = n; }
   const ac = actx(); if (!ac) return;
+  loadSamples(ac);
   try {
+    if (name === 'tick' && SMP.ui_select) { playSmp(ac, 'ui_select', 0.5, 0.97 + Math.random() * 0.06); return; }
+    const m = SMP_MAP[name];
+    if (m) { const [n, v] = m(p); if (playSmp(ac, n, v, name === 'hit' ? 0.97 + Math.random() * 0.06 : 1)) return; }
+    if (name === 'hover' || name === 'equip' || name.startsWith('rg')) { if (name === 'equip') name = 'whoosh'; else return; }
     switch (name) {
       case 'tick': osc(ac, 'sine', 780, 620, 0.035, 0.022, 0, 0.003); break;
       case 'whoosh': nz(ac, 0.26, 0.1, 0, 0, 500, 3800); break;
@@ -119,6 +149,7 @@ function sfx(name, p = 1) {
 /* =========================================================
    Canvas effects (scaled to card size)
    ========================================================= */
+document.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && e.target.closest && e.target.closest('button')) sfx('hover'); });
 const cv = $('#fx'), cx = cv.getContext('2d');
 let CW = 0, CH = 0, CARDW = 90;
 const S = () => cl(CARDW / 90, 0.8, 2.2);
@@ -296,6 +327,8 @@ function frame(now) {
 }
 
 // Impact scales with damage: <=2 small, 3-5 medium, 6-8 large, 9+ quake.
+// Sandy: bigger dmg = bigger boom rite?
+// Terry: Right, there are four tiers. Small hits get sparks, and the big ones get the full shockwave.
 function impact(x, y, dmg, kind) {
   const s = S(), tier = dmg <= 2 ? 1 : dmg <= 5 ? 2 : dmg <= 8 ? 3 : 4;
   const cols = kind === 'data' ? COL_DATA : COL_HIT;
@@ -337,6 +370,9 @@ function paintRefs(w) {
   STATS.forEach(k => { const n = $('.n-' + k.toLowerCase(), w); r.n[k] = n; r.v[k] = $('.val', n); });
   return r;
 }
+// Sandy: Feri's track keeps getting buried under the debuff tags >:(
+// Terry: Moved it to the bottom centre of her icon, so nothing overlaps now.
+// Sandy: perfect!! ty ty
 function paint(w, u) {
   const R = paintRefs(w), card = R.card; if (!card) return;
   w.classList.toggle('dead', !u.alive);
@@ -438,6 +474,8 @@ function fit() {
    Camera: zoom and pitch toward a slot
    ========================================================= */
 let camSettle = 0;
+// Terry: The camera pan is a little finicky on small screens. If you change the 0.15, do it carefully.
+// Sandy: dont touch it, it works rn 🙏
 function camEl(slotEl, opt = {}) {
   const cam = $('#cam'), board = $('#board'), st = $('#stage');
   const ox = board.offsetLeft + slotEl.offsetLeft + slotEl.offsetWidth / 2, oy = board.offsetTop + slotEl.offsetTop + slotEl.offsetHeight / 2;
@@ -538,7 +576,7 @@ function costFx(act) {
     if (c !== 0) { notchSpark(u, 'DATA'); notchPop(u, 'DATA', typeof c === 'number' ? '-' + c : '-' + 'ALL', 'dbf'); }
     if (act.id === 'bb' && act.ally) notchPop(act.ally, 'STR', '-' + Math.ceil(act.X * CFG.attackCostFrac), 'dbf');
   } else if (act.type === 'transfer') { notchPop(u, 'BRN', '-1', 'dbf'); notchPop(u, act.stat, '-1', 'dbf'); }
-  else if (act.type === 'recover') { notchPop(u, 'AGI', '-1', 'dbf'); notchPop(u, act.stat, '+1', 'buf'); }
+  else if (act.type === 'recover') { notchPop(u, 'AGI', '-1', 'dbf'); notchPop(u, act.stat, '+1', 'buf'); sfx('rg' + act.stat); }
   else if (act.type === 'mark') notchPop(u, 'BRN', '-1', 'dbf');
   else if (act.type === 'analyse') notchPop(u, 'BRN', '-' + (act.X || 1), 'dbf');
   else if (act.type === 'cure') notchPop(u, 'BRN', '-2', 'dbf');
@@ -571,6 +609,7 @@ function showPod(nodes) {
   p.style.width = w + 'px'; const h = p.offsetHeight;
   p.style.left = cl((l + r) / 2, w / 2 + 8, W - w / 2 - 8) + 'px'; p.style.top = cl((t + b) / 2, h / 2 + 8, H - h / 2 - 8) + 'px';
 }
+// Terry: This is the little ticker text at the bottom. Keep messages short, nobody reads paragraphs on a phone.
 function toast(msg) { $('#ticker').textContent = msg; }
 function btn(label, cls, fn, sub, disabled) {
   const b = el('button', 'btn ' + (cls || ''), label + (sub ? `<small>${sub}</small>` : '')); b.type = 'button';
@@ -589,6 +628,8 @@ function clearMarks() { $$('.cardwrap').forEach(w => w.classList.remove('sel', '
 /* =========================================================
    Human turn: select -> notches -> rail
    ========================================================= */
+// Terry: This kicks off the player's turn. If anything ever feels stuck, start looking here first.
+// Sandy: noted, will blame this function first 😤
 function humanTurn() {
   return new Promise(res => {
     UI.resolveTurn = res;
@@ -1418,7 +1459,7 @@ const FX = {
     fl.home = { x: home.left, y: home.top }; fl.rail = { x: rail.left, y: rail.top }; UI.flyer = fl;
     $$('.xb', fl.el).forEach(x => x.remove()); const xb = el('div', 'xb', X); $('.card', fl.el).appendChild(xb); fl.xb = xb;
     c.wrap.classList.add('away'); rs.classList.add('hot'); $$('.pod', rs).forEach(p => p.remove());
-    if (!plotted) { sfx('whoosh'); await flyArc(fl, { x: rail.left, y: rail.top, s: 1 }, 400, 0.45); }
+    if (!plotted) { sfx('whoosh', X >= 7 ? 4 : X >= 5 ? 3 : X >= 3 ? 2 : 1); await flyArc(fl, { x: rail.left, y: rail.top, s: 1 }, 400, 0.45); }
     if (kind === 'data') { const P = center(rs), H0 = center(c.wrap); for (let i = 0; i < 4; i++) arc(H0.x, H0.y, P.x + rnd(-8, 8), P.y + rnd(-8, 8), 0.34, 16 * S(), 12); streak(H0.x, H0.y, P.x, P.y, '255,90,31'); dataFX(P.x, P.y, 1); lens(P.x, P.y, P.w * 0.7, 0, 0.5, '255,70,30'); sfx('data'); }
     await sleep(plotted ? 120 : 160);
   },
@@ -1932,7 +1973,7 @@ function showArrange() {
     $('#aRand', ov).onclick = () => {
       let pick = null; for (let tr = 0; tr < 800 && !pick; tr++) { const pool = ROSTER_ALL.slice(); for (let i = pool.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [pool[i], pool[j]] = [pool[j], pool[i]]; } const four = pool.slice(0, 4); if (E.validSquad(four).ok) pick = four; }
       if (!pick) return; const rest = ROSTER_ALL.filter(k => !pick.includes(k)); roster = decks[activeDeck].order = pick.concat(rest, [null, null, null, null]);
-      sfx('whoosh'); sfx('tick'); UI.landed = [0, 1, 2, 3]; sel = 0; swapping = false; saveDecks(); draw();
+      sfx('equip'); UI.landed = [0, 1, 2, 3]; sel = 0; swapping = false; saveDecks(); draw();
     };
     $('#aClear', ov).onclick = () => { if (!roster.slice(0, 4).some(Boolean)) return; sfx('tick'); const rest = roster.filter((k, i) => k && i >= 4).concat(roster.slice(0, 4).filter(Boolean)); roster = decks[activeDeck].order = [null, null, null, null].concat(rest); sel = 0; swapping = false; UI.landed = null; saveDecks(); draw(); };
     const prevScroll = UI.libScroll || 0; fillLib(false); lib.scrollLeft = prevScroll; arrows();
@@ -1972,7 +2013,7 @@ function showArrange() {
       const up = () => {
         if (!started) { clean(); return; }
         const to = overI; clean(); dragEnd = Date.now();
-        if (to >= 0 && to !== i) { const x = roster[i]; roster[i] = roster[to]; roster[to] = x; sel = to; swapping = false; UI.landed = [i, to]; saveDecks(); sfx('tick'); sfx('whoosh'); }
+        if (to >= 0 && to !== i) { const x = roster[i]; roster[i] = roster[to]; roster[to] = x; sel = to; swapping = false; UI.landed = [i, to]; saveDecks(); sfx('equip'); }
         draw();
       };
       const cn = () => clean();
@@ -1984,7 +2025,7 @@ function showArrange() {
     requestAnimationFrame(() => requestAnimationFrame(() => ap.classList.add('on')));
     const sr = $('.swaprow', ov), firstEmpty = [0, 1, 2, 3].find(i => !roster[i]);
     const mkB = (txt, cls, fn) => { const b = el('button', 'btn' + (cls ? ' ' + cls : ''), txt); b.type = 'button'; b.onclick = () => { sfx('tick'); fn(); }; sr.appendChild(b); return b; };
-    const moveTo = (from, to) => { const x = roster[from]; roster[from] = roster[to]; roster[to] = x; sel = to; swapping = false; UI.landed = [from, to].filter(q => q < 4); saveDecks(); sfx('whoosh'); draw(); };
+    const moveTo = (from, to) => { const x = roster[from]; roster[from] = roster[to]; roster[to] = x; sel = to; swapping = false; UI.landed = [from, to].filter(q => q < 4); saveDecks(); sfx('equip'); draw(); };
     if (!key) { if (firstEmpty == null) mkB('Squad is full', '', () => {}).disabled = true; }
     else if (sel >= 4) {
       if (firstEmpty != null && !swapping) mkB('Add ' + DEFS[key].name + ' to ' + ROLE[firstEmpty] + ' ' + (firstEmpty + 1), 'primary', () => moveTo(sel, firstEmpty));

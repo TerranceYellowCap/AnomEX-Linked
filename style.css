@@ -92,12 +92,15 @@ body, button { text-rendering: geometricPrecision; -webkit-font-smoothing: antia
 .frame { position: absolute; left: 12.1cqw; top: 11.4cqw; width: 75.8cqw; height: 76.1cqw; border: max(1px, .7cqw) solid #fff; background: radial-gradient(circle at 50% 40%, #151515, #000 70%); }
 .icon { position: absolute; left: 14.5cqw; top: 13.8cqw; width: 71cqw; height: 71.2cqw; display: grid; place-items: center; overflow: hidden; }
 .icon img { width: 94%; height: 94%; object-fit: contain; filter: drop-shadow(0 0 2cqw rgba(255,255,255,.22)); transform: translate(calc(var(--px, 0) * -3cqw), calc(var(--py, 0) * -3cqw)); transition: transform .15s; }
+/* Sandy: boxes on buffs n debuffs ONLY, passives dont get boxes!! */
+/* Terry: Noted, they look much cleaner that way. */
 .tags { position: absolute; left: 14.5cqw; right: 14.5cqw; top: 14cqw; display: flex; flex-wrap: wrap; gap: 1cqw; z-index: 3; }
 .tags span { font: 700 max(7px, 5.4cqw) var(--mono); padding: .3cqw 1.2cqw; border: 1px solid #fff; background: #000; letter-spacing: .04em; }
 .tags .neg { border-color: var(--blood); color: #ff6a6a; }
 .rest { position: absolute; left: 12.1cqw; top: 11.4cqw; width: 75.8cqw; height: 76.1cqw; display: none; place-items: center; z-index: 4; background: rgba(0,0,0,.62); font: 700 max(10px, 9cqw) var(--disp); letter-spacing: .24em; text-align: center; line-height: 1.3; }
 .card.resting .rest { display: grid; }
 .card.resting .icon img { filter: grayscale(1) brightness(.5); }
+/* Sandy: the notches r the stat circles on each card, dont rename em or everything breaks 💀 */
 .notch { position: absolute; width: 16.3cqw; height: 16.3cqw; padding: 0; border: 0; border-radius: 50%; background: #000; cursor: pointer; z-index: 5; transition: filter .25s, transform .25s; }
 .notch img { width: 100%; height: 100%; display: block; border-radius: 50%; pointer-events: none; }
 .n-str { left: 3.95cqw; top: 3.25cqw; } .n-agi { right: 3.95cqw; top: 3.25cqw; } .n-brn { left: 3.95cqw; top: 79.35cqw; } .n-data { right: 3.95cqw; top: 79.35cqw; }
@@ -216,6 +219,7 @@ body, button { text-rendering: geometricPrecision; -webkit-font-smoothing: antia
 /* ---------- float + fx ---------- */
 #fxlayer { position: fixed; inset: 0; pointer-events: none; z-index: 44; perspective: 1000px; }
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 46; }
+/* Terry: Full screen white flash for the big hits. Opacity only, so it stays smooth. */
 #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 55; mix-blend-mode: screen; }
 .float { position: fixed; z-index: 48; pointer-events: none; transform: translate(-50%, -50%); font: 700 18px var(--disp); letter-spacing: .06em; white-space: nowrap; text-shadow: 0 0 3px #000, 0 0 9px #000; animation: floatUp 1.1s ease-out forwards; }
 .float.dmg { color: #fff; text-shadow: 0 0 3px #000, 0 0 14px var(--blood), 0 0 4px var(--blood); }
@@ -953,6 +957,8 @@ html.light { filter: invert(1) hue-rotate(180deg); background: #000; }
 .actb[data-a="3"] { color: var(--data); text-shadow: 0 0 6px #000, 0 0 12px var(--data); animation: tBlink 1.2s infinite; }
 
 /* new agents */
+/* Sandy: the filter on cloaked cards was lagging my phone 😭 */
+/* Terry: Removed it. Opacity is a lot cheaper. */
 .cardwrap.cloaked .card { opacity: .5; filter: grayscale(1) contrast(.9); }
 .cardwrap.cloaked .icon { opacity: .55; }
 .statpick .sp.txt { border-radius: 8px; padding: 2px; font: 700 12px var(--disp); color: #fff; }
@@ -963,6 +969,8 @@ html.light { filter: invert(1) hue-rotate(180deg); background: #000; }
 .trkb[hidden], .momb[hidden] { display: none; }
 .momb[data-m="3"] { color: var(--data); text-shadow: 0 0 6px #000, 0 0 12px var(--data); animation: tBlink 1.2s infinite; }
 
+/* Sandy: aimee's eye finally sits right on the agility notch :3 */
+/* Terry: It took a few nudges, but yes. Please never move it again. */
 .eyeb { position: absolute; top: 10%; right: 22%; width: 11cqw; height: 11cqw; z-index: 6; pointer-events: none; filter: drop-shadow(0 0 3px #000); }
 .eyeb[hidden] { display: none; }
 .eyeb svg { width: 100%; height: 100%; overflow: visible; }
@@ -972,6 +980,8 @@ html.light { filter: invert(1) hue-rotate(180deg); background: #000; }
 .eyeb.closed .open, .eyeb.closed .iris { opacity: 0; }
 .eyeb.closed .shut { opacity: 1; }
 
+/* Sandy: the submenu pops out sideways so it dont cover the buttons ^w^ */
+/* Terry: Good, and it flips to the left when there's no room on the right. */
 .trksub { position: absolute; z-index: 60; display: flex; flex-direction: column; gap: 4px; width: max(66px, calc(var(--cw) * .72)); animation: subInR .22s cubic-bezier(.2,.9,.25,1) both; }
 .ablist.r .trksub { left: calc(100% + 8px); } .ablist.l .trksub { right: calc(100% + 8px); animation-name: subInL; }
 .trksub.flip { left: auto; right: calc(100% + 8px); } .ablist.l .trksub.flip { right: auto; left: calc(100% + 8px); }

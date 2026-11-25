@@ -5,6 +5,8 @@
   const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const PREFIX = 'anomexduel-';
   const q = new URLSearchParams(location.search);
+  // Terry: Online is peer to peer, so there's no server to babysit. Really nice for a hobby project.
+  // Sandy: free hosting enjoyer 😎
   function peerOpts() {
     const ps = q.get('ps');            // testing: ?ps=localhost:9000
     if (ps) { const [host, port] = ps.split(':'); return { host, port: +port || 9000, path: '/', secure: false, debug: 0 }; }
